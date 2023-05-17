@@ -5,7 +5,10 @@ workspace "VulkanRenderingEngine"
 project "VulkanRenderingEngine"
    kind "ConsoleApp"
    language "C++"
-   targetdir "bin/%{cfg.buildcfg}"
+   architecture "x86_64"
+   targetdir "Build/Bin/%{prj.name}/%{cfg.buildcfg}"
+   objdir "Build/Obj/%{prj.name}/%{cfg.buildcfg}"
+   location "VulkanRenderingEngine"
 
    files { "**.h", "**.c" }
 
