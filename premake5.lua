@@ -1,6 +1,6 @@
-workspace "VulkanRenderer"
+workspace "Sculptor"
     architecture "x86_64"
-    startproject "VulkanRenderer"
+    startproject "Sculptor"
 
     configurations
     {
@@ -13,12 +13,12 @@ workspace "VulkanRenderer"
     outputdir = "%{cfg.buildcfg}_%{cfg.system}_%{cfg.architecture}"
 
     group "Dependencies"
-        include "VulkanRenderer/vendor/GLFW"
-        include "VulkanRenderer/vendor/glad"
+        include "Sculptor/vendor/GLFW"
+        include "Sculptor/vendor/glad"
     group ""
 
     group "Core"
-        include "VulkanRenderer"
+        include "Sculptor"
     group ""
 
 newaction
@@ -27,7 +27,7 @@ newaction
     description = "Remove all binaries, intermediate binaries, and VS Files.",
     execute = function()
         print("Removing binaries & intermediate binaries")
-        os.rmdir("./VulkanRenderer/build")
+        os.rmdir("./Sculptor/build")
         print("Removing project files")
         os.rmdir("./.vs")
         os.remove("**.sln")

@@ -1,4 +1,4 @@
-project "VulkanRenderer"
+project "Sculptor"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20"
@@ -7,8 +7,8 @@ project "VulkanRenderer"
     targetdir("./build/bin/" .. outputdir .. "/%{prj.name}")
     objdir("./build/obj/" .. outputdir .. "/%{prj.name}")
 
-    pchheader "VulkanRendererPch.h"
-    pchsource "src/VulkanRendererPch.cpp"
+    pchheader "SculptorPch.h"
+    pchsource "src/SculptorPch.cpp"
 
     files 
     {
