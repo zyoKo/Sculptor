@@ -9,12 +9,26 @@ namespace Sculptor::Core
 	public:
 		SculptorApplication();
 
-		void RunApplication();
+		~SculptorApplication() = default;
+
+		void SculptApplication();
 
 	private:
 		std::unique_ptr<Window> window;
 
 		WindowProperties windowProperties;
+
+		VkInstance vulkanInstance;
+
+		std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+		VkDebugUtilsMessengerEXT debugMessenger;
+
+#ifdef DEBUG
+		bool enableValidationLayers = true;
+#else
+		bool enableValidationLayers = false;
+#endif
 
 		void InitializeWindow() const;
 
@@ -22,6 +36,21 @@ namespace Sculptor::Core
 
 		void MainLoop() const;
 
-		void CleanUp();
+		void CleanUp() const;
+
+		// Move it into another file
+		void CreateVulkanInstance();
+
+		bool CheckValidationLayerSupport() const;
+
+		std::vector<const char*> GetRequiredExtensions() const;
+
+		static void PrintAllSupportedExtensions();
+
+		static void PrintRequiredGLFWExtensions(const std::vector<const char*>& requiredExtensions);
+
+		void SetupDebugMessenger();
+
+		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	};
 }
