@@ -145,15 +145,16 @@ namespace Sculptor::Core
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		// Get EnableValidationLayer bool value and the features here
 		// Uncomment these to find the issue
-		/*if (enableValidationLayers)
+		if (validationLayer->IsEnabled())
 		{
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
+			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();
 
-			PopulateDebugMessengerCreateInfo(debugCreateInfo);
+			//PopulateDebugMessengerCreateInfo(debugCreateInfo);
+			validationLayer->PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = &debugCreateInfo;
 		}
-		else*/
+		else
 		{
 			createInfo.enabledLayerCount = 0;
 
@@ -214,6 +215,11 @@ namespace Sculptor::Core
 		{
 			requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}*/
+
+		if (validationLayer->IsEnabled())
+		{
+			requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
 
 		// All required extensions added, now print it
 		PrintRequiredGLFWExtensions(requiredExtensions);
