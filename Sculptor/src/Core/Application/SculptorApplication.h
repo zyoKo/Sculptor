@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Windows/Window.h"
+#include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
 namespace Sculptor::Core
 {
@@ -16,20 +17,23 @@ namespace Sculptor::Core
 	private:
 		std::unique_ptr<Window> window;
 
+		std::unique_ptr<ValidationLayer> validationLayer;
+
 		WindowProperties windowProperties;
 
 		VkInstance vulkanInstance;
 
-		std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+		//std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
-		VkDebugUtilsMessengerEXT debugMessenger;
+		//VkDebugUtilsMessengerEXT debugMessenger;
 
-#ifdef DEBUG
-		bool enableValidationLayers = true;
-#else
-		bool enableValidationLayers = false;
-#endif
+//#ifdef DEBUG
+//		bool enableValidationLayers = true;
+//#else
+//		bool enableValidationLayers = false;
+//#endif
 
+		// CORE FUNCTIONS FOR THIS CLASS///////////////
 		void InitializeWindow() const;
 
 		void InitializeVulkan();
@@ -37,11 +41,12 @@ namespace Sculptor::Core
 		void MainLoop() const;
 
 		void CleanUp() const;
+		///////////////////////////////////////////////
 
-		// Move it into another file
+		// Move these into appropriate classes ////////
 		void CreateVulkanInstance();
 
-		bool CheckValidationLayerSupport() const;
+		//bool CheckValidationLayerSupport() const;
 
 		std::vector<const char*> GetRequiredExtensions() const;
 
@@ -49,8 +54,9 @@ namespace Sculptor::Core
 
 		static void PrintRequiredGLFWExtensions(const std::vector<const char*>& requiredExtensions);
 
-		void SetupDebugMessenger();
+		//void SetupDebugMessenger();
 
-		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		//void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		//////////////////////////////////////////////
 	};
 }

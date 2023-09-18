@@ -7,65 +7,70 @@
 // TODO: I wanna "PUKE" --> NEED to FIX this tomorrow
 namespace Sculptor::Core
 {
-	VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData)
-	{
-		switch(messageSeverity)
-		{
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
-			break;
+	//// Message CallBack
+	//VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(
+	//	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	//	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	//	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	//	void* pUserData)
+	//{
+	//	switch(messageSeverity)
+	//	{
+	//	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+	//		//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
+	//		break;
 
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-			//std::cout << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
-			break;
+	//	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+	//		//std::cout << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
+	//		break;
 
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-			std::cerr << "Validation Layer(Warning): " << pCallbackData->pMessage << std::endl;
-			break;
+	//	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+	//		std::cerr << "Validation Layer(Warning): " << pCallbackData->pMessage << std::endl;
+	//		break;
 
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-			S_ASSERT(false, pCallbackData->pMessage);
-			break;
+	//	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+	//		S_ASSERT(false, pCallbackData->pMessage);
+	//		break;
 
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
-			break;
-		}
+	//	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+	//		break;
+	//	}
 
-		return VK_FALSE;
-	}
+	//	return VK_FALSE;
+	//}
 
-	VkResult CreateDebugUtilsMessengerEXT(
-		VkInstance instance, 
-		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
-		const VkAllocationCallbacks* pAllocator, 
-		VkDebugUtilsMessengerEXT* pDebugMessenger)
-	{
-		const auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+	//// Proxy Function for Creation of Objects
+	//VkResult CreateDebugUtilsMessengerEXT(
+	//	VkInstance instance, 
+	//	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
+	//	const VkAllocationCallbacks* pAllocator, 
+	//	VkDebugUtilsMessengerEXT* pDebugMessenger)
+	//{
+	//	const auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 
-		if (func != nullptr) 
-			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-		
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
+	//	if (func != nullptr) 
+	//		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+	//	
+	//	return VK_ERROR_EXTENSION_NOT_PRESENT;
+	//}
 
-	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (func != nullptr) {
-			func(instance, debugMessenger, pAllocator);
-		}
-	}
+	//// Proxy function for Deletions of objects
+	//void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+	//	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+	//	if (func != nullptr) {
+	//		func(instance, debugMessenger, pAllocator);
+	//	}
+	//}
 
+	////// MAIN APPLICATION ////////////////////////////////////////////////////////////////////////////////////////////////////////
 	SculptorApplication::SculptorApplication()
 		:	window(nullptr),
 			windowProperties(1920, 1080),
-			vulkanInstance(nullptr),
-			debugMessenger(nullptr)
+			vulkanInstance(nullptr)
 	{
 		window = std::make_unique<Window>();
+
+		validationLayer = std::make_unique<ValidationLayer>(&vulkanInstance);
 	}
 
 	void SculptorApplication::SculptApplication()
@@ -101,8 +106,9 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
-		if (enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(vulkanInstance, debugMessenger, nullptr);
+		/*if (enableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(vulkanInstance, debugMessenger, nullptr);*/
+		validationLayer->CleanUp();
 
 		vkDestroyInstance(vulkanInstance, nullptr);
 
@@ -111,7 +117,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CreateVulkanInstance()
 	{
-		S_ASSERT(enableValidationLayers && !CheckValidationLayerSupport(), "Validation Layer requested, but not available");
+		// TODO: Create a function in Validation Layer to check for ValidationLayer Existence
+		//S_ASSERT(enableValidationLayers && !CheckValidationLayerSupport(), "Validation Layer requested, but not available");
 
 		// Create Application Info
 		VkApplicationInfo applicationInfo{};
@@ -136,7 +143,9 @@ namespace Sculptor::Core
 		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-		if (enableValidationLayers)
+		// Get EnableValidationLayer bool value and the features here
+		// Uncomment these to find the issue
+		/*if (enableValidationLayers)
 		{
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 			createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -144,7 +153,7 @@ namespace Sculptor::Core
 			PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = &debugCreateInfo;
 		}
-		else
+		else*/
 		{
 			createInfo.enabledLayerCount = 0;
 
@@ -155,8 +164,9 @@ namespace Sculptor::Core
 		const VkResult result = vkCreateInstance(&createInfo, nullptr, &vulkanInstance);
 		S_ASSERT(result != VK_SUCCESS, "Failed to Create Vulkan Instance!");
 	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	bool SculptorApplication::CheckValidationLayerSupport() const
+	/*bool SculptorApplication::CheckValidationLayerSupport() const
 	{
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -181,7 +191,7 @@ namespace Sculptor::Core
 		}
 
 		return true;
-	}
+	}*/
 
 	std::vector<const char*> SculptorApplication::GetRequiredExtensions() const
 	{
@@ -199,10 +209,11 @@ namespace Sculptor::Core
 
 		// If Validation Layers are enabled, we need VK_EXT_Debug_util added to the extensions,
 		// to setup a callback in the program to handle messages
-		if (enableValidationLayers)
+		// TODO: Get EnableValidationLayer boolean and fix this
+		/*if (enableValidationLayers)
 		{
 			requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
+		}*/
 
 		// All required extensions added, now print it
 		PrintRequiredGLFWExtensions(requiredExtensions);
@@ -235,7 +246,7 @@ namespace Sculptor::Core
 		std::cout << "\n";
 	}
 
-	void SculptorApplication::SetupDebugMessenger()
+	/*void SculptorApplication::SetupDebugMessenger()
 	{
 		if (!enableValidationLayers)
 			return;
@@ -265,5 +276,5 @@ namespace Sculptor::Core
 		createInfo.pfnUserCallback = DebugCallBack;
 
 		createInfo.pUserData = nullptr;
-	}
+	}*/
 }
