@@ -18,11 +18,9 @@ namespace Sculptor::Core
 	{
 	}
 
-	bool ValidationLayer::RequestValidationLayer() const
+	void ValidationLayer::RequestValidationLayer() const
 	{
 		S_ASSERT(enableValidationLayers && !CheckValidationLayerSupport(), "Validation Layer Requested, but not available!");
-
-		return true;
 	}
 
 	bool ValidationLayer::IsEnabled() const

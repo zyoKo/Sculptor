@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/RenderAPI/VulkanInstance.h"
 #include "Core/Windows/Window.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
@@ -12,26 +13,18 @@ namespace Sculptor::Core
 
 		~SculptorApplication() = default;
 
-		void SculptApplication();
+		void Sculpt();
 
 	private:
 		std::unique_ptr<Window> window;
+
+		std::unique_ptr<VulkanInstance> vulkanInstance;
 
 		std::unique_ptr<ValidationLayer> validationLayer;
 
 		WindowProperties windowProperties;
 
-		VkInstance vulkanInstance;
-
-		//std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-
-		//VkDebugUtilsMessengerEXT debugMessenger;
-
-//#ifdef DEBUG
-//		bool enableValidationLayers = true;
-//#else
-//		bool enableValidationLayers = false;
-//#endif
+		//VkInstance vulkanInstance;
 
 		// CORE FUNCTIONS FOR THIS CLASS///////////////
 		void InitializeWindow() const;
@@ -44,19 +37,13 @@ namespace Sculptor::Core
 		///////////////////////////////////////////////
 
 		// Move these into appropriate classes ////////
-		void CreateVulkanInstance();
+		void CreateVulkanInstance() const;
 
-		//bool CheckValidationLayerSupport() const;
+		//std::vector<const char*> GetRequiredExtensions() const;
 
-		std::vector<const char*> GetRequiredExtensions() const;
+		//static void PrintAllSupportedExtensions();
 
-		static void PrintAllSupportedExtensions();
-
-		static void PrintRequiredGLFWExtensions(const std::vector<const char*>& requiredExtensions);
-
-		//void SetupDebugMessenger();
-
-		//void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		//static void PrintRequiredGLFWExtensions(const std::vector<const char*>& requiredExtensions);
 		//////////////////////////////////////////////
 	};
 }

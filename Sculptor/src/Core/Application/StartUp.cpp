@@ -8,7 +8,7 @@ int main()
 
 	try
 	{
-		application.SculptApplication();
+		application.Sculpt();
 	}
 	catch( const std::exception& exception)
 	{

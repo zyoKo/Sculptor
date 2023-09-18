@@ -11,7 +11,7 @@ namespace Sculptor::Core
 
 		~ValidationLayer() = default;
 
-		bool RequestValidationLayer() const;
+		void RequestValidationLayer() const;
 
 		bool IsEnabled() const;
 
