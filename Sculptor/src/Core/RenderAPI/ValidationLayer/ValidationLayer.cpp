@@ -6,10 +6,10 @@
 
 namespace Sculptor::Core
 {
-	ValidationLayer::ValidationLayer(VkInstance* vkInstance)
+	ValidationLayer::ValidationLayer()
 		:	validationLayers{ "VK_LAYER_KHRONOS_validation" },
 			debugMessenger(nullptr),
-			vulkanInstance(vkInstance),
+			vulkanInstance(nullptr),
 		#ifdef DEBUG
 			enableValidationLayers(true)
 		#else
@@ -18,9 +18,11 @@ namespace Sculptor::Core
 	{
 	}
 
-	void ValidationLayer::RequestValidationLayer() const
+	void ValidationLayer::RequestValidationLayer(VkInstance* vulkanInstance)
 	{
 		S_ASSERT(enableValidationLayers && !CheckValidationLayerSupport(), "Validation Layer Requested, but not available!");
+
+		this->vulkanInstance = vulkanInstance;
 	}
 
 	bool ValidationLayer::IsEnabled() const

@@ -5,13 +5,15 @@ namespace Sculptor::Core
 	class ValidationLayer
 	{
 	public:
-		ValidationLayer() = delete;
+		ValidationLayer();
 
-		ValidationLayer(VkInstance* vkInstance);
+		explicit ValidationLayer(const ValidationLayer&) = delete;
+
+		ValidationLayer& operator=(const ValidationLayer&) = delete;
 
 		~ValidationLayer() = default;
 
-		void RequestValidationLayer() const;
+		void RequestValidationLayer(VkInstance* vulkanInstance);
 
 		bool IsEnabled() const;
 
@@ -50,6 +52,5 @@ namespace Sculptor::Core
 
 		// Proxy function for Deletion of objects
 		void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-
 	};
 }
