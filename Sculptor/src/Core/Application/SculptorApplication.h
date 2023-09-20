@@ -20,7 +20,7 @@ namespace Sculptor::Core
 
 		WindowProperties windowProperties;
 
-		std::shared_ptr<VulkanInstanceWrapper> vulkanInstance;
+		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		std::shared_ptr<ValidationLayer> validationLayer;
 

@@ -24,7 +24,7 @@ namespace Sculptor::Core
 		applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		applicationInfo.pEngineName = "Sculptor-Engine";
 		applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.apiVersion = VK_API_VERSION_1_3;
+		applicationInfo.apiVersion = VK_MAKE_VERSION(1, 3, 0);
 
 		// Create Info needs both applicationInfo and glfwExtensions
 		VkInstanceCreateInfo createInfo{};
@@ -40,7 +40,7 @@ namespace Sculptor::Core
 		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-		if (validationLayer->IsEnabled())
+		if (validationLayer && validationLayer->IsEnabled())
 		{
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
 			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();

@@ -9,7 +9,7 @@ namespace Sculptor::Core
 	SculptorApplication::SculptorApplication()
 		:	window(std::make_unique<Window>()),
 			windowProperties(1920, 1080),
-			vulkanInstance(std::make_shared<VulkanInstanceWrapper>()),
+			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
 			validationLayer(std::make_shared<ValidationLayer>())
 	{
 		ExtensionManager::Initialize(validationLayer);
@@ -33,9 +33,10 @@ namespace Sculptor::Core
 
 	void SculptorApplication::InitializeVulkan() const
 	{
-		validationLayer->RequestValidationLayer(&vulkanInstance->GetInstance());
+		validationLayer->RequestValidationLayer(&vulkanInstanceWrapper->GetInstance());
 
-		vulkanInstance->CreateInstance(validationLayer);
+		vulkanInstanceWrapper->CreateInstance(validationLayer);
+		//vulkanInstanceWrapper->CreateInstance(nullptr);
 	}
 
 	void SculptorApplication::MainLoop() const
@@ -50,7 +51,7 @@ namespace Sculptor::Core
 	{
 		validationLayer->CleanUp();
 
-		vulkanInstance->DestroyInstance();
+		vulkanInstanceWrapper->DestroyInstance();
 
 		window->Shutdown();
 	}

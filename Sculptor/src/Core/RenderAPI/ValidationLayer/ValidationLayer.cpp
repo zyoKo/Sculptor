@@ -66,7 +66,7 @@ namespace Sculptor::Core
 		PopulateDebugMessengerCreateInfo(createInfo);
 
 		const VkResult debugResult = CreateDebugUtilsMessengerEXT(*vulkanInstance, &createInfo, nullptr, &debugMessenger);
-		S_ASSERT(debugResult != VK_SUCCESS, "failed to set up debug messenger!");
+		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!");
 	}
 
 	const std::vector<const char*>& ValidationLayer::GetValidationLayersArray() const
