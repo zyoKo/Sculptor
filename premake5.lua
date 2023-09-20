@@ -1,3 +1,4 @@
+-- Utility Functions
 function GetEnvironmentalVariable(variableName)
     local value = os.getenv(variableName)
     if value ~= nil then
@@ -7,6 +8,7 @@ function GetEnvironmentalVariable(variableName)
     end
 end
 
+-- Workspace Settings
 workspace "Sculptor"
     architecture "x86_64"
     startproject "Sculptor"
@@ -36,6 +38,8 @@ workspace "Sculptor"
         include "Sculptor"
     group ""
 
+-- this action can be used with premake.exe as a parameter
+-- Usage: premake.exe clean    
 newaction
 {
     trigger = "clean",
