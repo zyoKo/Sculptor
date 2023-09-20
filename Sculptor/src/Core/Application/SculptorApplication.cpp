@@ -37,6 +37,8 @@ namespace Sculptor::Core
 
 		vulkanInstanceWrapper->CreateInstance(validationLayer);
 		//vulkanInstanceWrapper->CreateInstance(nullptr);
+
+		validationLayer->SetupDebugMessenger();
 	}
 
 	void SculptorApplication::MainLoop() const

@@ -69,6 +69,13 @@ namespace Sculptor::Core
 		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!");
 	}
 
+	void ValidationLayer::CleanUp() const
+	{
+		if (enableValidationLayers)
+			DestroyDebugUtilsMessengerEXT(*vulkanInstance, debugMessenger, nullptr);
+	}
+
+	// Private Functions && Message Callback Functions
 	const std::vector<const char*>& ValidationLayer::GetValidationLayersArray() const
 	{
 		return validationLayers;
@@ -95,7 +102,7 @@ namespace Sculptor::Core
 	}
 
 	// Message CallBack
-	VKAPI_ATTR VkBool32 VKAPI_CALL ValidationLayer::DebugCallBack(
+	VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -104,11 +111,11 @@ namespace Sculptor::Core
 		switch (messageSeverity)
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
+			//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-			std::cout << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
+			//std::cout << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
@@ -127,7 +134,7 @@ namespace Sculptor::Core
 	}
 
 	// Proxy Function for Creation of Objects
-	VkResult ValidationLayer::CreateDebugUtilsMessengerEXT(
+	VkResult CreateDebugUtilsMessengerEXT(
 		VkInstance instance,
 		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 		const VkAllocationCallbacks* pAllocator,
@@ -142,16 +149,10 @@ namespace Sculptor::Core
 	}
 
 	// Proxy function for Deletions of objects
-	void ValidationLayer::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);
 		}
-	}
-
-	void ValidationLayer::CleanUp()
-	{
-		if (enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(*vulkanInstance, debugMessenger, nullptr);
 	}
 }
