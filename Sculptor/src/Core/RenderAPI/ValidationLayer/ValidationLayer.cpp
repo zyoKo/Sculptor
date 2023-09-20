@@ -111,11 +111,8 @@ namespace Sculptor::Core
 		switch (messageSeverity)
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
-			break;
-
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-			//std::cout << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
+			//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:

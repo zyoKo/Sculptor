@@ -1,19 +1,32 @@
 #pragma once
 
+#include <optional>
+
 #include "Core/RenderAPI/VulkanInstanceWrapper.h"
 #include "Core/Windows/Window.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
 namespace Sculptor::Core
 {
+	struct QueueFamilyIndices
+	{
+		std::optional<uint32_t> graphicsFamily;
+
+		bool IsGraphicsFamilyComplete() const { return graphicsFamily.has_value(); }
+	};
+
 	class SculptorApplication
 	{
 	public:
 		SculptorApplication();
 
+		SculptorApplication(const SculptorApplication&) = delete;
+
+		SculptorApplication& operator=(const SculptorApplication&) = delete;
+
 		~SculptorApplication() = default;
 
-		void Sculpt() const;
+		void Sculpt();
 
 	private:
 		std::unique_ptr<Window> window;
@@ -26,10 +39,30 @@ namespace Sculptor::Core
 
 		void InitializeWindow() const;
 
-		void InitializeVulkan() const;
+		void InitializeVulkan();
 
 		void MainLoop() const;
 
 		void CleanUp() const;
+
+		// Un-arranged Functions ////////////////
+		// Physical Device(GPU) Selection
+		VkPhysicalDevice physicalDevice;
+
+		void PickPhysicalDevice();
+
+		static int RateDeviceSuitability(const VkPhysicalDevice& device);
+
+		// Queue Families
+		VkQueue graphicsQueue;
+
+		static QueueFamilyIndices FindQueueFamilies(const VkPhysicalDevice& device);
+
+		static bool IsDeviceSuitable(const VkPhysicalDevice& device);
+
+		// Logical Device
+		VkDevice device;
+
+		void CreateLogicalDevice();
 	};
 }
