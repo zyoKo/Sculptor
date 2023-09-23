@@ -5,7 +5,7 @@ Sculptor is personal rendering engine currently being build upon Vulkan API.
 
 **Note:** This project is built and tested on Visual Studio 2022.
 
-## Project Build Instruction
+## Build Instruction
 Follow the steps to build the project.
 1. Clone the repository using the following command on the cmdline(prefer, cmd or powershell) tool of your choice.
 
