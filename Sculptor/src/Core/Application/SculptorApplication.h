@@ -1,20 +1,12 @@
 #pragma once
 
-#include <optional>
-
+#include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Core/Windows/Window.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
 namespace Sculptor::Core
 {
-	struct QueueFamilyIndices
-	{
-		std::optional<uint32_t> graphicsFamily;
-
-		bool IsGraphicsFamilyComplete() const { return graphicsFamily.has_value(); }
-	};
-
 	class SculptorApplication
 	{
 	public:
@@ -26,7 +18,7 @@ namespace Sculptor::Core
 
 		~SculptorApplication() = default;
 
-		void Sculpt();
+		void Sculpt() const;
 
 	private:
 		std::unique_ptr<Window> window;
@@ -37,26 +29,14 @@ namespace Sculptor::Core
 
 		std::shared_ptr<ValidationLayer> validationLayer;
 
-		std::shared_ptr<PhysicalDevice> physicalDevice;
+		std::shared_ptr<LogicalDevice> logicalDevice;
 
 		void InitializeWindow() const;
 
-		void InitializeVulkan();
+		void InitializeVulkan() const;
 
 		void MainLoop() const;
 
 		void CleanUp() const;
-
-		// Queue Families
-		VkQueue graphicsQueue;
-
-		static QueueFamilyIndices FindQueueFamilies(const VkPhysicalDevice& device);
-
-		static bool IsDeviceSuitable(const VkPhysicalDevice& device);
-
-		// Logical Device
-		VkDevice device;
-
-		void CreateLogicalDevice();
 	};
 }

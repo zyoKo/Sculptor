@@ -2,12 +2,13 @@
 
 #include "ValidationLayer.h"
 
+#include "Core/RenderAPI/Constants/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
 	ValidationLayer::ValidationLayer()
-		:	validationLayers{ "VK_LAYER_KHRONOS_validation" },
+		:	validationLayers{ VALIDATION_LAYERS },
 			debugMessenger(nullptr),
 			vulkanInstance(nullptr),
 		#ifdef DEBUG
