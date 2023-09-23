@@ -2,15 +2,16 @@
 
 #include "SculptorApplication.h"
 
-#include "Core/RenderAPI/ExtensionManager.h"
+#include "Utilities/ExtensionManager.h"
 
 namespace Sculptor::Core
 {
 	SculptorApplication::SculptorApplication()
 		:	window(std::make_unique<Window>()),
 			windowProperties(1920, 1080),
-			vulkanInstance(std::make_shared<VulkanInstanceWrapper>()),
-			validationLayer(std::make_shared<ValidationLayer>())
+			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
+			validationLayer(std::make_shared<ValidationLayer>()),
+			logicalDevice(std::make_shared<LogicalDevice>(validationLayer, vulkanInstanceWrapper))
 	{
 		ExtensionManager::Initialize(validationLayer);
 	}
@@ -33,14 +34,18 @@ namespace Sculptor::Core
 
 	void SculptorApplication::InitializeVulkan() const
 	{
-		validationLayer->RequestValidationLayer(&vulkanInstance->GetInstance());
+		validationLayer->RequestValidationLayer(&vulkanInstanceWrapper->GetInstance());
 
-		vulkanInstance->CreateInstance(validationLayer);
+		vulkanInstanceWrapper->CreateInstance(validationLayer);
+
+		validationLayer->SetupDebugMessenger();
+
+		logicalDevice->CreateLogicalDevice();
 	}
 
 	void SculptorApplication::MainLoop() const
 	{
-		while(!window->WindowShouldClose())
+		while (!window->WindowShouldClose())
 		{
 			window->PollEvents();
 		}
@@ -48,9 +53,11 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
+		logicalDevice->CleanUp();
+
 		validationLayer->CleanUp();
 
-		vulkanInstance->DestroyInstance();
+		vulkanInstanceWrapper->DestroyInstance();
 
 		window->Shutdown();
 	}

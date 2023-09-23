@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core/RenderAPI/VulkanInstanceWrapper.h"
+#include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Core/Windows/Window.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
@@ -11,6 +12,10 @@ namespace Sculptor::Core
 	public:
 		SculptorApplication();
 
+		SculptorApplication(const SculptorApplication&) = delete;
+
+		SculptorApplication& operator=(const SculptorApplication&) = delete;
+
 		~SculptorApplication() = default;
 
 		void Sculpt() const;
@@ -20,9 +25,11 @@ namespace Sculptor::Core
 
 		WindowProperties windowProperties;
 
-		std::shared_ptr<VulkanInstanceWrapper> vulkanInstance;
+		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		std::shared_ptr<ValidationLayer> validationLayer;
+
+		std::shared_ptr<LogicalDevice> logicalDevice;
 
 		void InitializeWindow() const;
 

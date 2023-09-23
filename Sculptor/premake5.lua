@@ -23,7 +23,9 @@ project "Sculptor"
         vendordir .. "/glad/include",
         vendordir .. "/spdlog/include",
         vendordir .. "/glm/include",
-        vendordir .. "/Vulkan/include"
+
+        -- Vulkan
+        vulkanSDKdir .. "/include" 
     }
 
     defines
@@ -37,7 +39,8 @@ project "Sculptor"
 
     libdirs 
     {
-        vendordir .. "/Vulkan/lib"
+        -- Vulkan
+        vulkanSDKdir .. "/Lib"
     }
 
     links
