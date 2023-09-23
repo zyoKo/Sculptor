@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "Core/RenderAPI/VulkanInstanceWrapper.h"
+#include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Core/Windows/Window.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
@@ -37,6 +37,8 @@ namespace Sculptor::Core
 
 		std::shared_ptr<ValidationLayer> validationLayer;
 
+		std::shared_ptr<PhysicalDevice> physicalDevice;
+
 		void InitializeWindow() const;
 
 		void InitializeVulkan();
@@ -44,14 +46,6 @@ namespace Sculptor::Core
 		void MainLoop() const;
 
 		void CleanUp() const;
-
-		// Un-arranged Functions ////////////////
-		// Physical Device(GPU) Selection
-		VkPhysicalDevice physicalDevice;
-
-		void PickPhysicalDevice();
-
-		static int RateDeviceSuitability(const VkPhysicalDevice& device);
 
 		// Queue Families
 		VkQueue graphicsQueue;

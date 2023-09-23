@@ -3,7 +3,7 @@
 #include "SculptorApplication.h"
 
 #include "Utilities/Logger/Assert.h"
-#include "Core/RenderAPI/ExtensionManager.h"
+#include "Utilities/ExtensionManager.h"
 
 namespace Sculptor::Core
 {
@@ -11,7 +11,10 @@ namespace Sculptor::Core
 		:	window(std::make_unique<Window>()),
 			windowProperties(1920, 1080),
 			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
-			validationLayer(std::make_shared<ValidationLayer>())
+			validationLayer(std::make_shared<ValidationLayer>()),
+			physicalDevice(std::make_shared<PhysicalDevice>()),
+			graphicsQueue(nullptr),
+			device(nullptr)
 	{
 		ExtensionManager::Initialize(validationLayer);
 	}
@@ -37,11 +40,12 @@ namespace Sculptor::Core
 		validationLayer->RequestValidationLayer(&vulkanInstanceWrapper->GetInstance());
 
 		vulkanInstanceWrapper->CreateInstance(validationLayer);
-		//vulkanInstanceWrapper->CreateInstance(nullptr);
 
 		validationLayer->SetupDebugMessenger();
 
-		PickPhysicalDevice();
+		physicalDevice->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
+
+		physicalDevice->FetchAllPhysicalDevicesAndPickPrimary();
 
 		CreateLogicalDevice();
 	}
@@ -64,58 +68,6 @@ namespace Sculptor::Core
 		vulkanInstanceWrapper->DestroyInstance();
 
 		window->Shutdown();
-	}
-
-	void SculptorApplication::PickPhysicalDevice()
-	{
-		// No cleanup functions required for VkPhysicalDevice
-		// Implicitly deleted with VkInstance
-		// Developer Comment: NICE
-		physicalDevice = VK_NULL_HANDLE;
-
-		// Two step method to get all the physical devices
-		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, nullptr);
-		S_ASSERT(deviceCount == 0, "Failed to find any GPUs with Vulkan Support!");
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, devices.data());
-
-		// Choose one suitable device
-		// Developer Comment: Choose the fastest one (psst, NVIDIA)
-		std::multimap<int, VkPhysicalDevice> candidateDevices;
-		for (const auto& device : devices)
-		{
-			int score = RateDeviceSuitability(device);
-			candidateDevices.insert(std::make_pair(score, device));
-		}
-
-		// Pick the first candidate cause it's a ordered map
-		if (candidateDevices.rbegin()->first > 0)
-			physicalDevice = candidateDevices.rbegin()->second;
-
-		// If all candidates return with 0 then not compatible device found
-		S_ASSERT(physicalDevice == VK_NULL_HANDLE, "Failded to find any GPUs with Vulkan Support");
-	}
-
-	int SculptorApplication::RateDeviceSuitability(const VkPhysicalDevice& device)
-	{
-		VkPhysicalDeviceProperties deviceProperties;
-		vkGetPhysicalDeviceProperties(device, &deviceProperties);
-
-		VkPhysicalDeviceFeatures deviceFeatures;
-		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-		int score = 0;
-
-		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-			score += 1000;
-
-		score += static_cast<int>(deviceProperties.limits.maxImageDimension2D);
-
-		if (!deviceFeatures.geometryShader)
-			return 0;
-
-		return score;
 	}
 
 	QueueFamilyIndices SculptorApplication::FindQueueFamilies(const VkPhysicalDevice& device)
@@ -153,7 +105,7 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CreateLogicalDevice()
 	{
-		QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+		QueueFamilyIndices indices = FindQueueFamilies(physicalDevice->GetPrimaryPhysicalDevice());
 		S_ASSERT(!indices.IsGraphicsFamilyComplete(), "Failed to initialize graphics family!");
 
 		VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -186,7 +138,7 @@ namespace Sculptor::Core
 			createInfo.pNext = nullptr;
 		}
 
-		const auto result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
+		const auto result = vkCreateDevice(physicalDevice->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &device);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
 
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);

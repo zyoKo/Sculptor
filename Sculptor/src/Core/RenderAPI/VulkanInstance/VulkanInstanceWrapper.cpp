@@ -4,9 +4,8 @@
 
 #include "VulkanInstanceWrapper.h"
 
-#include "ExtensionManager.h"
+#include "Utilities/ExtensionManager.h"
 #include "Utilities/Logger/Assert.h"
-#include "ValidationLayer/ValidationLayer.h"
 
 namespace Sculptor::Core
 {
