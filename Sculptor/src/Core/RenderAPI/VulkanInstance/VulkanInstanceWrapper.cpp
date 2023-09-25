@@ -16,6 +16,8 @@ namespace Sculptor::Core
 
 	void VulkanInstanceWrapper::CreateInstance(const std::shared_ptr<ValidationLayer>& validationLayer)
 	{
+		S_ASSERT(!validationLayer->RequestValidationLayer(), "Failed to request validation Layer!");
+
 		// Create Application Info
 		VkApplicationInfo applicationInfo{};
 		applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;

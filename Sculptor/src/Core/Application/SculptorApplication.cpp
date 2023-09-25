@@ -13,6 +13,8 @@ namespace Sculptor::Core
 			validationLayer(std::make_shared<ValidationLayer>()),
 			logicalDevice(std::make_shared<LogicalDevice>(validationLayer, vulkanInstanceWrapper))
 	{
+		validationLayer->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
+
 		ExtensionManager::Initialize(validationLayer);
 	}
 
@@ -34,8 +36,6 @@ namespace Sculptor::Core
 
 	void SculptorApplication::InitializeVulkan() const
 	{
-		validationLayer->RequestValidationLayer(&vulkanInstanceWrapper->GetInstance());
-
 		vulkanInstanceWrapper->CreateInstance(validationLayer);
 
 		validationLayer->SetupDebugMessenger();
