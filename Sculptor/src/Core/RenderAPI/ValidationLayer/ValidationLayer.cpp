@@ -10,20 +10,29 @@ namespace Sculptor::Core
 	ValidationLayer::ValidationLayer()
 		:	validationLayers{ VALIDATION_LAYERS },
 			debugMessenger(nullptr),
-			vulkanInstance(nullptr),
-		#ifdef DEBUG
-			enableValidationLayers(true)
-		#else
+			vulkanInstanceWrapper(nullptr),
 			enableValidationLayers(false)
-		#endif
 	{
+#ifdef DEBUG
+		enableValidationLayers = true;
+#endif
 	}
 
-	void ValidationLayer::RequestValidationLayer(VkInstance* vulkanInstance)
+	void ValidationLayer::SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap)
+	{
+		this->vulkanInstanceWrapper = vulkanInstanceWrap;
+	}
+
+	const std::shared_ptr<VulkanInstanceWrapper>& ValidationLayer::GetVulkanInstanceWrapper() const
+	{
+		return vulkanInstanceWrapper;
+	}
+
+	bool ValidationLayer::RequestValidationLayer() const
 	{
 		S_ASSERT(enableValidationLayers && !CheckValidationLayerSupport(), "Validation Layer Requested, but not available!");
 
-		this->vulkanInstance = vulkanInstance;
+		return true;
 	}
 
 	bool ValidationLayer::IsEnabled() const
@@ -66,14 +75,14 @@ namespace Sculptor::Core
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		PopulateDebugMessengerCreateInfo(createInfo);
 
-		const VkResult debugResult = CreateDebugUtilsMessengerEXT(*vulkanInstance, &createInfo, nullptr, &debugMessenger);
+		const VkResult debugResult = CreateDebugUtilsMessengerEXT(vulkanInstanceWrapper->GetInstance(), &createInfo, nullptr, &debugMessenger);
 		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!");
 	}
 
 	void ValidationLayer::CleanUp() const
 	{
 		if (enableValidationLayers)
-			DestroyDebugUtilsMessengerEXT(*vulkanInstance, debugMessenger, nullptr);
+			DestroyDebugUtilsMessengerEXT(vulkanInstanceWrapper->GetInstance(), debugMessenger, nullptr);
 	}
 
 	// Private Functions && Message Callback Functions
@@ -113,7 +122,6 @@ namespace Sculptor::Core
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-			//std::cout << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:

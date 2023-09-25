@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/RenderAPI/VulkanInstance/VulkanInstanceWrapper.h"
+
 namespace Sculptor::Core
 {
 	// Message CallBack
@@ -22,7 +24,11 @@ namespace Sculptor::Core
 
 		~ValidationLayer() = default;
 
-		void RequestValidationLayer(VkInstance* vulkanInstance);
+		void SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap);
+
+		const std::shared_ptr<VulkanInstanceWrapper>& GetVulkanInstanceWrapper() const;
+
+		bool RequestValidationLayer() const;
 
 		bool IsEnabled() const;
 
@@ -41,7 +47,7 @@ namespace Sculptor::Core
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 
-		VkInstance* vulkanInstance;
+		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		bool enableValidationLayers;
 
