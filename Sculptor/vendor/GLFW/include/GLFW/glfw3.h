@@ -797,42 +797,42 @@ extern "C" {
 #define GLFW_FOCUSED                0x00020001
 /*! @brief Window iconification window attribute
  *
- *  WindowsWindow iconification [window attribute](@ref GLFW_ICONIFIED_attrib).
+ *  Window iconification [window attribute](@ref GLFW_ICONIFIED_attrib).
  */
 #define GLFW_ICONIFIED              0x00020002
 /*! @brief Window resize-ability window hint and attribute
  *
- *  WindowsWindow resize-ability [window hint](@ref GLFW_RESIZABLE_hint) and
+ *  Window resize-ability [window hint](@ref GLFW_RESIZABLE_hint) and
  *  [window attribute](@ref GLFW_RESIZABLE_attrib).
  */
 #define GLFW_RESIZABLE              0x00020003
 /*! @brief Window visibility window hint and attribute
  *
- *  WindowsWindow visibility [window hint](@ref GLFW_VISIBLE_hint) and
+ *  Window visibility [window hint](@ref GLFW_VISIBLE_hint) and
  *  [window attribute](@ref GLFW_VISIBLE_attrib).
  */
 #define GLFW_VISIBLE                0x00020004
 /*! @brief Window decoration window hint and attribute
  *
- *  WindowsWindow decoration [window hint](@ref GLFW_DECORATED_hint) and
+ *  Window decoration [window hint](@ref GLFW_DECORATED_hint) and
  *  [window attribute](@ref GLFW_DECORATED_attrib).
  */
 #define GLFW_DECORATED              0x00020005
 /*! @brief Window auto-iconification window hint and attribute
  *
- *  WindowsWindow auto-iconification [window hint](@ref GLFW_AUTO_ICONIFY_hint) and
+ *  Window auto-iconification [window hint](@ref GLFW_AUTO_ICONIFY_hint) and
  *  [window attribute](@ref GLFW_AUTO_ICONIFY_attrib).
  */
 #define GLFW_AUTO_ICONIFY           0x00020006
 /*! @brief Window decoration window hint and attribute
  *
- *  WindowsWindow decoration [window hint](@ref GLFW_FLOATING_hint) and
+ *  Window decoration [window hint](@ref GLFW_FLOATING_hint) and
  *  [window attribute](@ref GLFW_FLOATING_attrib).
  */
 #define GLFW_FLOATING               0x00020007
 /*! @brief Window maximization window hint and attribute
  *
- *  WindowsWindow maximization [window hint](@ref GLFW_MAXIMIZED_hint) and
+ *  Window maximization [window hint](@ref GLFW_MAXIMIZED_hint) and
  *  [window attribute](@ref GLFW_MAXIMIZED_attrib).
  */
 #define GLFW_MAXIMIZED              0x00020008
@@ -843,7 +843,7 @@ extern "C" {
 #define GLFW_CENTER_CURSOR          0x00020009
 /*! @brief Window framebuffer transparency hint and attribute
  *
- *  WindowsWindow framebuffer transparency
+ *  Window framebuffer transparency
  *  [window hint](@ref GLFW_TRANSPARENT_FRAMEBUFFER_hint) and
  *  [window attribute](@ref GLFW_TRANSPARENT_FRAMEBUFFER_attrib).
  */
@@ -2580,7 +2580,7 @@ GLFWAPI void glfwWindowHintString(int hint, const char* value);
  *  As long as at least one full screen window is not iconified, the screensaver
  *  is prohibited from starting.
  *
- *  WindowsWindow systems put limits on window sizes.  Very large or very small window
+ *  Window systems put limits on window sizes.  Very large or very small window
  *  dimensions may be overridden by the window system on creation.  Check the
  *  actual [size](@ref window_size) after creation.
  *

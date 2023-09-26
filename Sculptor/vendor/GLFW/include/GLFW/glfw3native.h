@@ -359,7 +359,7 @@ GLFWAPI RROutput glfwGetX11Monitor(GLFWmonitor* monitor);
  *
  *  @ingroup native
  */
-GLFWAPI WindowsWindow glfwGetX11Window(GLFWwindow* window);
+GLFWAPI Window glfwGetX11Window(GLFWwindow* window);
 
 /*! @brief Sets the current primary selection to the specified string.
  *
