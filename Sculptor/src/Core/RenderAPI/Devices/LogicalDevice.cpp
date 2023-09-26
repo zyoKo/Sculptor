@@ -13,70 +13,12 @@ namespace Sculptor::Core
 	{
 	}
 
-	LogicalDevice::LogicalDevice(const std::shared_ptr<ValidationLayer>& validationLayer, const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap)
-		:	logicalDevice(nullptr),
-			physicalDevice(std::make_shared<PhysicalDevice>()),
-			deviceFeatures{},
-			validationLayer(validationLayer),
-			vulkanInstanceWrapper(vulkanInstanceWrap)
+	void LogicalDevice::CreateLogicalDevice(
+		const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+		const std::shared_ptr<ValidationLayer>& validationLayer, 
+		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
 	{
-	}
-
-	void LogicalDevice::SetValidationLayer(const std::shared_ptr<ValidationLayer>& validationLayer)
-	{
-		this->validationLayer = validationLayer;
-	}
-
-	const std::shared_ptr<ValidationLayer>& LogicalDevice::GetValidationLayer() const
-	{
-		return validationLayer;
-	}
-
-	void LogicalDevice::SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap)
-	{
-		this->vulkanInstanceWrapper = vulkanInstanceWrap;
-	}
-
-	const std::shared_ptr<VulkanInstanceWrapper>& LogicalDevice::GetVulkanInstanceWrapper() const
-	{
-		return vulkanInstanceWrapper;
-	}
-
-	void LogicalDevice::SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
-	{
-		this->vulkanWindowSurface = vulkanWindowSurface;
-	}
-
-	const std::shared_ptr<Windows::VulkanWindowSurface>& LogicalDevice::GetVulkanWindowSurface() const
-	{
-		return vulkanWindowSurface;
-	}
-
-	void LogicalDevice::InstantiatePhysicalDevice() const
-	{
-		physicalDevice->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
-
-		physicalDevice->FetchAllPhysicalDevicesAndPickPrimary();
-	}
-
-	void LogicalDevice::InstantiateQueueFamily()
-	{
-		queueFamilies.SetPhysicalDevice(physicalDevice);
-
-		queueFamilies.SetVulkanWindowSurface(vulkanWindowSurface);
-
-		queueFamilies.InstantiateQueueFamilies();
-
-		queueFamilies.FindQueueFamilies();
-
-		S_ASSERT(!queueFamilies.IsDeviceSuitable(), "Failed to initialize queue families!");
-	}
-
-	void LogicalDevice::CreateLogicalDevice()
-	{
-		InstantiatePhysicalDevice();
-
-		InstantiateQueueFamily();
+		InstantiatePhysicalDevicesAndQueueFamilies(vulkanInstanceWrapper, vulkanWindowSurface);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfoList;
 		const std::set<uint32_t> uniqueQueueFamilies = {
@@ -119,7 +61,7 @@ namespace Sculptor::Core
 			createInfo.pNext = nullptr;
 		}
 
-		const auto result = vkCreateDevice(queueFamilies.GetPhysicalDevice()->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
+		const auto result = vkCreateDevice(physicalDevice->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
 
 		// Graphics-Queue for Logical Device
@@ -140,5 +82,15 @@ namespace Sculptor::Core
 	void LogicalDevice::CleanUp() const
 	{
 		vkDestroyDevice(logicalDevice, nullptr);
+	}
+
+	void LogicalDevice::InstantiatePhysicalDevicesAndQueueFamilies(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
+	{
+		physicalDevice->FetchAllPhysicalDevicesAndPickPrimary(vulkanInstanceWrapper);
+
+		queueFamilies.InstantiateAndFindQueueFamilies(physicalDevice, vulkanWindowSurface);
+
+		S_ASSERT(!queueFamilies.IsDeviceSuitable(), "Failed to initialize queue families!");
 	}
 }

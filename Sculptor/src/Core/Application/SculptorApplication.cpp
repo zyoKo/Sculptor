@@ -2,17 +2,18 @@
 
 #include "SculptorApplication.h"
 
+#include "Platform/Windows/WindowData/WindowConstants.h"
 #include "Utilities/ExtensionManager.h"
 
 namespace Sculptor::Core
 {
 	SculptorApplication::SculptorApplication()
 		:	window(std::make_shared<WindowsWindow>()),
-			windowProperties(1920, 1080),
+			windowProperties{ WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE },
 			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
 			validationLayer(std::make_shared<ValidationLayer>()),
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
-			logicalDevice(std::make_shared<LogicalDevice>(validationLayer, vulkanInstanceWrapper))
+			logicalDevice(std::make_shared<LogicalDevice>())
 	{
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -37,21 +38,11 @@ namespace Sculptor::Core
 	{
 		vulkanInstanceWrapper->CreateInstance(validationLayer);
 
-		validationLayer->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
+		validationLayer->SetupDebugMessenger(vulkanInstanceWrapper);
 
-		validationLayer->SetupDebugMessenger();
+		windowSurface->CreateWindowSurface(vulkanInstanceWrapper, window);
 
-		windowSurface->SetNativeWindow(window);
-
-		windowSurface->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
-
-		windowSurface->SetValidationLayer(validationLayer);
-
-		windowSurface->CreateWindowSurface();
-
-		logicalDevice->SetVulkanWindowSurface(windowSurface);
-
-		logicalDevice->CreateLogicalDevice();
+		logicalDevice->CreateLogicalDevice(vulkanInstanceWrapper, validationLayer, windowSurface);
 	}
 
 	void SculptorApplication::MainLoop() const
@@ -66,9 +57,9 @@ namespace Sculptor::Core
 	{
 		logicalDevice->CleanUp();
 
-		windowSurface->CleanUp();
+		windowSurface->CleanUp(vulkanInstanceWrapper);
 
-		validationLayer->CleanUp();
+		validationLayer->CleanUp(vulkanInstanceWrapper);
 
 		vulkanInstanceWrapper->DestroyInstance();
 

@@ -13,19 +13,9 @@ namespace Sculptor::Core
 
 		~PhysicalDevice() = default;
 
-		void SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap);
-
-		const std::shared_ptr<VulkanInstanceWrapper>& GetVulkanInstanceWrapper() const;
-
-		void FetchAllPhysicalDevicesAndPickPrimary();
-
-		void FetchAllPhysicalDevices();
-
-		void PickPrimaryPhysicalDevice();
+		void FetchAllPhysicalDevicesAndPickPrimary(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper);
 
 		const std::vector<VkPhysicalDevice>& GetAllPhysicalDevices();
-
-		uint32_t GetDeviceCount() const;
 
 		const VkPhysicalDevice& GetPrimaryPhysicalDevice() const;
 
@@ -34,11 +24,9 @@ namespace Sculptor::Core
 	private:
 		VkPhysicalDevice primaryPhysicalDevice;
 
-		uint32_t deviceCount;
-
 		std::vector<VkPhysicalDevice> physicalDevicesList;
 
-		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
+		void PickPrimaryPhysicalDevice();
 
 		static int RateDeviceSuitability(const VkPhysicalDevice& device);
 	};

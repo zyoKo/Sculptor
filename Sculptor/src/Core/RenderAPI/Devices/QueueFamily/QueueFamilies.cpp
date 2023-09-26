@@ -8,56 +8,20 @@ namespace Sculptor::Core
 {
 	QueueFamilies::QueueFamilies()
 		:	graphicsQueue(nullptr),
-			presentQueue(nullptr),
-			queueFamilyCount(0),
-			physicalDevice(nullptr)
+			presentQueue(nullptr)
 	{
 	}
 
-	void QueueFamilies::SetPhysicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
-	{
-		this->physicalDevice = physicalDevice;
-	}
-
-	const std::shared_ptr<PhysicalDevice>& QueueFamilies::GetPhysicalDevice() const
-	{
-		return physicalDevice;
-	}
-
-	void QueueFamilies::SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
-	{
-		this->vulkanWindowSurface = vulkanWindowSurface;
-	}
-
-	const std::shared_ptr<Windows::VulkanWindowSurface>& QueueFamilies::GetVulkanWindowSurface() const
-	{
-		return vulkanWindowSurface;
-	}
-
-	void QueueFamilies::InstantiateQueueFamilies()
+	void QueueFamilies::InstantiateAndFindQueueFamilies(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
 	{
 		// Two step process to get Queue Families
+		uint32_t queueFamilyCount;
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice->GetPrimaryPhysicalDevice(), &queueFamilyCount, nullptr);
 
 		queueFamilies.resize(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice->GetPrimaryPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
-	}
 
-	const std::vector<VkQueueFamilyProperties>& QueueFamilies::GetQueueFamiliesList() const
-	{
-		S_ASSERT(queueFamilies.empty(), "Instantiate Queue Family List before retriving it!");
-		return queueFamilies;
-	}
-
-	const std::vector<VkQueueFamilyProperties>& QueueFamilies::InstantiateAndFetchQueueFamilies()
-	{
-		InstantiateQueueFamilies();
-
-		return queueFamilies;
-	}
-
-	void QueueFamilies::FindQueueFamilies()
-	{
 		S_ASSERT(queueFamilies.empty(), "Instantiate Queue Family List before proceeding to get Graphic Family!");
 
 		int i = 0;
@@ -80,14 +44,20 @@ namespace Sculptor::Core
 		}
 	}
 
-	bool QueueFamilies::IsDeviceSuitable() const
+	const std::vector<VkQueueFamilyProperties>& QueueFamilies::GetQueueFamiliesList() const
 	{
-		return queueFamilyIndices.IsComplete();
+		S_ASSERT(queueFamilies.empty(), "Instantiate Queue Family List before retriving it!");
+		return queueFamilies;
 	}
 
 	const QueueFamilyIndices& QueueFamilies::GetQueueFamilyIndices() const
 	{
 		return queueFamilyIndices;
+	}
+
+	bool QueueFamilies::IsDeviceSuitable() const
+	{
+		return queueFamilyIndices.IsComplete();
 	}
 
 	const VkQueue& QueueFamilies::GetGraphicsQueue() const

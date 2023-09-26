@@ -7,38 +7,45 @@
 namespace Sculptor::Core
 {
 	PhysicalDevice::PhysicalDevice()
-		:	primaryPhysicalDevice(VK_NULL_HANDLE),
-			deviceCount(0),
-			vulkanInstanceWrapper(nullptr)
+		:	primaryPhysicalDevice(VK_NULL_HANDLE)
 	{
 	}
 
 	PhysicalDevice::PhysicalDevice(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
-		:	primaryPhysicalDevice(VK_NULL_HANDLE),
-			deviceCount(0),
-			vulkanInstanceWrapper(vulkanInstanceWrapper)
+		:	primaryPhysicalDevice(VK_NULL_HANDLE)
 	{
 		// NOTE: Can fetch all physical device since, now have pointer to VulkanInstanceWrapper
-		FetchAllPhysicalDevices();
+		FetchAllPhysicalDevicesAndPickPrimary(vulkanInstanceWrapper);
 	}
 
-	void PhysicalDevice::SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap)
+	void PhysicalDevice::FetchAllPhysicalDevicesAndPickPrimary(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
 	{
-		this->vulkanInstanceWrapper = vulkanInstanceWrap;
-	}
+		// Get the count of available devices
+		uint32_t deviceCount;
+		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, nullptr);
+		S_ASSERT(deviceCount == 0, "Failed to find any GPUs with Vulkan Support!");
 
-	const std::shared_ptr<VulkanInstanceWrapper>& PhysicalDevice::GetVulkanInstanceWrapper() const
-	{
-		return vulkanInstanceWrapper;
-	}
-
-	void PhysicalDevice::FetchAllPhysicalDevicesAndPickPrimary()
-	{
-		S_ASSERT(!vulkanInstanceWrapper, "Please initialize VulkanInstanceWrapper before everything else!");
-
-		FetchAllPhysicalDevices();
+		// Put those devices in vector of VkPhysical Devices
+		physicalDevicesList.resize(deviceCount);
+		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, physicalDevicesList.data());
 
 		PickPrimaryPhysicalDevice();
+	}
+
+	const std::vector<VkPhysicalDevice>& PhysicalDevice::GetAllPhysicalDevices()
+	{
+		return physicalDevicesList;
+	}
+
+	const VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice() const
+	{
+		S_ASSERT(primaryPhysicalDevice == VK_NULL_HANDLE, "Fetching Primary PhysicalDevice before instantiating it!");
+		return primaryPhysicalDevice;
+	}
+
+	VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice()
+	{
+		return primaryPhysicalDevice;
 	}
 
 	void PhysicalDevice::PickPrimaryPhysicalDevice()
@@ -62,27 +69,6 @@ namespace Sculptor::Core
 		S_ASSERT(primaryPhysicalDevice == VK_NULL_HANDLE, "Failded to find any GPUs with Vulkan Support");
 	}
 
-	const std::vector<VkPhysicalDevice>& PhysicalDevice::GetAllPhysicalDevices()
-	{
-		return physicalDevicesList;
-	}
-
-	uint32_t PhysicalDevice::GetDeviceCount() const
-	{
-		return deviceCount;
-	}
-
-	const VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice() const
-	{
-		S_ASSERT(primaryPhysicalDevice == VK_NULL_HANDLE, "Fetching Primary PhysicalDevice before instantiating it!");
-		return primaryPhysicalDevice;
-	}
-
-	VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice()
-	{
-		return primaryPhysicalDevice;
-	}
-
 	// Private/Helper Functions
 	int PhysicalDevice::RateDeviceSuitability(const VkPhysicalDevice& device)
 	{
@@ -103,16 +89,5 @@ namespace Sculptor::Core
 			return 0;
 
 		return score;
-	}
-
-	void PhysicalDevice::FetchAllPhysicalDevices()
-	{
-		// Get the count of available devices
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, nullptr);
-		S_ASSERT(deviceCount == 0, "Failed to find any GPUs with Vulkan Support!");
-
-		// Put those devices in vector of VkPhysical Devices
-		physicalDevicesList.resize(deviceCount);
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, physicalDevicesList.data());
 	}
 }

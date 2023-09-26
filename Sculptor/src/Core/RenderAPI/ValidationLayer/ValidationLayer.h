@@ -24,10 +24,6 @@ namespace Sculptor::Core
 
 		~ValidationLayer() = default;
 
-		void SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap);
-
-		const std::shared_ptr<VulkanInstanceWrapper>& GetVulkanInstanceWrapper() const;
-
 		bool RequestValidationLayer() const;
 
 		bool IsEnabled() const;
@@ -36,18 +32,14 @@ namespace Sculptor::Core
 
 		static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-		void SetupDebugMessenger();
+		void SetupDebugMessenger(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper);
 
-		VkDebugUtilsMessengerEXT& GetDebugMessenger() { return debugMessenger; }
-
-		void CleanUp() const;
+		void CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const;
 
 	private:
 		std::vector<const char*> validationLayers;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
-
-		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		bool enableValidationLayers;
 
