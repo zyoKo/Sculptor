@@ -10,27 +10,12 @@ namespace Sculptor::Core
 	public:
 		LogicalDevice();
 
-		LogicalDevice(const std::shared_ptr<ValidationLayer>& validationLayer, const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap);
-
 		~LogicalDevice() = default;
 
-		void SetValidationLayer(const std::shared_ptr<ValidationLayer>& validationLayer);
-
-		const std::shared_ptr<ValidationLayer>& GetValidationLayer() const;
-
-		void SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap);
-
-		const std::shared_ptr<VulkanInstanceWrapper>& GetVulkanInstanceWrapper() const;
-
-		void SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
-
-		const std::shared_ptr<Windows::VulkanWindowSurface>& GetVulkanWindowSurface() const;
-
-		void InstantiatePhysicalDevice() const;
-
-		void InstantiateQueueFamily();
-
-		void CreateLogicalDevice();
+		void CreateLogicalDevice(
+			const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+			const std::shared_ptr<ValidationLayer>& validationLayer, 
+			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
 		void CleanUp() const;
 
@@ -43,10 +28,7 @@ namespace Sculptor::Core
 
 		VkPhysicalDeviceFeatures deviceFeatures;
 
-		std::shared_ptr<ValidationLayer> validationLayer;
-
-		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
-
-		std::shared_ptr<Windows::VulkanWindowSurface> vulkanWindowSurface;
+		void InstantiatePhysicalDevicesAndQueueFamilies(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 	};
 }

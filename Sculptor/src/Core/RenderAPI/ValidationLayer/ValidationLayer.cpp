@@ -10,22 +10,11 @@ namespace Sculptor::Core
 	ValidationLayer::ValidationLayer()
 		:	validationLayers{ VALIDATION_LAYERS },
 			debugMessenger(nullptr),
-			vulkanInstanceWrapper(nullptr),
 			enableValidationLayers(false)
 	{
 #ifdef DEBUG
 		enableValidationLayers = true;
 #endif
-	}
-
-	void ValidationLayer::SetVulkanInstanceWrapper(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrap)
-	{
-		this->vulkanInstanceWrapper = vulkanInstanceWrap;
-	}
-
-	const std::shared_ptr<VulkanInstanceWrapper>& ValidationLayer::GetVulkanInstanceWrapper() const
-	{
-		return vulkanInstanceWrapper;
 	}
 
 	bool ValidationLayer::RequestValidationLayer() const
@@ -40,34 +29,7 @@ namespace Sculptor::Core
 		return enableValidationLayers;
 	}
 
-	bool ValidationLayer::CheckValidationLayerSupport() const
-	{
-		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-		std::vector<VkLayerProperties> availableLayers(layerCount);
-		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-		for (const auto layerName : validationLayers)
-		{
-			bool layerFound = false;
-
-			for (const auto& layerProperties : availableLayers)
-			{
-				if (std::strcmp(layerName, layerProperties.layerName) == 0)
-				{
-					layerFound = true;
-					break;
-				}
-			}
-
-			if (!layerFound)
-				return false;
-		}
-
-		return true;
-	}
-
-	void ValidationLayer::SetupDebugMessenger()
+	void ValidationLayer::SetupDebugMessenger(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
 	{
 		if (!enableValidationLayers)
 			return;
@@ -79,7 +41,7 @@ namespace Sculptor::Core
 		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!");
 	}
 
-	void ValidationLayer::CleanUp() const
+	void ValidationLayer::CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const
 	{
 		if (enableValidationLayers)
 			DestroyDebugUtilsMessengerEXT(vulkanInstanceWrapper->GetInstance(), debugMessenger, nullptr);
@@ -109,6 +71,33 @@ namespace Sculptor::Core
 		createInfo.pfnUserCallback = DebugCallBack;
 
 		createInfo.pUserData = nullptr;
+	}
+
+	bool ValidationLayer::CheckValidationLayerSupport() const
+	{
+		uint32_t layerCount;
+		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+		std::vector<VkLayerProperties> availableLayers(layerCount);
+		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+		for (const auto layerName : validationLayers)
+		{
+			bool layerFound = false;
+
+			for (const auto& layerProperties : availableLayers)
+			{
+				if (std::strcmp(layerName, layerProperties.layerName) == 0)
+				{
+					layerFound = true;
+					break;
+				}
+			}
+
+			if (!layerFound)
+				return false;
+		}
+
+		return true;
 	}
 
 	// Message CallBack

@@ -13,25 +13,14 @@ namespace Sculptor::Core
 
 		~QueueFamilies() = default;
 
-		void SetPhysicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
-
-		const std::shared_ptr<PhysicalDevice>& GetPhysicalDevice() const;
-
-		void SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
-
-		const std::shared_ptr<Windows::VulkanWindowSurface>& GetVulkanWindowSurface() const;
-
-		void InstantiateQueueFamilies();
+		void InstantiateAndFindQueueFamilies(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
 		const std::vector<VkQueueFamilyProperties>& GetQueueFamiliesList() const;
 
-		const std::vector<VkQueueFamilyProperties>& InstantiateAndFetchQueueFamilies();
-
-		void FindQueueFamilies();
+		const QueueFamilyIndices& GetQueueFamilyIndices() const;
 
 		bool IsDeviceSuitable() const;
-
-		const QueueFamilyIndices& GetQueueFamilyIndices() const;
 
 		const VkQueue& GetGraphicsQueue() const;
 
@@ -48,12 +37,6 @@ namespace Sculptor::Core
 
 		QueueFamilyIndices queueFamilyIndices;
 
-		uint32_t queueFamilyCount;
-
 		std::vector<VkQueueFamilyProperties> queueFamilies;
-
-		std::shared_ptr<PhysicalDevice> physicalDevice;
-
-		std::shared_ptr<Windows::VulkanWindowSurface> vulkanWindowSurface;
 	};
 }
