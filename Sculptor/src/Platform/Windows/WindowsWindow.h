@@ -6,20 +6,20 @@
 
 namespace Sculptor::Core
 {
-	class Window
+	class WindowsWindow
 	{
 	public:
-		Window();
+		WindowsWindow();
 
-		Window(const Window&) = delete;
+		WindowsWindow(const WindowsWindow&) = delete;
 
-		Window& operator=(const Window&) = delete;
+		WindowsWindow& operator=(const WindowsWindow&) = delete;
 
-		~Window() = default;
+		~WindowsWindow() = default;
 
 		bool InitializeWindow(const WindowProperties& windowProperties);
 
-		GLFWwindow* GetWindow() const;
+		GLFWwindow* GetGLFWWindow() const;
 
 		bool WindowShouldClose() const;
 

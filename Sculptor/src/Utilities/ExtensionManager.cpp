@@ -6,9 +6,9 @@
 
 #include "Utilities/Logger/Assert.h"
 
-namespace Sculptor::Core
+namespace Sculptor::Utils
 {
-	void ExtensionManager::Initialize(const std::shared_ptr<ValidationLayer>& validationLayerPtr)
+	void ExtensionManager::Initialize(const std::shared_ptr<Core::ValidationLayer>& validationLayerPtr)
 	{
 		validationLayer = validationLayerPtr;
 

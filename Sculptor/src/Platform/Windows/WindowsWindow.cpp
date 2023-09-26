@@ -1,17 +1,17 @@
 #include <SculptorPch.h>
 
-#include "Window.h"
+#include "WindowsWindow.h"
 
 #include "GLFW/glfw3.h"
 
 namespace Sculptor::Core
 {
-	Window::Window()
+	WindowsWindow::WindowsWindow()
 		:	window(nullptr)
 	{
 	}
 
-	bool Window::InitializeWindow(const WindowProperties& windowProperties)
+	bool WindowsWindow::InitializeWindow(const WindowProperties& windowProperties)
 	{
 		const auto success = glfwInit();
 		if (success != GLFW_TRUE)
@@ -27,31 +27,31 @@ namespace Sculptor::Core
 		window = glfwCreateWindow(windowProperties.windowWidth, windowProperties.windowHeight, windowProperties.windowTitle, nullptr, nullptr);
 		if (!window)
 		{
-			std::cerr << "Failed to create GLFW Window!" << std::endl;
+			std::cerr << "Failed to create GLFW WindowsWindow!" << std::endl;
 			__debugbreak();
 		}
 
 		return true;
 	}
 
-	GLFWwindow* Window::GetWindow() const
+	GLFWwindow* WindowsWindow::GetGLFWWindow() const
 	{
 		return window;
 	}
 
-	bool Window::WindowShouldClose() const
+	bool WindowsWindow::WindowShouldClose() const
 	{
 		return glfwWindowShouldClose(window);
 	}
 
-	void Window::Shutdown() const
+	void WindowsWindow::Shutdown() const
 	{
 		glfwDestroyWindow(window);
 
 		glfwTerminate();
 	}
 
-	void Window::PollEvents() const
+	void WindowsWindow::PollEvents() const
 	{
 		glfwPollEvents();
 	}

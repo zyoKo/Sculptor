@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
-#include "QueueFamily/QueueFamily.h"
+#include "QueueFamily/QueueFamilies.h"
 
 namespace Sculptor::Core
 {
@@ -22,6 +22,10 @@ namespace Sculptor::Core
 
 		const std::shared_ptr<VulkanInstanceWrapper>& GetVulkanInstanceWrapper() const;
 
+		void SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+
+		const std::shared_ptr<Windows::VulkanWindowSurface>& GetVulkanWindowSurface() const;
+
 		void InstantiatePhysicalDevice() const;
 
 		void InstantiateQueueFamily();
@@ -35,12 +39,14 @@ namespace Sculptor::Core
 
 		std::shared_ptr<PhysicalDevice> physicalDevice;
 
-		QueueFamily queueFamily;
+		QueueFamilies queueFamilies;
 
 		VkPhysicalDeviceFeatures deviceFeatures;
 
 		std::shared_ptr<ValidationLayer> validationLayer;
 
 		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
+
+		std::shared_ptr<Windows::VulkanWindowSurface> vulkanWindowSurface;
 	};
 }

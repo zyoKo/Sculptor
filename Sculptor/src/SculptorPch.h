@@ -7,5 +7,6 @@
 #include <initializer_list>
 #include <optional>
 #include <map>
+#include <set>
 
 #include <vulkan/vulkan.h>

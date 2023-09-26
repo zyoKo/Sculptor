@@ -33,7 +33,7 @@ namespace Sculptor::Core
 		createInfo.pApplicationInfo = &applicationInfo;
 
 		// Get GLFW Extension Count and Required Extensions
-		const auto requiredExtensions = ExtensionManager::GetRequiredExtensions();
+		const auto requiredExtensions = Utils::ExtensionManager::GetRequiredExtensions();
 
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
 		createInfo.ppEnabledExtensionNames = requiredExtensions.data();
