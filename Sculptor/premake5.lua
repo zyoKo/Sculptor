@@ -32,6 +32,8 @@ project "Sculptor"
     {
         "GLFW_INCLUDE_NONE",
         "GLFW_INCLUDE_VULKAN",
+        "GLFW_EXPOSE_NATIVE_WIN32",
+        "VK_USE_PLATFORM_WIN32_KHR",
         "_CRT_SECURE_NO_WARNINGS",
         "GLM_FORCE_RADIANS",
         "GLM_FORCE_DEPTH_ZERO_TO_ONE"

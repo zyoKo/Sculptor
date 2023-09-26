@@ -42,6 +42,16 @@ namespace Sculptor::Core
 		return vulkanInstanceWrapper;
 	}
 
+	void LogicalDevice::SetVulkanWindowSurface(const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
+	{
+		this->vulkanWindowSurface = vulkanWindowSurface;
+	}
+
+	const std::shared_ptr<Windows::VulkanWindowSurface>& LogicalDevice::GetVulkanWindowSurface() const
+	{
+		return vulkanWindowSurface;
+	}
+
 	void LogicalDevice::InstantiatePhysicalDevice() const
 	{
 		physicalDevice->SetVulkanInstanceWrapper(vulkanInstanceWrapper);
@@ -51,10 +61,15 @@ namespace Sculptor::Core
 
 	void LogicalDevice::InstantiateQueueFamily()
 	{
-		queueFamily.SetPhysicalDevice(physicalDevice);
-		queueFamily.InstantiateQueueFamilies();
-		queueFamily.FindGraphicQueueFamilies();
-		S_ASSERT(!queueFamily.IsDeviceSuitable(), "Failed to initialize graphics family!");
+		queueFamilies.SetPhysicalDevice(physicalDevice);
+
+		queueFamilies.SetVulkanWindowSurface(vulkanWindowSurface);
+
+		queueFamilies.InstantiateQueueFamilies();
+
+		queueFamilies.FindQueueFamilies();
+
+		S_ASSERT(!queueFamilies.IsDeviceSuitable(), "Failed to initialize queue families!");
 	}
 
 	void LogicalDevice::CreateLogicalDevice()
@@ -63,42 +78,63 @@ namespace Sculptor::Core
 
 		InstantiateQueueFamily();
 
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = queueFamily.GetQueueFamilyIndices().graphicsFamily.value();  // NOLINT(bugprone-unchecked-optional-access): already checking in the ASSERT above
-		queueCreateInfo.queueCount = 1;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfoList;
+		const std::set<uint32_t> uniqueQueueFamilies = {
+			queueFamilies.GetQueueFamilyIndices().graphicsFamily.value(),
+			queueFamilies.GetQueueFamilyIndices().presetFamily.value()
+		};
 
 		// required to setup queuePriority because Vulkan demands it even if there is only single queue
 		constexpr float queuePriority = 1.0f;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
+		for (const uint32_t queueFamily : uniqueQueueFamilies)
+		{
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+
+			// push_back the QueueInfo to the vector
+			queueCreateInfoList.push_back(queueCreateInfo);
+		}
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = &queueCreateInfo;
-		createInfo.queueCreateInfoCount = 1;
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size());
+		createInfo.pQueueCreateInfos = queueCreateInfoList.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-		if (validationLayer && validationLayer->IsEnabled()) {
+		if (validationLayer && validationLayer->IsEnabled()) 
+		{
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
 			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();
 
 			validationLayer->PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = &debugCreateInfo;
 		}
-		else {
+		else 
+		{
 			createInfo.enabledLayerCount = 0;
 			createInfo.pNext = nullptr;
 		}
 
-		const auto result = vkCreateDevice(queueFamily.GetPhysicalDevice()->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
+		const auto result = vkCreateDevice(queueFamilies.GetPhysicalDevice()->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
 
+		// Graphics-Queue for Logical Device
 		vkGetDeviceQueue(
 			logicalDevice, 
-			queueFamily.GetQueueFamilyIndices().graphicsFamily.value(), // NOLINT(bugprone-unchecked-optional-access): already checking in the ASSERT above
+			queueFamilies.GetQueueFamilyIndices().graphicsFamily.value(),
 			0, 
-			&queueFamily.GetQueue());
+			&queueFamilies.GetGraphicsQueue());
+
+		// Present-Queue for Logical Device
+		vkGetDeviceQueue(
+			logicalDevice,
+			queueFamilies.GetQueueFamilyIndices().presetFamily.value(),
+			0,
+			&queueFamilies.GetPresentQueue());
 	}
 
 	void LogicalDevice::CleanUp() const

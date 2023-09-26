@@ -2,19 +2,19 @@
 
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 
-namespace Sculptor::Core
+namespace Sculptor::Utils
 {
 	class ExtensionManager
 	{
 	public:
-		static void Initialize(const std::shared_ptr<ValidationLayer>& validationLayerPtr);
+		static void Initialize(const std::shared_ptr<Core::ValidationLayer>& validationLayerPtr);
 
 		static std::vector<const char*> GetRequiredExtensions();
 
 		static void PrintAllSupportedExtensions();
 
 	private:
-		static inline std::shared_ptr<ValidationLayer> validationLayer;
+		static inline std::shared_ptr<Core::ValidationLayer> validationLayer;
 
 		static inline bool validationLayerIsInitialized = false;
 	};

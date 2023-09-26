@@ -6,6 +6,11 @@ namespace Sculptor::Core
 	{
 		std::optional<uint32_t> graphicsFamily;
 
-		bool IsGraphicsFamilyComplete() const { return graphicsFamily.has_value(); }
+		std::optional<uint32_t> presetFamily;
+
+		bool IsComplete() const
+		{
+			return graphicsFamily.has_value() && presetFamily.has_value();
+		}
 	};
 }

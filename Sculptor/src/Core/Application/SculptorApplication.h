@@ -2,8 +2,9 @@
 
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Devices/PhysicalDevice.h"
-#include "Core/Windows/Window.h"
+#include "Platform/Windows/WindowsWindow.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
+#include "Core/Windows/VulkanWindowSurface/VulkanWindowSurface.h"
 
 namespace Sculptor::Core
 {
@@ -12,7 +13,7 @@ namespace Sculptor::Core
 	public:
 		SculptorApplication();
 
-		SculptorApplication(const SculptorApplication&) = delete;
+		explicit SculptorApplication(const SculptorApplication&) = delete;
 
 		SculptorApplication& operator=(const SculptorApplication&) = delete;
 
@@ -21,13 +22,15 @@ namespace Sculptor::Core
 		void Sculpt() const;
 
 	private:
-		std::unique_ptr<Window> window;
+		std::shared_ptr<WindowsWindow> window;
 
 		WindowProperties windowProperties;
 
 		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		std::shared_ptr<ValidationLayer> validationLayer;
+
+		std::shared_ptr<Windows::VulkanWindowSurface> windowSurface;
 
 		std::shared_ptr<LogicalDevice> logicalDevice;
 
