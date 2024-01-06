@@ -183,10 +183,7 @@ namespace Sculptor::Core
 		}
 		
 		const auto windowPtr = window.lock();
-		if (!windowPtr)
-		{
-			// TODO handle this
-		}
+		S_ASSERT(windowPtr == nullptr, "Window doesn't exsist when choosing swap extent.");
 
 		int width, height;
 		glfwGetFramebufferSize(windowPtr->GetGLFWWindow(), &width, &height);
