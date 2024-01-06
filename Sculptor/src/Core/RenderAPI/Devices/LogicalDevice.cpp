@@ -2,7 +2,10 @@
 
 #include "LogicalDevice.h"
 
+#include "Core/RenderAPI/RenderApi.h"
+#include "Core/RenderAPI/Constants/Constants.h"
 #include "Utilities/Logger/Assert.h"
+#include "Core/RenderAPI/SwapChains/SwapChains.h"
 
 namespace Sculptor::Core
 {
@@ -10,25 +13,32 @@ namespace Sculptor::Core
 		:	logicalDevice(nullptr),
 			physicalDevice(std::make_shared<PhysicalDevice>()),
 			deviceFeatures{}
-	{
-	}
+	{ }
 
 	void LogicalDevice::CreateLogicalDevice(
 		const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
 		const std::shared_ptr<ValidationLayer>& validationLayer, 
 		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
 	{
+		// -- Big Step here --
+		// Physical Devices and Queue Families Initialization
 		InstantiatePhysicalDevicesAndQueueFamilies(vulkanInstanceWrapper, vulkanWindowSurface);
+
+		const bool allGood = RenderApi::IsDeviceSuitable(*this, vulkanWindowSurface);
+		std::cout << "Can Create Logical Device?: " << std::boolalpha << allGood << std::endl;
+
+		// Queue Family Indices
+		const auto& indices = queueFamilies.GetQueueFamilyIndices();
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfoList;
 		const std::set<uint32_t> uniqueQueueFamilies = {
-			queueFamilies.GetQueueFamilyIndices().graphicsFamily.value(),
-			queueFamilies.GetQueueFamilyIndices().presetFamily.value()
+			indices.graphicsFamily.value(),
+			indices.presetFamily.value()
 		};
 
 		// required to setup queuePriority because Vulkan demands it even if there is only single queue
 		constexpr float queuePriority = 1.0f;
-		for (const uint32_t queueFamily : uniqueQueueFamilies)
+		for (const auto queueFamily : uniqueQueueFamilies)
 		{
 			VkDeviceQueueCreateInfo queueCreateInfo{};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -45,6 +55,9 @@ namespace Sculptor::Core
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size());
 		createInfo.pQueueCreateInfos = queueCreateInfoList.data();
 		createInfo.pEnabledFeatures = &deviceFeatures;
+
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
+		createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (validationLayer && validationLayer->IsEnabled()) 
@@ -67,16 +80,31 @@ namespace Sculptor::Core
 		// Graphics-Queue for Logical Device
 		vkGetDeviceQueue(
 			logicalDevice, 
-			queueFamilies.GetQueueFamilyIndices().graphicsFamily.value(),
+			indices.graphicsFamily.value(),
 			0, 
 			&queueFamilies.GetGraphicsQueue());
 
 		// Present-Queue for Logical Device
 		vkGetDeviceQueue(
 			logicalDevice,
-			queueFamilies.GetQueueFamilyIndices().presetFamily.value(),
+			indices.presetFamily.value(),
 			0,
 			&queueFamilies.GetPresentQueue());
+	}
+
+	const VkDevice& LogicalDevice::GetLogicalDevice() const
+	{
+		return logicalDevice;
+	}
+
+	const QueueFamilies& LogicalDevice::GetQueueFamilies() const
+	{
+		return queueFamilies;
+	}
+
+	std::weak_ptr<PhysicalDevice> LogicalDevice::GetPhysicalDevice() const
+	{
+		return physicalDevice;
 	}
 
 	void LogicalDevice::CleanUp() const
@@ -90,7 +118,25 @@ namespace Sculptor::Core
 		physicalDevice->FetchAllPhysicalDevicesAndPickPrimary(vulkanInstanceWrapper);
 
 		queueFamilies.InstantiateAndFindQueueFamilies(physicalDevice, vulkanWindowSurface);
+	}
 
-		S_ASSERT(!queueFamilies.IsDeviceSuitable(), "Failed to initialize queue families!");
+	bool LogicalDevice::CheckDeviceExtensionSupport() const
+	{
+		const auto& device = physicalDevice->GetPrimaryPhysicalDevice();
+
+		uint32_t extensionCount;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+		std::set<std::string> requiredExtensions(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
+
+		for (const auto& extensions : availableExtensions)
+		{
+			requiredExtensions.erase(extensions.extensionName);
+		}
+
+		return requiredExtensions.empty();
 	}
 }

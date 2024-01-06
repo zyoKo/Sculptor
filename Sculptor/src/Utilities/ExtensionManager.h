@@ -9,7 +9,7 @@ namespace Sculptor::Utils
 	public:
 		static void Initialize(const std::shared_ptr<Core::ValidationLayer>& validationLayerPtr);
 
-		static std::vector<const char*> GetRequiredExtensions();
+		static std::vector<const char*> GetRequiredExtensions(bool printExtensions = false);
 
 		static void PrintAllSupportedExtensions();
 

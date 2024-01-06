@@ -8,8 +8,7 @@ namespace Sculptor::Core
 {
 	PhysicalDevice::PhysicalDevice()
 		:	primaryPhysicalDevice(VK_NULL_HANDLE)
-	{
-	}
+	{ }
 
 	PhysicalDevice::PhysicalDevice(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
 		:	primaryPhysicalDevice(VK_NULL_HANDLE)

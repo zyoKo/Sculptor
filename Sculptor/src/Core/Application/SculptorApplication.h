@@ -1,10 +1,22 @@
 #pragma once
 
-#include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Core/RenderAPI/Devices/PhysicalDevice.h"
-#include "Platform/Windows/WindowsWindow.h"
-#include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
-#include "Core/Windows/VulkanWindowSurface/VulkanWindowSurface.h"
+namespace Sculptor::Windows
+{
+	class VulkanWindowSurface;
+}
+
+namespace Sculptor::Core
+{
+	class WindowsWindow;
+
+	class VulkanInstanceWrapper;
+
+	class ValidationLayer;
+
+	class LogicalDevice;
+
+	class SwapChains;
+}
 
 namespace Sculptor::Core
 {
@@ -24,8 +36,6 @@ namespace Sculptor::Core
 	private:
 		std::shared_ptr<WindowsWindow> window;
 
-		WindowProperties windowProperties;
-
 		std::shared_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper;
 
 		std::shared_ptr<ValidationLayer> validationLayer;
@@ -33,6 +43,8 @@ namespace Sculptor::Core
 		std::shared_ptr<Windows::VulkanWindowSurface> windowSurface;
 
 		std::shared_ptr<LogicalDevice> logicalDevice;
+
+		std::shared_ptr<SwapChains> swapChains;
 
 		void InitializeWindow() const;
 

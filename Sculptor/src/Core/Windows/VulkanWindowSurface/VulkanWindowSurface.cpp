@@ -12,14 +12,15 @@ namespace Sculptor::Windows
 {
 	VulkanWindowSurface::VulkanWindowSurface()
 		:	windowSurface(nullptr)
-	{
-	}
+	{ }
 
 	void VulkanWindowSurface::CreateWindowSurface(const std::shared_ptr<Core::VulkanInstanceWrapper>& vulkanInstanceWrapper,
 		const std::shared_ptr<Core::WindowsWindow>& nativeWindow)
 	{
 		const auto success = glfwCreateWindowSurface(vulkanInstanceWrapper->GetInstance(), nativeWindow->GetGLFWWindow(), nullptr, &windowSurface);
 		S_ASSERT(success != VK_SUCCESS, "Failed to create window surface!");
+
+		this->nativeWindow = nativeWindow;
 	}
 
 	void VulkanWindowSurface::CleanUp(const std::shared_ptr<Core::VulkanInstanceWrapper>& vulkanInstanceWrapper) const
@@ -35,5 +36,10 @@ namespace Sculptor::Windows
 	VkSurfaceKHR& VulkanWindowSurface::GetSurface()
 	{
 		return windowSurface;
+	}
+
+	std::weak_ptr<Core::WindowsWindow> VulkanWindowSurface::GetNativeWindow() const
+	{
+		return nativeWindow;
 	}
 }
