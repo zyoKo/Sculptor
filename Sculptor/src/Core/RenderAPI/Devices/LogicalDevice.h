@@ -5,7 +5,7 @@
 
 namespace Sculptor::Core
 {
-	class SwapChains;
+	class SwapChain;
 }
 
 namespace Sculptor::Core

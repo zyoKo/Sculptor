@@ -1,7 +1,7 @@
 #pragma once
 #include "Devices/LogicalDevice.h"
 #include "Devices/QueueFamily/QueueFamilies.h"
-#include "SwapChains/SwapChains.h"
+#include "SwapChains/SwapChain.h"
 
 namespace Sculptor::Core
 {
@@ -26,7 +26,7 @@ namespace Sculptor::Core
 			bool swapChainAdequate = false;
 			if (checkDeviceExtensionSupport)
 			{
-				const auto swapChainSupportDetails = SwapChains::QuerySwapChainSupport(vulkanWindowSurface, device.GetPhysicalDevice());
+				const auto swapChainSupportDetails = SwapChain::QuerySwapChainSupport(vulkanWindowSurface, device.GetPhysicalDevice());
 				swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
 			}
 

@@ -18,12 +18,12 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class SwapChains
+	class SwapChain
 	{
 	public:
-		SwapChains();
+		SwapChain();
 
-		~SwapChains() = default;
+		~SwapChain() = default;
 
 		void CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<LogicalDevice>& logicalDevice);
@@ -46,6 +46,8 @@ namespace Sculptor::Core
 		friend class LogicalDevice;
 
 		friend class RenderApi;
+
+		friend class ImageViews;
 
 		static SwapChainSupportDetails QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<PhysicalDevice>& physicalDevice);

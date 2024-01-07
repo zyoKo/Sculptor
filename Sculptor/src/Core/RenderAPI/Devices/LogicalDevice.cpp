@@ -5,7 +5,7 @@
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Constants/Constants.h"
 #include "Utilities/Logger/Assert.h"
-#include "Core/RenderAPI/SwapChains/SwapChains.h"
+#include "Core/RenderAPI/SwapChains/SwapChain.h"
 
 namespace Sculptor::Core
 {

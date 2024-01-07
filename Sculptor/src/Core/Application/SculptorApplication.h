@@ -7,6 +7,8 @@ namespace Sculptor::Windows
 
 namespace Sculptor::Core
 {
+	class ImageViews;
+
 	class WindowsWindow;
 
 	class VulkanInstanceWrapper;
@@ -15,7 +17,7 @@ namespace Sculptor::Core
 
 	class LogicalDevice;
 
-	class SwapChains;
+	class SwapChain;
 }
 
 namespace Sculptor::Core
@@ -25,11 +27,15 @@ namespace Sculptor::Core
 	public:
 		SculptorApplication();
 
+		~SculptorApplication() = default;
+
 		explicit SculptorApplication(const SculptorApplication&) = delete;
 
 		SculptorApplication& operator=(const SculptorApplication&) = delete;
 
-		~SculptorApplication() = default;
+		SculptorApplication(SculptorApplication&&) = delete;
+
+		SculptorApplication& operator=(SculptorApplication&&) = delete;
 
 		void Sculpt() const;
 
@@ -44,7 +50,9 @@ namespace Sculptor::Core
 
 		std::shared_ptr<LogicalDevice> logicalDevice;
 
-		std::shared_ptr<SwapChains> swapChains;
+		std::shared_ptr<SwapChain> swapChains;
+
+		std::shared_ptr<ImageViews> imageViews;
 
 		void InitializeWindow() const;
 

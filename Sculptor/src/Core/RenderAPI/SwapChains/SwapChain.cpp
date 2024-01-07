@@ -1,6 +1,6 @@
 #include <SculptorPch.h>
 
-#include "SwapChains.h"
+#include "SwapChain.h"
 
 #include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Core/Windows/VulkanWindowSurface/VulkanWindowSurface.h"
@@ -10,13 +10,13 @@
 
 namespace Sculptor::Core
 {
-	SwapChains::SwapChains()
+	SwapChain::SwapChain()
 		:	swapChain(nullptr),
 			swapChainImageFormat{},
 			swapChainExtent{}
 	{ }
 
-	void SwapChains::CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
+	void SwapChain::CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 	                                 const std::weak_ptr<LogicalDevice>& logicalDevice)
 	{
 		const auto device = logicalDevice.lock();
@@ -111,12 +111,12 @@ namespace Sculptor::Core
 		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, swapChainImages.data());
 	}
 
-	void SwapChains::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
+	void SwapChain::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
 	{
 		this->logicalDevice = device;
 	}
 
-	void SwapChains::CleanUp() const
+	void SwapChain::CleanUp() const
 	{
 		const auto device = logicalDevice.lock();
 		S_ASSERT(device == nullptr, "Logical Device is not set.");
@@ -124,7 +124,7 @@ namespace Sculptor::Core
 		vkDestroySwapchainKHR(device->GetLogicalDevice(), swapChain, nullptr);
 	}
 
-	SwapChainSupportDetails SwapChains::QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
+	SwapChainSupportDetails SwapChain::QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 		const std::weak_ptr<PhysicalDevice>& physicalDevice)
 	{
 		SwapChainSupportDetails details;
@@ -162,7 +162,7 @@ namespace Sculptor::Core
 		return details;
 	}
 
-	VkSurfaceFormatKHR SwapChains::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	VkSurfaceFormatKHR SwapChain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 	{
 		for (const auto& availableFormat : availableFormats)
 		{
@@ -175,7 +175,7 @@ namespace Sculptor::Core
 		return availableFormats[0];
 	}
 
-	VkPresentModeKHR SwapChains::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+	VkPresentModeKHR SwapChain::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 	{
 		for (const auto& availablePresentMode : availablePresentModes)
 		{
@@ -188,7 +188,7 @@ namespace Sculptor::Core
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkExtent2D SwapChains::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<WindowsWindow>& window)
+	VkExtent2D SwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<WindowsWindow>& window)
 	{
 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 		{

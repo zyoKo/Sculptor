@@ -4,13 +4,14 @@
 
 #include "Platform/Windows/WindowData/WindowConstants.h"
 #include "Utilities/ExtensionManager.h"
-#include "Core/RenderAPI/SwapChains/SwapChains.h"
+#include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/Windows/VulkanWindowSurface/VulkanWindowSurface.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Platform/Windows/WindowsWindow.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 #include "Platform/Windows/WindowData/WindowProperties.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/ImageViews.h"
 
 namespace Sculptor::Core
 {
@@ -20,7 +21,8 @@ namespace Sculptor::Core
 			validationLayer(std::make_shared<ValidationLayer>()),
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
-			swapChains(std::make_shared<SwapChains>())
+			swapChains(std::make_shared<SwapChain>()),
+			imageViews(std::make_shared<ImageViews>(logicalDevice, swapChains))
 	{
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -56,6 +58,8 @@ namespace Sculptor::Core
 		logicalDevice->CreateLogicalDevice(vulkanInstanceWrapper, validationLayer, windowSurface);
 
 		swapChains->CreateSwapChain(windowSurface, logicalDevice);
+
+		imageViews->CreateImageViews();
 	}
 
 	void SculptorApplication::MainLoop() const
@@ -68,6 +72,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
+		imageViews->CleanUp();
+
 		swapChains->CleanUp();
 
 		logicalDevice->CleanUp();
