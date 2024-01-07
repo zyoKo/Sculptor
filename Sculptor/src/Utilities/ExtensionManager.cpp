@@ -15,9 +15,9 @@ namespace Sculptor::Utils
 		validationLayerIsInitialized = true;
 	}
 
-	std::vector<const char*> ExtensionManager::GetRequiredExtensions()
+	std::vector<const char*> ExtensionManager::GetRequiredExtensions(bool printExtensions)
 	{
-		if (validationLayerIsInitialized)
+		if (!validationLayerIsInitialized)
 			S_ASSERT(false, "Please Initialize Validation Layer before requesting extension!");
 
 		uint32_t glfwExtensionCount = 0;
@@ -34,6 +34,9 @@ namespace Sculptor::Utils
 		// to setup a callback in the program to handle messages
 		if (validationLayer->IsEnabled())
 			requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+		if (printExtensions)
+			PrintAllSupportedExtensions();
 
 		return requiredExtensions;
 	}

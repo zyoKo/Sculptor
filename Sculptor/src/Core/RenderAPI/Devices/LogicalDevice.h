@@ -5,6 +5,11 @@
 
 namespace Sculptor::Core
 {
+	class SwapChain;
+}
+
+namespace Sculptor::Core
+{
 	class LogicalDevice
 	{
 	public:
@@ -17,6 +22,12 @@ namespace Sculptor::Core
 			const std::shared_ptr<ValidationLayer>& validationLayer, 
 			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
+		const VkDevice& GetLogicalDevice() const;
+
+		const QueueFamilies& GetQueueFamilies() const;
+
+		std::weak_ptr<PhysicalDevice> GetPhysicalDevice() const;
+
 		void CleanUp() const;
 
 	private:
@@ -28,7 +39,11 @@ namespace Sculptor::Core
 
 		VkPhysicalDeviceFeatures deviceFeatures;
 
+		friend class RenderApi;
+
 		void InstantiatePhysicalDevicesAndQueueFamilies(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
 			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+
+		bool CheckDeviceExtensionSupport() const;
 	};
 }

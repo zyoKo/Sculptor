@@ -20,8 +20,6 @@ namespace Sculptor::Core
 
 		const QueueFamilyIndices& GetQueueFamilyIndices() const;
 
-		bool IsDeviceSuitable() const;
-
 		const VkQueue& GetGraphicsQueue() const;
 
 		VkQueue& GetGraphicsQueue();

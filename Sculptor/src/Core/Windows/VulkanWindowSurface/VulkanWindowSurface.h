@@ -25,7 +25,11 @@ namespace Sculptor::Windows
 
 		VkSurfaceKHR& GetSurface();
 
+		std::weak_ptr<Core::WindowsWindow> GetNativeWindow() const;
+
 	private:
 		VkSurfaceKHR windowSurface;
+
+		std::weak_ptr<Core::WindowsWindow> nativeWindow;
 	};
 }

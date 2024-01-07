@@ -4,6 +4,7 @@
 
 #include "VulkanInstanceWrapper.h"
 
+#include "Core/RenderAPI/Constants/Constants.h"
 #include "Utilities/ExtensionManager.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -21,11 +22,11 @@ namespace Sculptor::Core
 		// Create Application Info
 		VkApplicationInfo applicationInfo{};
 		applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		applicationInfo.pApplicationName = "Sculptor Triangle";
-		applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.pEngineName = "Sculptor-Engine";
-		applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		applicationInfo.apiVersion = VK_MAKE_VERSION(1, 3, 0);
+		applicationInfo.pApplicationName = APPLICATION::NAME;
+		applicationInfo.applicationVersion = VK_MAKE_VERSION(APPLICATION::MAJOR, APPLICATION::MINOR, APPLICATION::PATCH);
+		applicationInfo.pEngineName = ENGINE::NAME;
+		applicationInfo.engineVersion = VK_MAKE_VERSION(ENGINE::MAJOR, ENGINE::MINOR, ENGINE::PATCH);
+		applicationInfo.apiVersion = VK_MAKE_VERSION(API::MAJOR, API::MINOR, API::PATCH);
 
 		// Create Info needs both applicationInfo and glfwExtensions
 		VkInstanceCreateInfo createInfo{};

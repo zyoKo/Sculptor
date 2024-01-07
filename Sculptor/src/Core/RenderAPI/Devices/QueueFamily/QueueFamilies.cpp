@@ -55,11 +55,6 @@ namespace Sculptor::Core
 		return queueFamilyIndices;
 	}
 
-	bool QueueFamilies::IsDeviceSuitable() const
-	{
-		return queueFamilyIndices.IsComplete();
-	}
-
 	const VkQueue& QueueFamilies::GetGraphicsQueue() const
 	{
 		return graphicsQueue;
