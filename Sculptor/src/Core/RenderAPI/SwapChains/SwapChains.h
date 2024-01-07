@@ -10,6 +10,7 @@ namespace Sculptor::Windows
 namespace Sculptor::Core
 {
 	class LogicalDevice;
+
 	class PhysicalDevice;
 
 	class WindowsWindow;
@@ -33,6 +34,12 @@ namespace Sculptor::Core
 
 	private:
 		VkSwapchainKHR swapChain;
+
+		std::vector<VkImage> swapChainImages;
+
+		VkFormat swapChainImageFormat;
+
+		VkExtent2D swapChainExtent;
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
 

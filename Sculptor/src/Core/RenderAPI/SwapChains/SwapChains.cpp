@@ -11,15 +11,20 @@
 namespace Sculptor::Core
 {
 	SwapChains::SwapChains()
-		:	swapChain(nullptr)
+		:	swapChain(nullptr),
+			swapChainImageFormat{},
+			swapChainExtent{}
 	{ }
 
 	void SwapChains::CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
-		const std::weak_ptr<LogicalDevice>& logicalDevice)
+	                                 const std::weak_ptr<LogicalDevice>& logicalDevice)
 	{
 		const auto device = logicalDevice.lock();
 		S_ASSERT(device == nullptr, "Logical Device not set before creating SwapChain!");
 		this->logicalDevice = logicalDevice;
+
+		const auto& logicalDevicePtr = device->GetLogicalDevice();
+		const auto& physicalDevicePtr = device->GetPhysicalDevice();
 
 		const auto window = windowSurface.lock();
 		if (!window)
@@ -28,11 +33,15 @@ namespace Sculptor::Core
 			return;
 		}
 
-		const SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(windowSurface, device->GetPhysicalDevice());
+		const SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(windowSurface, physicalDevicePtr);
 
 		const auto surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+		swapChainImageFormat = surfaceFormat.format;
+
 		const auto presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+
 		const auto extent = ChooseSwapExtent(swapChainSupport.capabilities, window->GetNativeWindow());
+		swapChainExtent = extent;
 
 		// We do +1 cause sometimes we have to wait on the driver to complete internal operations
 		// before we can acquire another image to render to
@@ -94,8 +103,12 @@ namespace Sculptor::Core
 		// so we need to recreate swap chain (later)
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		const auto result = vkCreateSwapchainKHR(device->GetLogicalDevice(), &createInfo, nullptr, &swapChain);
+		const auto result = vkCreateSwapchainKHR(logicalDevicePtr, &createInfo, nullptr, &swapChain);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Swapchain!");
+
+		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, nullptr);
+		swapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, swapChainImages.data());
 	}
 
 	void SwapChains::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
