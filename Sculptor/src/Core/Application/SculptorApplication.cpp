@@ -12,6 +12,10 @@
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 #include "Platform/Windows/WindowData/WindowProperties.h"
 #include "Core/RenderAPI/SwapChains/ImageViews/ImageViews.h"
+#include "Core/RenderAPI/RenderApi.h"
+#include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
+#include "Core/RenderAPI/Buffers/FrameBuffer.h"
+#include "Core/RenderAPI/Pools/CommandPool.h"
 
 namespace Sculptor::Core
 {
@@ -22,7 +26,11 @@ namespace Sculptor::Core
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
 			swapChains(std::make_shared<SwapChain>()),
-			imageViews(std::make_shared<ImageViews>(logicalDevice, swapChains))
+			imageViews(std::make_shared<ImageViews>(logicalDevice, swapChains)),
+			renderApi(std::make_shared<RenderApi>(swapChains, logicalDevice)),
+			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChains, logicalDevice)),
+			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChains, logicalDevice)),
+			commandPool(std::make_shared<CommandPool>())
 	{
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -60,6 +68,14 @@ namespace Sculptor::Core
 		swapChains->CreateSwapChain(windowSurface, logicalDevice);
 
 		imageViews->CreateImageViews();
+
+		renderApi->CreateRenderPass();
+
+		graphicsPipeline->CreateGraphicsPipeline();
+
+		frameBuffer->CreateFrameBuffer();
+
+		commandPool->CreateCommandPool();
 	}
 
 	void SculptorApplication::MainLoop() const
@@ -72,6 +88,14 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
+		commandPool->CleanUp();
+
+		frameBuffer->CleanUp();
+
+		graphicsPipeline->CleanUp();
+
+		renderApi->CleanUp();
+
 		imageViews->CleanUp();
 
 		swapChains->CleanUp();

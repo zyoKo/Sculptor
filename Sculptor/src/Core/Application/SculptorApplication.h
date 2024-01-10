@@ -8,16 +8,15 @@ namespace Sculptor::Windows
 namespace Sculptor::Core
 {
 	class ImageViews;
-
 	class WindowsWindow;
-
 	class VulkanInstanceWrapper;
-
 	class ValidationLayer;
-
 	class LogicalDevice;
-
 	class SwapChain;
+	class RenderApi;
+	class GraphicsPipeline;
+	class FrameBuffer;
+	class CommandPool;
 }
 
 namespace Sculptor::Core
@@ -53,6 +52,14 @@ namespace Sculptor::Core
 		std::shared_ptr<SwapChain> swapChains;
 
 		std::shared_ptr<ImageViews> imageViews;
+
+		std::shared_ptr<RenderApi> renderApi;
+
+		std::shared_ptr<GraphicsPipeline> graphicsPipeline;
+
+		std::shared_ptr<FrameBuffer> frameBuffer;
+
+		std::shared_ptr<CommandPool> commandPool;
 
 		void InitializeWindow() const;
 

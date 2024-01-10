@@ -2,7 +2,7 @@
 
 #include "ValidationLayer.h"
 
-#include "Core/RenderAPI/Constants/Constants.h"
+#include "Core/RenderAPI/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -49,8 +49,10 @@ namespace Sculptor::Core
 
 	void ValidationLayer::CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const
 	{
-		if (enableValidationLayers)
+ 		if (enableValidationLayers)
+		{
 			DestroyDebugUtilsMessengerEXT(vulkanInstanceWrapper->GetInstance(), debugMessenger, nullptr);
+		}
 	}
 
 	// Private Functions && Message Callback Functions
@@ -77,6 +79,8 @@ namespace Sculptor::Core
 		createInfo.pfnUserCallback = DebugCallBack;
 
 		createInfo.pUserData = nullptr;
+
+		createInfo.pNext = nullptr;
 	}
 
 	bool ValidationLayer::CheckValidationLayerSupport() const
@@ -124,7 +128,7 @@ namespace Sculptor::Core
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-			S_ASSERT(false, pCallbackData->pMessage);
+			std::cerr << "Validation Layer(Error): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:

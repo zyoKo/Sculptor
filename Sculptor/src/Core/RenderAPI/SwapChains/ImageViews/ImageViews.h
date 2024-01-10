@@ -27,5 +27,7 @@ namespace Sculptor::Core
 		std::weak_ptr<SwapChain> swapChain;
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		friend class FrameBuffer;
 	};
 }

@@ -49,6 +49,10 @@ namespace Sculptor::Core
 
 		friend class ImageViews;
 
+		friend class GraphicsPipeline;
+
+		friend class FrameBuffer;
+
 		static SwapChainSupportDetails QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<PhysicalDevice>& physicalDevice);
 
