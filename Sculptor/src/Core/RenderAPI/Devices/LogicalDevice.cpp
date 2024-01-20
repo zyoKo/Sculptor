@@ -88,7 +88,7 @@ namespace Sculptor::Core
 			&queueFamilies.GetPresentQueue());
 	}
 
-	const VkDevice& LogicalDevice::GetLogicalDevice() const
+	const VkDevice& LogicalDevice::Get() const
 	{
 		return logicalDevice;
 	}

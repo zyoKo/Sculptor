@@ -23,7 +23,7 @@ namespace Sculptor::Core
 		S_ASSERT(device == nullptr, "Logical Device not set before creating SwapChain!");
 		this->logicalDevice = logicalDevice;
 
-		const auto& logicalDevicePtr = device->GetLogicalDevice();
+		const auto& logicalDevicePtr = device->Get();
 		const auto& physicalDevicePtr = device->GetPhysicalDevice();
 
 		const auto window = windowSurface.lock();
@@ -103,7 +103,7 @@ namespace Sculptor::Core
 		// so we need to recreate swap chain (later)
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		const auto result = vkCreateSwapchainKHR(logicalDevicePtr, &createInfo, nullptr, &swapChain);
+		const VkResult result = vkCreateSwapchainKHR(logicalDevicePtr, &createInfo, nullptr, &swapChain);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Swapchain!");
 
 		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, nullptr);
@@ -111,9 +111,9 @@ namespace Sculptor::Core
 		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, swapChainImages.data());
 	}
 
-	void SwapChain::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
+	const VkSwapchainKHR& SwapChain::Get() const
 	{
-		this->logicalDevice = device;
+		return swapChain;
 	}
 
 	void SwapChain::CleanUp() const
@@ -121,7 +121,7 @@ namespace Sculptor::Core
 		const auto device = logicalDevice.lock();
 		S_ASSERT(device == nullptr, "Logical Device is not set.");
 
-		vkDestroySwapchainKHR(device->GetLogicalDevice(), swapChain, nullptr);
+		vkDestroySwapchainKHR(device->Get(), swapChain, nullptr);
 	}
 
 	SwapChainSupportDetails SwapChain::QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,

@@ -6,6 +6,10 @@
 
 namespace Sculptor::Core
 {
+	CommandPool::CommandPool(const std::weak_ptr<LogicalDevice>& logicalDevice)
+		:	logicalDevice(logicalDevice)
+	{ }
+
 	void CommandPool::CreateCommandPool()
 	{
 		const auto logicalDevicePtr = logicalDevice.lock();
@@ -14,7 +18,7 @@ namespace Sculptor::Core
 			std::cerr << "Logical device reference is null.\nFailed to create CommandPool." << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 		const auto& queueFamilyIndices = logicalDevicePtr->GetQueueFamilies().GetQueueFamilyIndices();
 
 		// anther flag for command pool is VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
@@ -43,7 +47,7 @@ namespace Sculptor::Core
 			std::cerr << "Logical device reference is null.\nFailed to create CommandPool." << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyCommandPool(device, commandPool, nullptr);
 	}

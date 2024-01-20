@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SwapChainSupportDetails.h"
+#include "Utilities/Macros.h"
 
 namespace Sculptor::Windows
 {
@@ -28,7 +29,9 @@ namespace Sculptor::Core
 		void CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<LogicalDevice>& logicalDevice);
 
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+		const VkSwapchainKHR& Get() const;
+
+		LOGICAL_DEVICE
 
 		void CleanUp() const;
 
@@ -41,8 +44,6 @@ namespace Sculptor::Core
 
 		VkExtent2D swapChainExtent;
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
 		friend class LogicalDevice;
 
 		friend class RenderApi;
@@ -52,6 +53,8 @@ namespace Sculptor::Core
 		friend class GraphicsPipeline;
 
 		friend class FrameBuffer;
+
+		friend class CommandBuffer;
 
 		static SwapChainSupportDetails QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<PhysicalDevice>& physicalDevice);

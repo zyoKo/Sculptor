@@ -22,7 +22,7 @@ namespace Sculptor::Core
 			const std::shared_ptr<ValidationLayer>& validationLayer, 
 			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
-		const VkDevice& GetLogicalDevice() const;
+		const VkDevice& Get() const;
 
 		const QueueFamilies& GetQueueFamilies() const;
 

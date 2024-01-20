@@ -25,6 +25,11 @@ namespace Sculptor::Core
 
 	void GraphicsPipeline::CreateGraphicsPipeline()
 	{
+		const auto& logicalDevicePtr = logicalDevice.lock();
+		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
+
+		const auto& device = logicalDevicePtr->Get();
+
 		shaderModule->CreateShaderStages();
 
 		VkPipelineVertexInputStateCreateInfo vertexInput{};
@@ -176,6 +181,9 @@ namespace Sculptor::Core
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
+		const auto result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+		S_ASSERT(result != VK_SUCCESS, "Failed to create Pipeline Layout!");
+
 		VkGraphicsPipelineCreateInfo graphicsPipelineInfo{};
 		graphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		graphicsPipelineInfo.stageCount = 2;
@@ -193,7 +201,7 @@ namespace Sculptor::Core
 		const auto renderApiPtr = renderApi.lock();
 		if (!renderApiPtr)
 		{
-			std::cerr << "Initialize and Set Render Api before creating graphics pipeline." << std::endl;
+			std::cerr << "Initialize and Set Render Api before creating graphics pipeline.\n";
 			return;
 		}
 
@@ -202,13 +210,8 @@ namespace Sculptor::Core
 		graphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		graphicsPipelineInfo.basePipelineIndex = -1; // Optional
 
-		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
-
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
-
-		const auto result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create Pipeline Layout!");
+		const VkResult graphicPipelineResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr, &graphicsPipeline);
+		S_ASSERT(graphicPipelineResult != VK_SUCCESS, "Failed to create graphics pipeline.");
 
 		shaderModule->DestroyShaderModules();
 	}
@@ -218,7 +221,7 @@ namespace Sculptor::Core
 		const auto& logicalDevicePtr = logicalDevice.lock();
 		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
 
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
@@ -237,5 +240,29 @@ namespace Sculptor::Core
 	void GraphicsPipeline::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
 	{
 		this->logicalDevice = device;
+	}
+
+	void GraphicsPipeline::BindGraphicsPipeline(const CommandBuffer& commandBuffer) const
+	{
+		vkCmdBindPipeline(commandBuffer.GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	}
+
+	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer) const
+	{
+		const auto swapChainPtr = swapChain.lock();
+		if (!swapChainPtr)
+		{
+			std::cerr << "Failed to execute draw command as swap chain reference is null." << std::endl;
+			return;
+		}
+		const auto& swapChainExtent = swapChainPtr->swapChainExtent;
+
+		const Viewport viewPort{ swapChainExtent };
+		vkCmdSetViewport(commandBuffer.GetBuffer(), 0, 1, &viewPort.vkViewPort);
+
+		const Scissor scissor{ swapChainExtent };
+		vkCmdSetScissor(commandBuffer.GetBuffer(), 0, 1, &scissor.scissor);
+
+		vkCmdDraw(commandBuffer.GetBuffer(), 3, 1, 0, 0);
 	}
 }

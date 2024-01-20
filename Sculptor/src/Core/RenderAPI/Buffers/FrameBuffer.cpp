@@ -50,7 +50,7 @@ namespace Sculptor::Core
 			std::cerr << "Logical device reference is null." << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		swapChainFrameBuffers.resize(swapChainImageViews.size());
 
@@ -85,7 +85,7 @@ namespace Sculptor::Core
 			std::cerr << "Logical device reference is null." << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		for (const auto& frameBuffer : swapChainFrameBuffers)
 		{
@@ -111,5 +111,10 @@ namespace Sculptor::Core
 	void FrameBuffer::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& logicalDevice)
 	{
 		this->logicalDevice = logicalDevice;
+	}
+
+	const std::vector<VkFramebuffer>& FrameBuffer::GetSwapChainFrameBuffers() const
+	{
+		return swapChainFrameBuffers;
 	}
 }

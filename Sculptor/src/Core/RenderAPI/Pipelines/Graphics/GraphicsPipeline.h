@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/RenderAPI/Buffers/CommandBuffer.h"
+
 namespace Sculptor::Core
 {
 	class ShaderModule;
@@ -30,6 +32,10 @@ namespace Sculptor::Core
 		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
 
 		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+
+		void BindGraphicsPipeline(const CommandBuffer& commandBuffer) const;
+
+		void Draw(const CommandBuffer& commandBuffer) const;
 
 	private:
 		VkPipelineLayout pipelineLayout{};

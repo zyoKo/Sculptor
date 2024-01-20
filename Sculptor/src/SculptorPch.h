@@ -10,7 +10,10 @@
 #include <set>
 #include <assert.h>
 
-#include <vulkan/vulkan.h>
+// Included with "vma/vk_mem_alloc.h"
+// #include <windows.h>
+// #include <vulkan/vulkan.h>
+#include <vma/vk_mem_alloc.h>
 
 // The minwindef.h 'max' macro is colliding with limits 'max' function
 #ifdef max

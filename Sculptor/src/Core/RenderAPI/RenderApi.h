@@ -25,6 +25,8 @@ namespace Sculptor::Core
 
 		static bool IsDeviceSuitable(const LogicalDevice& device, const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
+		void DrawFrame();
+
 	private:
 		VkRenderPass renderPass;
 
@@ -35,5 +37,7 @@ namespace Sculptor::Core
 		friend class GraphicsPipeline;
 
 		friend class FrameBuffer;
+
+		friend class CommandBuffer;
 	};
 }

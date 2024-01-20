@@ -38,7 +38,7 @@ namespace Sculptor::Core
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		VkAttachmentReference colorAttachmentReference{};
+		VkAttachmentReference colorAttachmentReference;
 		colorAttachmentReference.attachment = 0;	// index of VkAttachmentDescription, since only 1 (above) then index is 0
 		colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -51,12 +51,22 @@ namespace Sculptor::Core
 		subPass.pDepthStencilAttachment = nullptr; // attachments for depth and stencil data
 		subPass.pPreserveAttachments = nullptr; // attachments that are not used by this subpass, but for which data must be preserved
 
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = 1;
 		renderPassInfo.pAttachments = &colorAttachment;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subPass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
 
 		const auto logicalDevicePtr = logicalDevice.lock();
 		if (!logicalDevicePtr)
@@ -65,7 +75,7 @@ namespace Sculptor::Core
 			std::cerr << "Cannot create Render Pass!" << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		const auto result = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Graphics Pipeline.");
@@ -90,7 +100,7 @@ namespace Sculptor::Core
 			std::cerr << "Cannot cleanup pipeline Layout and Render Pass!" << std::endl;
 			return;
 		}
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyRenderPass(device, renderPass, nullptr);
 	}
@@ -118,5 +128,10 @@ namespace Sculptor::Core
 		}
 
 		return isDeviceSuitable && checkDeviceExtensionSupport && swapChainAdequate;
+	}
+
+	void RenderApi::DrawFrame()
+	{
+
 	}
 }

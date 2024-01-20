@@ -21,7 +21,7 @@ namespace Sculptor::Core
 
 		const auto& logicalDevicePtr = logicalDevice.lock();
 		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		VkShaderModule shaderModule{};
 
@@ -36,7 +36,7 @@ namespace Sculptor::Core
 		const auto& logicalDevicePtr = logicalDevice.lock();
 		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
 
-		const auto& device = logicalDevicePtr->GetLogicalDevice();
+		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyShaderModule(device, fragmentShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertexShaderModule, nullptr);

@@ -12,6 +12,8 @@ namespace Sculptor::Core
 	public:
 		CommandPool() = default;
 
+		CommandPool(const std::weak_ptr<LogicalDevice>& logicalDevice);
+
 		~CommandPool() = default;
 
 		void CreateCommandPool();
@@ -19,8 +21,10 @@ namespace Sculptor::Core
 		void CleanUp() const;
 
 	private:
-		VkCommandPool commandPool;
+		VkCommandPool commandPool{};
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		friend class CommandBuffer;
 	};
 }

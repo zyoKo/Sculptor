@@ -32,6 +32,8 @@ namespace Sculptor::Core
 
 		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& logicalDevice);
 
+		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
+
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
@@ -42,5 +44,7 @@ namespace Sculptor::Core
 		std::weak_ptr<SwapChain> swapChain;
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		friend class CommandBuffer;
 	};
 }

@@ -21,6 +21,8 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
+		const std::vector<VkImageView>& GetSwapChainImageViews() const;
+
 	private:
 		std::vector<VkImageView> swapChainImageViews;
 
