@@ -10,6 +10,7 @@ namespace Sculptor::Windows
 
 namespace Sculptor::Core
 {
+	class VertexBuffer;
 	class ImageViews;
 	class WindowsWindow;
 	class VulkanInstanceWrapper;
@@ -78,6 +79,8 @@ namespace Sculptor::Core
 		//VulkanFenceWrapper inFlightFence;
 
 		uint32_t currentFrame;
+
+		std::shared_ptr<VertexBuffer> vertexBuffer;
 
 		void InitializeWindow() const;
 

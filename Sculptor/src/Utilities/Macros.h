@@ -14,6 +14,7 @@
 	if (!instancePtr) \
 	{ \
 		std::cerr << "Vulkan Instance Wrapper is null.\n"; \
+		__debugbreak(); \
 	} \
 	const auto& instance = instancePtr->GetInstance();
 
@@ -31,6 +32,28 @@
 	if (!logicalDevicePtr) \
 	{ \
 		std::cerr << "Logical Device pointer is null.\n"; \
-		return; \
+		__debugbreak(); \
 	} \
 	const auto& device = logicalDevicePtr->Get();
+
+/////////////////////////////////////////////////////////////////////////////
+// Command Buffer ///////////////////////////////////////////////////////////
+#define COMMAND_BUFFER \
+	private: \
+	std::weak_ptr<CommandBuffer> commandBuffer; \
+	public: \
+	void SetCommandBuffer(const std::weak_ptr<CommandBuffer>& buffer) \
+	{ \
+		this->commandBuffer = buffer; \
+	}
+
+#define HANDLE_WEAK_COMMAND_BUFFER \
+	const auto weakCommandBufferPtr = commandBuffer.lock(); \
+	if (!weakCommandBufferPtr) \
+	{ \
+		std::cerr << "Command Buffer pointer is null.\n"; \
+		__debugbreak(); \
+	} \
+	const auto& cmdBuffer = weakCommandBufferPtr->GetBuffer();
+// Command Buffer ///////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////

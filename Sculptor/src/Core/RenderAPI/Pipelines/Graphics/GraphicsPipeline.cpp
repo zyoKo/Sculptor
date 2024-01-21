@@ -6,10 +6,12 @@
 #include "Core/RenderAPI/Structures/Scissor.h"
 #include "Core/RenderAPI/Structures/Viewport.h"
 #include "Core/RenderAPI/RenderApi.h"
+#include "Core/RenderAPI/Buffers/Structures/Vertex.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Utilities/Logger/Assert.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Shader/ShaderModule.h"
+#include "Core/RenderAPI/Buffers/VertexBuffer.h"
 
 namespace Sculptor::Core
 {
@@ -32,12 +34,15 @@ namespace Sculptor::Core
 
 		shaderModule->CreateShaderStages();
 
+		auto bindingDesc = Vertex::GetBindingDescription(0, sizeof(Vertex));
+		auto attributeDesc = Vertex::GetAttributeDescription();
+
 		VkPipelineVertexInputStateCreateInfo vertexInput{};
 		vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInput.vertexBindingDescriptionCount = 0;
-		vertexInput.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInput.vertexAttributeDescriptionCount = 0;
-		vertexInput.pVertexAttributeDescriptions = nullptr; // Optional
+		vertexInput.vertexBindingDescriptionCount = 1;
+		vertexInput.pVertexBindingDescriptions = &bindingDesc;
+		vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
+		vertexInput.pVertexAttributeDescriptions = attributeDesc.data();
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -227,6 +232,39 @@ namespace Sculptor::Core
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	}
 
+	void GraphicsPipeline::BindGraphicsPipeline(const CommandBuffer& commandBuffer) const
+	{
+		vkCmdBindPipeline(commandBuffer.GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	}
+
+	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize) const
+	{
+		const auto swapChainPtr = swapChain.lock();
+		if (!swapChainPtr)
+		{
+			std::cerr << "Failed to execute draw command as swap chain reference is null.\n";
+			return;
+		}
+		const auto& swapChainExtent = swapChainPtr->swapChainExtent;
+
+		const auto& cmdBuffer = commandBuffer.GetBuffer();
+
+		const Viewport viewPort{ swapChainExtent };
+		vkCmdSetViewport(cmdBuffer, 0, 1, &viewPort.vkViewPort);
+
+		const Scissor scissor{ swapChainExtent };
+		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor.scissor);
+
+		const auto vertexBufferPtr = vertexBuffer.lock();
+		if (!vertexBufferPtr)
+		{
+			int i = 0;
+		}
+		vertexBufferPtr->Bind(cmdBuffer);
+
+		vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
+	}
+
 	void GraphicsPipeline::SetRenderApi(const std::weak_ptr<RenderApi>& renderApi)
 	{
 		this->renderApi = renderApi;
@@ -242,27 +280,8 @@ namespace Sculptor::Core
 		this->logicalDevice = device;
 	}
 
-	void GraphicsPipeline::BindGraphicsPipeline(const CommandBuffer& commandBuffer) const
+	void GraphicsPipeline::SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer)
 	{
-		vkCmdBindPipeline(commandBuffer.GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-	}
-
-	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer) const
-	{
-		const auto swapChainPtr = swapChain.lock();
-		if (!swapChainPtr)
-		{
-			std::cerr << "Failed to execute draw command as swap chain reference is null." << std::endl;
-			return;
-		}
-		const auto& swapChainExtent = swapChainPtr->swapChainExtent;
-
-		const Viewport viewPort{ swapChainExtent };
-		vkCmdSetViewport(commandBuffer.GetBuffer(), 0, 1, &viewPort.vkViewPort);
-
-		const Scissor scissor{ swapChainExtent };
-		vkCmdSetScissor(commandBuffer.GetBuffer(), 0, 1, &scissor.scissor);
-
-		vkCmdDraw(commandBuffer.GetBuffer(), 3, 1, 0, 0);
+		this->vertexBuffer = buffer;
 	}
 }

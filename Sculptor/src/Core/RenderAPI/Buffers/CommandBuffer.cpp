@@ -9,6 +9,7 @@
 #include "Core/RenderAPI/Buffers/FrameBuffer.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
+#include "Data/Constants.h"
 
 namespace Sculptor::Core
 {
@@ -74,7 +75,7 @@ namespace Sculptor::Core
 
 		graphicsPipelinePtr->BindGraphicsPipeline(*this);
 
-		graphicsPipelinePtr->Draw(*this);
+		graphicsPipelinePtr->Draw(*this, static_cast<uint32_t>(VERTICES.size()));
 
 		EndRenderPass();
 

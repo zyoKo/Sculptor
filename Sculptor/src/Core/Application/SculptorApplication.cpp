@@ -17,6 +17,8 @@
 #include "Core/RenderAPI/Buffers/FrameBuffer.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
+#include "Core/RenderAPI/Buffers/VertexBuffer.h"
+#include "Core/RenderAPI/Buffers/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -35,7 +37,8 @@ namespace Sculptor::Core
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
 			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
-			currentFrame(0)
+			currentFrame(0),
+			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice))
 	{
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -50,6 +53,8 @@ namespace Sculptor::Core
 			renderFinishedSemaphores[i].SetLogicalDevice(logicalDevice);
 			inFlightFences[i].SetLogicalDevice(logicalDevice);
 		}
+
+		graphicsPipeline->SetVertexBuffer(vertexBuffer);
 
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -96,6 +101,10 @@ namespace Sculptor::Core
 
 		commandPool->CreateCommandPool();
 
+		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
+
+		vertexBuffer->Create(bufferSize);
+
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			commandBuffers[i]->Create();
@@ -138,6 +147,8 @@ namespace Sculptor::Core
 		graphicsPipeline->CleanUp();
 
 		renderApi->CleanUp();
+
+		vertexBuffer->CleanUp();
 
 		//imageViews->CleanUp();
 

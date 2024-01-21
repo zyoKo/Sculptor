@@ -4,12 +4,10 @@
 
 namespace Sculptor::Core
 {
+	class VertexBuffer;
 	class ShaderModule;
-
 	class SwapChain;
-
 	class RenderApi;
-
 	class LogicalDevice;
 }
 
@@ -27,15 +25,17 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
+		void BindGraphicsPipeline(const CommandBuffer& commandBuffer) const;
+
+		void Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize) const;
+
 		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
 
 		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
 
 		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
 
-		void BindGraphicsPipeline(const CommandBuffer& commandBuffer) const;
-
-		void Draw(const CommandBuffer& commandBuffer) const;
+		void SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer);
 
 	private:
 		VkPipelineLayout pipelineLayout{};
@@ -49,5 +49,7 @@ namespace Sculptor::Core
 		std::weak_ptr<SwapChain> swapChain;
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		std::weak_ptr<VertexBuffer> vertexBuffer;
 	};
 }

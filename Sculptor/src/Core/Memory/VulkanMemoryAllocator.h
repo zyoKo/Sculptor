@@ -37,6 +37,15 @@ namespace Sculptor::Core
 		friend class BufferAllocator;
 	};
 
+	class IMemoryAllocator
+	{
+	public:
+		
+
+	private:
+		std::weak_ptr<VulkanMemoryAllocator> vmaWrapper;
+	};
+
 	class ImageAllocator : public VulkanMemoryAllocator
 	{
 	public:
