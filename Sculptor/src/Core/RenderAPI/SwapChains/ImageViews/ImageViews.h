@@ -21,11 +21,15 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
+		const std::vector<VkImageView>& GetSwapChainImageViews() const;
+
 	private:
 		std::vector<VkImageView> swapChainImageViews;
 
 		std::weak_ptr<SwapChain> swapChain;
 
 		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		friend class FrameBuffer;
 	};
 }

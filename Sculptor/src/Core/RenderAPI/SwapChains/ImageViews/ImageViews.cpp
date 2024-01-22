@@ -51,7 +51,7 @@ namespace Sculptor::Core
 			const auto devicePtr = logicalDevice.lock();
 			S_ASSERT(devicePtr == nullptr, "Initialize Logical Device before creating Image Views.");
 
-			const auto& logicalDevicePtr = devicePtr->GetLogicalDevice();
+			const auto& logicalDevicePtr = devicePtr->Get();
 
 			const auto result = vkCreateImageView(logicalDevicePtr, &createInfo, nullptr, &swapChainImageViews[i]);
 			S_ASSERT(result != VK_SUCCESS, "Failed to create image views!");
@@ -68,7 +68,12 @@ namespace Sculptor::Core
 
 		for (auto& imageView : swapChainImageViews)
 		{
-			vkDestroyImageView(logicalDevicePtr->GetLogicalDevice(), imageView, nullptr);
+			vkDestroyImageView(logicalDevicePtr->Get(), imageView, nullptr);
 		}
+	}
+
+	const std::vector<VkImageView>& ImageViews::GetSwapChainImageViews() const
+	{
+		return swapChainImageViews;
 	}
 }

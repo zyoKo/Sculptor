@@ -29,5 +29,9 @@ namespace Sculptor::Core
 
 	private:
 		GLFWwindow* window;
+
+		bool frameBufferResized;
+
+		static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
 	};
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/RenderAPI/Async/VulkanFenceWrapper.h"
+#include "Core/RenderAPI/Async/VulkanSemaphoreWrapper.h"
+
 namespace Sculptor::Windows
 {
 	class VulkanWindowSurface;
@@ -7,17 +10,18 @@ namespace Sculptor::Windows
 
 namespace Sculptor::Core
 {
+	class VertexBuffer;
 	class ImageViews;
-
 	class WindowsWindow;
-
 	class VulkanInstanceWrapper;
-
 	class ValidationLayer;
-
 	class LogicalDevice;
-
 	class SwapChain;
+	class RenderApi;
+	class GraphicsPipeline;
+	class FrameBuffer;
+	class CommandPool;
+	class CommandBuffer;
 }
 
 namespace Sculptor::Core
@@ -37,7 +41,7 @@ namespace Sculptor::Core
 
 		SculptorApplication& operator=(SculptorApplication&&) = delete;
 
-		void Sculpt() const;
+		void Sculpt();
 
 	private:
 		std::shared_ptr<WindowsWindow> window;
@@ -50,16 +54,48 @@ namespace Sculptor::Core
 
 		std::shared_ptr<LogicalDevice> logicalDevice;
 
-		std::shared_ptr<SwapChain> swapChains;
+		std::shared_ptr<SwapChain> swapChain;
 
 		std::shared_ptr<ImageViews> imageViews;
 
+		std::shared_ptr<RenderApi> renderApi;
+
+		std::shared_ptr<GraphicsPipeline> graphicsPipeline;
+
+		std::shared_ptr<FrameBuffer> frameBuffer;
+
+		std::shared_ptr<CommandPool> commandPool;
+
+		//std::shared_ptr<CommandBuffer> commandBuffer;
+
+		std::vector<std::shared_ptr<CommandBuffer>> commandBuffers;
+
+		std::vector<VulkanSemaphoreWrapper> imageAvailableSemaphores;
+		std::vector<VulkanSemaphoreWrapper> renderFinishedSemaphores;
+		std::vector<VulkanFenceWrapper> inFlightFences;
+
+		//VulkanSemaphoreWrapper imageAvailableSemaphore;
+		//VulkanSemaphoreWrapper renderFinishedSemaphore;
+		//VulkanFenceWrapper inFlightFence;
+
+		uint32_t currentFrame;
+
+		std::shared_ptr<VertexBuffer> vertexBuffer;
+
 		void InitializeWindow() const;
 
-		void InitializeVulkan() const;
+		void InitializeVulkan();
 
-		void MainLoop() const;
+		void MainLoop();
 
 		void CleanUp() const;
+
+		// TODO: Find a better place for this after tutorial
+		void DrawFrame();
+
+		// TODO: Find a better place for this
+		void CleanUpSwapChain() const;
+
+		void RecreateSwapChain() const;
 	};
 }

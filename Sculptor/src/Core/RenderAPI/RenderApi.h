@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Devices/LogicalDevice.h"
 #include "Devices/QueueFamily/QueueFamilies.h"
 #include "SwapChains/SwapChain.h"
@@ -8,29 +9,35 @@ namespace Sculptor::Core
 	class RenderApi
 	{
 	public:
-		static bool IsDeviceSuitable(const LogicalDevice& device, 
-			const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
-		{
-			const auto& queueFamilies = device.GetQueueFamilies();
-			const bool isDeviceSuitable = queueFamilies.GetQueueFamilyIndices().IsComplete();
+		RenderApi();
 
-			const auto physicalDevice = device.GetPhysicalDevice().lock();
-			if (!physicalDevice)
-			{
-				std::cerr << "Initialize Physical Device before checking device suitability." << std::endl;
-				return false;
-			}
+		RenderApi(const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice);
 
-			const bool checkDeviceExtensionSupport = device.CheckDeviceExtensionSupport();
+		~RenderApi() = default;
 
-			bool swapChainAdequate = false;
-			if (checkDeviceExtensionSupport)
-			{
-				const auto swapChainSupportDetails = SwapChain::QuerySwapChainSupport(vulkanWindowSurface, device.GetPhysicalDevice());
-				swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
-			}
+		void CreateRenderPass();
 
-			return isDeviceSuitable && checkDeviceExtensionSupport && swapChainAdequate;
-		}
+		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
+
+		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+
+		void CleanUp() const;
+
+		static bool IsDeviceSuitable(const LogicalDevice& device, const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+
+		void DrawFrame();
+
+	private:
+		VkRenderPass renderPass;
+
+		std::weak_ptr<SwapChain> swapChain;
+
+		std::weak_ptr<LogicalDevice> logicalDevice;
+
+		friend class GraphicsPipeline;
+
+		friend class FrameBuffer;
+
+		friend class CommandBuffer;
 	};
 }

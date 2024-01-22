@@ -3,9 +3,8 @@
 #include "LogicalDevice.h"
 
 #include "Core/RenderAPI/RenderApi.h"
-#include "Core/RenderAPI/Constants/Constants.h"
+#include "Core/RenderAPI/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
-#include "Core/RenderAPI/SwapChains/SwapChain.h"
 
 namespace Sculptor::Core
 {
@@ -59,20 +58,17 @@ namespace Sculptor::Core
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
 		createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
 
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (validationLayer && validationLayer->IsEnabled()) 
 		{
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
 			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();
-
-			validationLayer->PopulateDebugMessengerCreateInfo(debugCreateInfo);
-			createInfo.pNext = &debugCreateInfo;
 		}
 		else 
 		{
 			createInfo.enabledLayerCount = 0;
-			createInfo.pNext = nullptr;
 		}
+
+		createInfo.pNext = nullptr;
 
 		const auto result = vkCreateDevice(physicalDevice->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
@@ -92,7 +88,7 @@ namespace Sculptor::Core
 			&queueFamilies.GetPresentQueue());
 	}
 
-	const VkDevice& LogicalDevice::GetLogicalDevice() const
+	const VkDevice& LogicalDevice::Get() const
 	{
 		return logicalDevice;
 	}

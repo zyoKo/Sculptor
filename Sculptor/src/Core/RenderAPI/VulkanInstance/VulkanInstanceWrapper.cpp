@@ -4,7 +4,7 @@
 
 #include "VulkanInstanceWrapper.h"
 
-#include "Core/RenderAPI/Constants/Constants.h"
+#include "Core/RenderAPI/Data/Constants.h"
 #include "Utilities/ExtensionManager.h"
 #include "Utilities/Logger/Assert.h"
 
