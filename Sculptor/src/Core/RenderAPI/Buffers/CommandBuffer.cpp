@@ -17,7 +17,7 @@ namespace Sculptor::Core
 		const std::weak_ptr<LogicalDevice>& device, const std::weak_ptr<RenderApi>& renderApi,
 		const std::weak_ptr<FrameBuffer>& buffer, const std::weak_ptr<SwapChain>& swapChain,
 		const std::weak_ptr<GraphicsPipeline>& pipeline)
-		:	buffer(nullptr),
+		:	commandBuffer(nullptr),
 			commandPool(commandPool),
 			logicalDevice(device),
 			renderApi(renderApi),
@@ -31,7 +31,7 @@ namespace Sculptor::Core
 		const auto commandPoolPtr = commandPool.lock();
 		if (!commandPoolPtr)
 		{
-			std::cerr << "No reference to command pool provided.\nFailed to create CommandBuffer" << std::endl;
+			std::cerr << "No reference to command pool provided.\nFailed to create CommandBuffer.\n";
 			return;
 		}
 		const auto pool = commandPoolPtr->commandPool;
@@ -45,12 +45,12 @@ namespace Sculptor::Core
 		const auto logicalDevicePtr = logicalDevice.lock();
 		if (!logicalDevicePtr)
 		{
-			std::cerr << "No reference to logical device.\nFailed to create command buffer." << std::endl;
+			std::cerr << "No reference to logical device.\nFailed to create command buffer.\n";
 			return;
 		}
 		const auto& device = logicalDevicePtr->Get();
 
-		const auto result = vkAllocateCommandBuffers(device, &allocInfo, &buffer);
+		const auto result = vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create commandBuffer!");
 	}
 
@@ -59,7 +59,7 @@ namespace Sculptor::Core
 		const auto graphicsPipelinePtr = graphicsPipeline.lock();
 		if (!graphicsPipelinePtr)
 		{
-			std::cerr << "Failed to create render pass as reference to graphics pipeline is null." << std::endl;
+			std::cerr << "Failed to create render pass as reference to graphics pipeline is null.\n";
 			return;
 		}
 
@@ -68,7 +68,7 @@ namespace Sculptor::Core
 		beginInfo.flags = 0;	// Optional
 		beginInfo.pInheritanceInfo = nullptr;	// Optional (only relevant to secondary command buffer)
 
-		const VkResult result = vkBeginCommandBuffer(buffer, &beginInfo);
+		const VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
 		S_ASSERT(result != VK_SUCCESS, "Failed to begin recording command buffer!");
 
 		StartRenderPass(imageIndex);
@@ -84,18 +84,18 @@ namespace Sculptor::Core
 
 	void CommandBuffer::Reset() const
 	{
-		vkResetCommandBuffer(buffer, 0);
+		vkResetCommandBuffer(commandBuffer, 0);
 	}
 
 	void CommandBuffer::End() const
 	{
-		const auto result = vkEndCommandBuffer(buffer);
+		const auto result = vkEndCommandBuffer(commandBuffer);
 		S_ASSERT(result != VK_SUCCESS, "Faield to record command buffer!");
 	}
 
 	const VkCommandBuffer& CommandBuffer::GetBuffer() const
 	{
-		return buffer;
+		return commandBuffer;
 	}
 
 	void CommandBuffer::SetCommandPool(const std::weak_ptr<CommandPool>& commandPool)
@@ -169,11 +169,11 @@ namespace Sculptor::Core
 		renderPassInfo.pClearValues = &clearColor;
 
 		// VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS: The render pass commands will be executed from secondary command buffers.
-		vkCmdBeginRenderPass(buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
 	void CommandBuffer::EndRenderPass() const
 	{
-		vkCmdEndRenderPass(buffer);
+		vkCmdEndRenderPass(commandBuffer);
 	}
 }

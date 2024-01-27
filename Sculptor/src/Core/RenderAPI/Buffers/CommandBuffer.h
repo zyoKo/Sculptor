@@ -48,7 +48,7 @@ namespace Sculptor::Core
 		void SetGraphicsPipeline(const std::weak_ptr<GraphicsPipeline>& pipeline);
 
 	private:
-		VkCommandBuffer buffer;
+		VkCommandBuffer commandBuffer;
 
 		std::weak_ptr<CommandPool> commandPool;
 

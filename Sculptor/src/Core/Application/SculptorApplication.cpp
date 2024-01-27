@@ -2,6 +2,8 @@
 
 #include "SculptorApplication.h"
 
+#include "Core/Locators/CommandPoolLocator.h"
+#include "Core/Locators/LogicalDeviceLocator.h"
 #include "Platform/Windows/WindowData/WindowConstants.h"
 #include "Utilities/ExtensionManager.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
@@ -40,6 +42,9 @@ namespace Sculptor::Core
 			currentFrame(0),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice))
 	{
+		LogicalDeviceLocator::Provide(logicalDevice);
+		CommandPoolLocator::Provide(commandPool);
+
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -103,7 +108,15 @@ namespace Sculptor::Core
 
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 
-		vertexBuffer->Create(bufferSize);
+		const BufferProperties properties{
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+
+		vertexBuffer->Create(properties);
+
+		//vertexBuffer->Create(bufferSize);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{

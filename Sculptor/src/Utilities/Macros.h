@@ -18,6 +18,8 @@
 	} \
 	const auto& instance = instancePtr->GetInstance();
 
+/////////////////////////////////////////////////////////////////////////////
+// Logical Device ///////////////////////////////////////////////////////////
 #define LOGICAL_DEVICE \
 	private: \
 	std::weak_ptr<LogicalDevice> logicalDevice; \
@@ -27,7 +29,17 @@
 		this->logicalDevice = device; \
 	}
 
-#define HANDLE_WEAK_LOGICAL_DEVICE \
+#define LOGICAL_DEVICE_LOCATOR \
+	const auto logicalDevice = LogicalDeviceLocator::GetLogicalDevice(); \
+	const auto logicalDevicePtr = logicalDevice.lock(); \
+	if (!logicalDevicePtr) \
+	{ \
+		std::cerr << "Logical Device pointer is null.\n"; \
+		__debugbreak(); \
+	} \
+	const auto& device = logicalDevicePtr->Get()
+
+#define HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED \
 	const auto logicalDevicePtr = logicalDevice.lock(); \
 	if (!logicalDevicePtr) \
 	{ \
@@ -35,6 +47,9 @@
 		__debugbreak(); \
 	} \
 	const auto& device = logicalDevicePtr->Get();
+// Logical Device ///////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
 
 /////////////////////////////////////////////////////////////////////////////
 // Command Buffer ///////////////////////////////////////////////////////////
@@ -57,3 +72,15 @@
 	const auto& cmdBuffer = weakCommandBufferPtr->GetBuffer();
 // Command Buffer ///////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Command Pool /////////////////////////////////////////////////////////////
+#define COMMAND_POOL_LOCATOR \
+	const auto commandPool = CommandPoolLocator::GetCommandPool(); \
+	const auto commandPoolPtr = commandPool.lock(); \
+	if (!commandPoolPtr) \
+	{ \
+		std::cerr << "Command Pool pointer is null.\n"; \
+		__debugbreak(); \
+	} \
+	const auto& cmdPool = commandPoolPtr->Get();

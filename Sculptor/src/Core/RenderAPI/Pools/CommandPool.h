@@ -18,6 +18,8 @@ namespace Sculptor::Core
 
 		void CreateCommandPool();
 
+		const VkCommandPool& Get() const;
+
 		void CleanUp() const;
 
 	private:

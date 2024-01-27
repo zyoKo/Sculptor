@@ -39,6 +39,11 @@ namespace Sculptor::Core
 		S_ASSERT(result != VK_SUCCESS, "Failed to create command pool.");
 	}
 
+	const VkCommandPool& CommandPool::Get() const
+	{
+		return commandPool;
+	}
+
 	void CommandPool::CleanUp() const
 	{
 		const auto logicalDevicePtr = logicalDevice.lock();
