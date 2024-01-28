@@ -9,6 +9,7 @@ namespace Sculptor::Core
 	class SwapChain;
 	class RenderApi;
 	class LogicalDevice;
+	class IndexBuffer;
 }
 
 namespace Sculptor::Core
@@ -37,6 +38,8 @@ namespace Sculptor::Core
 
 		void SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer);
 
+		void SetIndexBuffer(const std::weak_ptr<IndexBuffer>& buffer);
+
 	private:
 		VkPipelineLayout pipelineLayout{};
 
@@ -51,5 +54,7 @@ namespace Sculptor::Core
 		std::weak_ptr<LogicalDevice> logicalDevice;
 
 		std::weak_ptr<VertexBuffer> vertexBuffer;
+
+		std::weak_ptr<IndexBuffer> indexBuffer;
 	};
 }

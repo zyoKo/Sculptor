@@ -19,13 +19,13 @@ namespace Sculptor::Core
 
 		VertexBuffer(const std::weak_ptr<LogicalDevice>& device);
 
-		VertexBuffer(uint64_t bufferSize);
+		VertexBuffer(const BufferProperties& bufferProperties);
 
 		~VertexBuffer() = default;
 
 		void Create(const BufferProperties& bufferProperties);
 
-		void Create(uint64_t bufferSize);
+		//void Create(uint64_t bufferSize);
 
 		void BindBufferMemory() const;
 
@@ -38,10 +38,6 @@ namespace Sculptor::Core
 		static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	private:
-		VkBuffer buffer{};
-
-		VkDeviceMemory bufferMemory{};
-
 		Buffer vertexBuffer;
 
 		void AllocateMemory(const VkMemoryRequirements& memoryRequirements);

@@ -20,6 +20,7 @@
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
+#include "Core/RenderAPI/Buffers/IndexBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -40,7 +41,8 @@ namespace Sculptor::Core
 			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
-			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice))
+			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
+			indexBuffer(std::make_shared<IndexBuffer>())
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
@@ -60,6 +62,7 @@ namespace Sculptor::Core
 		}
 
 		graphicsPipeline->SetVertexBuffer(vertexBuffer);
+		graphicsPipeline->SetIndexBuffer(indexBuffer);
 
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -107,16 +110,22 @@ namespace Sculptor::Core
 		commandPool->CreateCommandPool();
 
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
-
-		const BufferProperties properties{
+		const BufferProperties vertexBufferProperties{
 			bufferSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		};
 
-		vertexBuffer->Create(properties);
+		vertexBuffer->Create(vertexBufferProperties);
 
-		//vertexBuffer->Create(bufferSize);
+		const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
+		const BufferProperties indexBufferProperties{
+			indexBufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+
+		indexBuffer->Create(indexBufferProperties);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
@@ -162,6 +171,8 @@ namespace Sculptor::Core
 		renderApi->CleanUp();
 
 		vertexBuffer->CleanUp();
+
+		indexBuffer->CleanUp();
 
 		//imageViews->CleanUp();
 

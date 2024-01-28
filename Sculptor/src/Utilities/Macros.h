@@ -83,4 +83,4 @@
 		std::cerr << "Command Pool pointer is null.\n"; \
 		__debugbreak(); \
 	} \
-	const auto& cmdPool = commandPoolPtr->Get();
+	const auto& cmdPool = commandPoolPtr->Get()

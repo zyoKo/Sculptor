@@ -12,6 +12,8 @@
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Shader/ShaderModule.h"
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
+#include "Core/RenderAPI/Buffers/IndexBuffer.h"
+#include "Core/RenderAPI/Buffers/Data/Constants.h"
 
 namespace Sculptor::Core
 {
@@ -262,7 +264,17 @@ namespace Sculptor::Core
 		}
 		vertexBufferPtr->Bind(cmdBuffer);
 
-		vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
+		const auto indexBufferPtr = indexBuffer.lock();
+		if (!indexBufferPtr)
+		{
+			int i = 0;
+		}
+		indexBufferPtr->BindBuffer(cmdBuffer);
+
+		// Now we are using Index Buffer
+		//vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
+
+		vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
 	}
 
 	void GraphicsPipeline::SetRenderApi(const std::weak_ptr<RenderApi>& renderApi)
@@ -283,5 +295,10 @@ namespace Sculptor::Core
 	void GraphicsPipeline::SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer)
 	{
 		this->vertexBuffer = buffer;
+	}
+
+	void GraphicsPipeline::SetIndexBuffer(const std::weak_ptr<IndexBuffer>& buffer)
+	{
+		this->indexBuffer = buffer;
 	}
 }

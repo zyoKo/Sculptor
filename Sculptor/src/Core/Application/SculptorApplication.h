@@ -22,6 +22,7 @@ namespace Sculptor::Core
 	class FrameBuffer;
 	class CommandPool;
 	class CommandBuffer;
+	class IndexBuffer;
 }
 
 namespace Sculptor::Core
@@ -81,6 +82,8 @@ namespace Sculptor::Core
 		uint32_t currentFrame;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer;
+
+		std::shared_ptr<IndexBuffer> indexBuffer;
 
 		void InitializeWindow() const;
 
