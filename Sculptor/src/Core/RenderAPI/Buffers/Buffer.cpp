@@ -14,7 +14,7 @@ namespace Sculptor::Core
 {
 	void Buffer::Create(const BufferProperties& properties)
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -32,16 +32,16 @@ namespace Sculptor::Core
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = VertexBuffer::FindMemoryType(memRequirements.memoryTypeBits, properties.propertyFlags);
 
-		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory), "Failed to allocate buffer memory.");
+		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory), "Failed to allocate buffer memory.")
 
 		BindBufferMemory();
 	}
 
 	void Buffer::Copy(const Buffer& source, const Buffer& destination, VkDeviceSize size)
 	{
-		COMMAND_POOL_LOCATOR;
+		COMMAND_POOL_LOCATOR
 
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -78,7 +78,7 @@ namespace Sculptor::Core
 
 	void Buffer::Destroy() const
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		vkDestroyBuffer(device, buffer, nullptr);
 		vkFreeMemory(device, bufferMemory, nullptr);
@@ -86,7 +86,7 @@ namespace Sculptor::Core
 
 	void Buffer::BindBufferMemory() const
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		vkBindBufferMemory(device, buffer, bufferMemory, 0);
 	}

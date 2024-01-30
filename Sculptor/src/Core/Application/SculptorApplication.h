@@ -23,6 +23,10 @@ namespace Sculptor::Core
 	class CommandPool;
 	class CommandBuffer;
 	class IndexBuffer;
+	class UniformBuffer;
+	class DescriptorSetLayout;
+	class DescriptorPool;
+	class DescriptorSets;
 }
 
 namespace Sculptor::Core
@@ -84,6 +88,14 @@ namespace Sculptor::Core
 		std::shared_ptr<VertexBuffer> vertexBuffer;
 
 		std::shared_ptr<IndexBuffer> indexBuffer;
+
+		std::vector<std::shared_ptr<UniformBuffer>> uniformBuffers;
+
+		std::shared_ptr<DescriptorSetLayout> descriptorSetLayout;
+
+		std::shared_ptr<DescriptorPool> descriptorPool;
+
+		std::shared_ptr<DescriptorSets> descriptorSets;
 
 		void InitializeWindow() const;
 

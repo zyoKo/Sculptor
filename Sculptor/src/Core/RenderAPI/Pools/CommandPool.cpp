@@ -10,7 +10,7 @@ namespace Sculptor::Core
 		:	logicalDevice(logicalDevice)
 	{ }
 
-	void CommandPool::CreateCommandPool()
+	void CommandPool::Create()
 	{
 		const auto logicalDevicePtr = logicalDevice.lock();
 		if (!logicalDevicePtr)
@@ -36,7 +36,7 @@ namespace Sculptor::Core
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
 		const auto result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create command pool.");
+		S_ASSERT(result != VK_SUCCESS, "Failed to create command pool.")
 	}
 
 	const VkCommandPool& CommandPool::Get() const

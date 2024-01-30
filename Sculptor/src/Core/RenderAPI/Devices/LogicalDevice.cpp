@@ -14,7 +14,7 @@ namespace Sculptor::Core
 			deviceFeatures{}
 	{ }
 
-	void LogicalDevice::CreateLogicalDevice(
+	void LogicalDevice::Create(
 		const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
 		const std::shared_ptr<ValidationLayer>& validationLayer, 
 		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)

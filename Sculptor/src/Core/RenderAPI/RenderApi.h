@@ -15,7 +15,7 @@ namespace Sculptor::Core
 
 		~RenderApi() = default;
 
-		void CreateRenderPass();
+		void Create();
 
 		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
 

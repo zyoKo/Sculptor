@@ -15,7 +15,8 @@ namespace Sculptor::Core
 	public:
 		VulkanMemoryAllocator() = default;
 
-		VulkanMemoryAllocator(const std::weak_ptr<VulkanInstanceWrapper>& instance, const std::weak_ptr<LogicalDevice>& device);
+		VulkanMemoryAllocator(const std::weak_ptr<VulkanInstanceWrapper>& instance, 
+			const std::weak_ptr<LogicalDevice>& device);
 
 		~VulkanMemoryAllocator() = default;
 

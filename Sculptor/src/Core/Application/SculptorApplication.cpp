@@ -3,7 +3,9 @@
 #include "SculptorApplication.h"
 
 #include "Core/Locators/CommandPoolLocator.h"
+#include "Core/Locators/DescriptorPoolLocator.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/Locators/SwapChainLocator.h"
 #include "Platform/Windows/WindowData/WindowConstants.h"
 #include "Utilities/ExtensionManager.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
@@ -21,7 +23,12 @@
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
 #include "Core/RenderAPI/Buffers/IndexBuffer.h"
+#include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
+#include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
+#include "Core/RenderAPI/Pools/DescriptorPool.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -42,10 +49,15 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
-			indexBuffer(std::make_shared<IndexBuffer>())
+			indexBuffer(std::make_shared<IndexBuffer>()),
+			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
+			descriptorPool(std::make_shared<DescriptorPool>()),
+			descriptorSets(std::make_shared<DescriptorSets>())
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
+		SwapChainLocator::Provide(swapChain);
+		DescriptorPoolLocator::Provide(descriptorPool);
 
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -63,6 +75,14 @@ namespace Sculptor::Core
 
 		graphicsPipeline->SetVertexBuffer(vertexBuffer);
 		graphicsPipeline->SetIndexBuffer(indexBuffer);
+		graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
+		graphicsPipeline->SetDescriptorSets(descriptorSets);
+
+		uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			uniformBuffers.emplace_back(std::make_shared<UniformBuffer>());
+		}
 
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -91,41 +111,59 @@ namespace Sculptor::Core
 
 		validationLayer->SetupDebugMessenger(vulkanInstanceWrapper);
 
-		windowSurface->CreateWindowSurface(vulkanInstanceWrapper, window);
+		windowSurface->Create(vulkanInstanceWrapper, window);
 
 		// Physical-Device selection abstracted to the method call below
 		// Queue-Family Initialization abstracted to method call below
-		logicalDevice->CreateLogicalDevice(vulkanInstanceWrapper, validationLayer, windowSurface);
+		logicalDevice->Create(vulkanInstanceWrapper, validationLayer, windowSurface);
 
-		swapChain->CreateSwapChain(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface, logicalDevice);
 
-		imageViews->CreateImageViews();
+		imageViews->Create();
 
-		renderApi->CreateRenderPass();
+		renderApi->Create();
 
-		graphicsPipeline->CreateGraphicsPipeline();
+		descriptorSetLayout->Create();
 
-		frameBuffer->CreateFrameBuffer();
+		graphicsPipeline->Create();
 
-		commandPool->CreateCommandPool();
+		frameBuffer->Create();
 
+		commandPool->Create();
+
+		// Vertex Buffer
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 		const BufferProperties vertexBufferProperties{
 			bufferSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		};
-
 		vertexBuffer->Create(vertexBufferProperties);
 
+		// Index Buffer
 		const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
 		const BufferProperties indexBufferProperties{
 			indexBufferSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		};
-
 		indexBuffer->Create(indexBufferProperties);
+
+		// Uniform Buffers
+		constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
+		constexpr BufferProperties uniformBufferProperties{
+			uniformBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+		for (const auto& buffer : uniformBuffers)
+		{
+			buffer->Create(uniformBufferProperties);
+		}
+
+		descriptorPool->Create();
+
+		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, descriptorSets);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
@@ -146,13 +184,13 @@ namespace Sculptor::Core
 			DrawFrame();
 		}
 
-		//vkDeviceWaitIdle(logicalDevice->Get());
-
 		RecreateSwapChain();
 	}
 
 	void SculptorApplication::CleanUp() const
 	{
+		descriptorSetLayout->CleanUp();
+
 		CleanUpSwapChain();
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -164,9 +202,11 @@ namespace Sculptor::Core
 
 		commandPool->CleanUp();
 
-		//frameBuffer->CleanUp();
-
 		graphicsPipeline->CleanUp();
+
+		descriptorPool->CleanUp();
+
+		descriptorSetLayout->CleanUp();
 
 		renderApi->CleanUp();
 
@@ -174,9 +214,10 @@ namespace Sculptor::Core
 
 		indexBuffer->CleanUp();
 
-		//imageViews->CleanUp();
-
-		//swapChain->CleanUp();
+		for (const auto& buffer : uniformBuffers)
+		{
+			buffer->Destroy();
+		}
 
 		logicalDevice->CleanUp();
 
@@ -191,6 +232,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::DrawFrame()
 	{
+		graphicsPipeline->UpdateCurrentFrame(currentFrame);
+
 		inFlightFences[currentFrame].Wait();
 
 		inFlightFences[currentFrame].Reset();
@@ -209,7 +252,9 @@ namespace Sculptor::Core
 			RecreateSwapChain();
 			return;
 		}
-		S_ASSERT(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR, "Failed to acquire swap chain image.");
+		S_ASSERT(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR, "Failed to acquire swap chain image.")
+
+		uniformBuffers[currentFrame]->Update();
 
 		// Only reset the fence if we are submitting work
 		inFlightFences[currentFrame].Reset();
@@ -286,10 +331,10 @@ namespace Sculptor::Core
 
 		CleanUpSwapChain();
 
-		swapChain->CreateSwapChain(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface, logicalDevice);
 
-		imageViews->CreateImageViews();
+		imageViews->Create();
 
-		frameBuffer->CreateFrameBuffer();
+		frameBuffer->Create();
 	}
 }

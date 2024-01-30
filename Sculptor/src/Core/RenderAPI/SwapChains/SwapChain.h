@@ -26,14 +26,16 @@ namespace Sculptor::Core
 
 		~SwapChain() = default;
 
-		void CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
+		void Create(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 			const std::weak_ptr<LogicalDevice>& logicalDevice);
 
 		const VkSwapchainKHR& Get() const;
 
-		LOGICAL_DEVICE
+		const VkExtent2D& GetSwapChainExtent() const;
 
 		void CleanUp() const;
+
+		LOGICAL_DEVICE
 
 	private:
 		VkSwapchainKHR swapChain;

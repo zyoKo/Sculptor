@@ -16,7 +16,7 @@ namespace Sculptor::Core
 
 		~CommandPool() = default;
 
-		void CreateCommandPool();
+		void Create();
 
 		const VkCommandPool& Get() const;
 

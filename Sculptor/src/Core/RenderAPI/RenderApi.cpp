@@ -16,7 +16,7 @@ namespace Sculptor::Core
 			logicalDevice(logicalDevice)
 	{ }
 
-	void RenderApi::CreateRenderPass()
+	void RenderApi::Create()
 	{
 		const auto swapChainPtr = swapChain.lock();
 		if (!swapChainPtr)

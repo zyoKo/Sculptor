@@ -18,7 +18,7 @@ namespace Sculptor::Core
 
 		~VulkanInstanceWrapper() = default;
 
-		void CreateInstance(const std::shared_ptr<ValidationLayer>& validationLayer);
+		void CreateInstance(const std::weak_ptr<ValidationLayer>& weakValidationLayer);
 
 		void DestroyInstance() const;
 

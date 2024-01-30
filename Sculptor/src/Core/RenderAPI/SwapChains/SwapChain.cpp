@@ -16,7 +16,7 @@ namespace Sculptor::Core
 			swapChainExtent{}
 	{ }
 
-	void SwapChain::CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
+	void SwapChain::Create(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
 	                                 const std::weak_ptr<LogicalDevice>& logicalDevice)
 	{
 		const auto device = logicalDevice.lock();
@@ -114,6 +114,11 @@ namespace Sculptor::Core
 	const VkSwapchainKHR& SwapChain::Get() const
 	{
 		return swapChain;
+	}
+
+	const VkExtent2D& SwapChain::GetSwapChainExtent() const
+	{
+		return swapChainExtent;
 	}
 
 	void SwapChain::CleanUp() const

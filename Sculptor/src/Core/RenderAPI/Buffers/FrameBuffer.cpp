@@ -18,7 +18,7 @@ namespace Sculptor::Core
 			logicalDevice(logicalDevice)
 	{ }
 
-	void FrameBuffer::CreateFrameBuffer()
+	void FrameBuffer::Create()
 	{
 		const auto imageViewPtr = imageViews.lock();
 		if (!imageViewPtr)

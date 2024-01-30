@@ -17,9 +17,9 @@ namespace Sculptor::Core
 
 		~LogicalDevice() = default;
 
-		void CreateLogicalDevice(
+		void Create(
 			const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
-			const std::shared_ptr<ValidationLayer>& validationLayer, 
+			const std::shared_ptr<ValidationLayer>& validationLayer,
 			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
 		const VkDevice& Get() const;

@@ -17,7 +17,7 @@ namespace Sculptor::Core
 
 		~ImageViews() = default;
 
-		void CreateImageViews();
+		void Create();
 
 		void CleanUp() const;
 

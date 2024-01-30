@@ -2,6 +2,7 @@
 
 #include "GraphicsPipeline.h"
 
+#include "Core/Core.h"
 #include "Core/RenderAPI/Data/Constants.h"
 #include "Core/RenderAPI/Structures/Scissor.h"
 #include "Core/RenderAPI/Structures/Viewport.h"
@@ -14,12 +15,18 @@
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
 #include "Core/RenderAPI/Buffers/IndexBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
 
 namespace Sculptor::Core
 {
+	GraphicsPipeline::GraphicsPipeline()
+		:	currentFrame(0)
+	{ }
+
 	GraphicsPipeline::GraphicsPipeline(const std::weak_ptr<RenderApi>& renderApi, 
-		const std::weak_ptr<SwapChain>& swapChain, 
-		const std::weak_ptr<LogicalDevice>& device)
+	                                   const std::weak_ptr<SwapChain>& swapChain, 
+	                                   const std::weak_ptr<LogicalDevice>& device)
 		:	renderApi(renderApi),
 			swapChain(swapChain),
 			logicalDevice(device)
@@ -27,7 +34,7 @@ namespace Sculptor::Core
 		shaderModule = std::make_shared<ShaderModule>(device);
 	}
 
-	void GraphicsPipeline::CreateGraphicsPipeline()
+	void GraphicsPipeline::Create()
 	{
 		const auto& logicalDevicePtr = logicalDevice.lock();
 		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
@@ -105,7 +112,7 @@ namespace Sculptor::Core
 		rasterizer.lineWidth = DEFAULT_LINE_WIDTH_FOR_RASTERIZER;
 
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -183,13 +190,23 @@ namespace Sculptor::Core
 		// Finally Creating Pipeline Layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+
+		const auto descriptorSetPtr = descriptorSetLayout.lock();
+		if (!descriptorSetPtr)
+		{
+			pipelineLayoutInfo.setLayoutCount = 0;
+			pipelineLayoutInfo.pSetLayouts = nullptr;
+		}
+		else
+		{
+			pipelineLayoutInfo.setLayoutCount = 1;
+			pipelineLayoutInfo.pSetLayouts = &descriptorSetPtr->GetDescriptorSetLayout();
+		}
+
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-		const auto result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create Pipeline Layout!");
+		VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout), "Failed to create Pipeline Layout!")
 
 		VkGraphicsPipelineCreateInfo graphicsPipelineInfo{};
 		graphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -217,8 +234,7 @@ namespace Sculptor::Core
 		graphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		graphicsPipelineInfo.basePipelineIndex = -1; // Optional
 
-		const VkResult graphicPipelineResult = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr, &graphicsPipeline);
-		S_ASSERT(graphicPipelineResult != VK_SUCCESS, "Failed to create graphics pipeline.");
+		VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr, &graphicsPipeline), "Failed to create graphics pipeline.")
 
 		shaderModule->DestroyShaderModules();
 	}
@@ -226,7 +242,7 @@ namespace Sculptor::Core
 	void GraphicsPipeline::CleanUp() const
 	{
 		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
+		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.")
 
 		const auto& device = logicalDevicePtr->Get();
 
@@ -239,7 +255,7 @@ namespace Sculptor::Core
 		vkCmdBindPipeline(commandBuffer.GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 	}
 
-	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize) const
+	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize /* = 0 */) const
 	{
 		const auto swapChainPtr = swapChain.lock();
 		if (!swapChainPtr)
@@ -271,10 +287,25 @@ namespace Sculptor::Core
 		}
 		indexBufferPtr->BindBuffer(cmdBuffer);
 
-		// Now we are using Index Buffer
-		//vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
+		const auto descriptorSetPtr = descriptorSets.lock();
+		S_ASSERT(!descriptorSetPtr, "Descriptor Set is null.")
+		const auto& descSets = descriptorSetPtr->GetDescriptorSets();
 
-		vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descSets[currentFrame], 0, nullptr);
+
+		//if (bufferSize != 0)
+		//{
+		//	vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
+		//}
+		//else
+		{
+			vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
+		}
+	}
+
+	void GraphicsPipeline::UpdateCurrentFrame(uint32_t newFrame)
+	{
+		currentFrame = newFrame;
 	}
 
 	void GraphicsPipeline::SetRenderApi(const std::weak_ptr<RenderApi>& renderApi)
@@ -300,5 +331,15 @@ namespace Sculptor::Core
 	void GraphicsPipeline::SetIndexBuffer(const std::weak_ptr<IndexBuffer>& buffer)
 	{
 		this->indexBuffer = buffer;
+	}
+
+	void GraphicsPipeline::SetDescriptorSetLayout(const std::weak_ptr<DescriptorSetLayout>& descriptorSetLayout)
+	{
+		this->descriptorSetLayout = descriptorSetLayout;
+	}
+
+	void GraphicsPipeline::SetDescriptorSets(const std::weak_ptr<DescriptorSets>& descriptorSets)
+	{
+		this->descriptorSets = descriptorSets;
 	}
 }

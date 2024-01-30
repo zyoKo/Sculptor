@@ -37,7 +37,7 @@
 		std::cerr << "Logical Device pointer is null.\n"; \
 		__debugbreak(); \
 	} \
-	const auto& device = logicalDevicePtr->Get()
+	const auto& device = logicalDevicePtr->Get();
 
 #define HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED \
 	const auto logicalDevicePtr = logicalDevice.lock(); \
@@ -83,4 +83,4 @@
 		std::cerr << "Command Pool pointer is null.\n"; \
 		__debugbreak(); \
 	} \
-	const auto& cmdPool = commandPoolPtr->Get()
+	const auto& cmdPool = commandPoolPtr->Get();

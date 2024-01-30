@@ -15,18 +15,14 @@ namespace Sculptor::Core
 	bool WindowsWindow::InitializeWindow(const WindowProperties& windowProperties)
 	{
 		const auto success = glfwInit();
-		if (success != GLFW_TRUE)
-		{
-			std::cerr << "Failed to initialize GLFW!" << std::endl;
-			__debugbreak();
-		}
+		S_ASSERT(success != GLFW_TRUE, "Failed to initialize GLFW!")
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		// TODO: Add Monitor Properties
 		window = glfwCreateWindow(windowProperties.windowWidth, windowProperties.windowHeight, windowProperties.windowTitle, nullptr, nullptr);
-		S_ASSERT(window == nullptr, "Failed to create GLFW window.");
+		S_ASSERT(window == nullptr, "Failed to create GLFW window.")
 
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, FrameBufferSizeCallback);

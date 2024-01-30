@@ -36,7 +36,8 @@ project "Sculptor"
         "VK_USE_PLATFORM_WIN32_KHR",
         "_CRT_SECURE_NO_WARNINGS",
         "GLM_FORCE_RADIANS",
-        "GLM_FORCE_DEPTH_ZERO_TO_ONE"
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",
+        "_CRTDBG_MAP_ALLOC"
     }
 
     libdirs 

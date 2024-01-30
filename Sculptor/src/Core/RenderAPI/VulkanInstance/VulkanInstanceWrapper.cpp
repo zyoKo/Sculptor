@@ -15,9 +15,12 @@ namespace Sculptor::Core
 	{
 	}
 
-	void VulkanInstanceWrapper::CreateInstance(const std::shared_ptr<ValidationLayer>& validationLayer)
+	void VulkanInstanceWrapper::CreateInstance(const std::weak_ptr<ValidationLayer>& weakValidationLayer)
 	{
-		S_ASSERT(!validationLayer->RequestValidationLayer(), "Failed to request validation Layer!");
+		const auto validationLayer = weakValidationLayer.lock();
+		S_ASSERT(validationLayer == nullptr, "Validation Layer reference is null.\n")
+
+		S_ASSERT(!validationLayer->RequestValidationLayer(), "Failed to request validation Layer!")
 
 		// Create Application Info
 		VkApplicationInfo applicationInfo{};

@@ -20,7 +20,7 @@ namespace Sculptor::Core
 
 		~FrameBuffer() = default;
 
-		void CreateFrameBuffer();
+		void Create();
 
 		void CleanUp() const;
 

@@ -14,7 +14,7 @@ namespace Sculptor::Core
 			logicalDevice(device)
 	{ }
 
-	void ImageViews::CreateImageViews()
+	void ImageViews::Create()
 	{
 		const auto swapChainPtr = swapChain.lock();
 		if (!swapChainPtr)
