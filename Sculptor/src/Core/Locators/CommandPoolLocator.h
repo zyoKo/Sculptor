@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Core/RenderAPI/Pools/CommandPool.h"
 
 namespace Sculptor::Core

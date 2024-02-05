@@ -2,34 +2,18 @@
 
 #include "ShaderModule.h"
 
+#include "Core/Core.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Utilities/Utilites.h"
+#include "Utilities/Macros.h"
+#include "Utilities/Utilities.h"
 #include "Utilities/Logger/Assert.h"
+#include "Core/Locators/LogicalDeviceLocator.h"
 
 namespace Sculptor::Core
 {
 	ShaderModule::ShaderModule(const std::weak_ptr<LogicalDevice>& device)
 		:	logicalDevice(device)
 	{ }
-
-	VkShaderModule ShaderModule::CreateShaderModule(const std::vector<char>& code) const
-	{
-		VkShaderModuleCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
-		const auto& device = logicalDevicePtr->Get();
-
-		VkShaderModule shaderModule{};
-
-		const auto result = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create shader module.");
-
-		return shaderModule;
-	}
 
 	void ShaderModule::DestroyShaderModules() const
 	{
@@ -44,11 +28,13 @@ namespace Sculptor::Core
 
 	void ShaderModule::CreateShaderStages()
 	{
-		const auto vertexShaderCode = Utilities::ReadFile("./src/Assets/Shaders/vert.spv");
-		const auto fragmentShaderCode = Utilities::ReadFile("./src/Assets/Shaders/frag.spv");
+		LOGICAL_DEVICE_LOCATOR
 
-		vertexShaderModule = CreateShaderModule(vertexShaderCode);
-		fragmentShaderModule = CreateShaderModule(fragmentShaderCode);
+		const auto vertexShaderCode = Utilities::ReadFile("./Assets/Shaders/vert.spv");
+		const auto fragmentShaderCode = Utilities::ReadFile("./Assets/Shaders/frag.spv");
+
+		vertexShaderModule	 = Utilities::CreateShaderModule(vertexShaderCode, device);
+		fragmentShaderModule = Utilities::CreateShaderModule(fragmentShaderCode, device);
 
 		VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
 		vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

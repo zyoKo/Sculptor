@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/RenderAPI/Interfaces/IBuffer.h"
+#include "Core/RenderAPI/Interfaces/BaseBuffer.h"
 #include "Structures/BufferProperties.h"
 #include "Utilities/Macros.h"
 
@@ -11,7 +11,7 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class Buffer : public IBuffer
+	class Buffer : public BaseBuffer
 	{
 	public:
 		Buffer() = default;

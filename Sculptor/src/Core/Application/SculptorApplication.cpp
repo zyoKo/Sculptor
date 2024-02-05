@@ -26,6 +26,7 @@
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
+#include "Core/RenderAPI/Data/Constants.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
@@ -33,8 +34,6 @@
 
 namespace Sculptor::Core
 {
-	constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 	SculptorApplication::SculptorApplication()
 		:	window(std::make_shared<WindowsWindow>()),
 			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
@@ -161,9 +160,9 @@ namespace Sculptor::Core
 			buffer->Create(uniformBufferProperties);
 		}
 
-		descriptorPool->Create();
+		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
 
-		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, descriptorSets);
+		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
@@ -189,8 +188,6 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
-		descriptorSetLayout->CleanUp();
-
 		CleanUpSwapChain();
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -281,8 +278,8 @@ namespace Sculptor::Core
 		const auto& graphicsQueue = logicalDevice->GetQueueFamilies().GetGraphicsQueue();
 		const auto& presentQueue = logicalDevice->GetQueueFamilies().GetPresentQueue();
 
-		result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get());
-		S_ASSERT(result != VK_SUCCESS, "Failed to submit draw command buffer.");
+		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get()),
+			"Failed to submit draw command buffer.")
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

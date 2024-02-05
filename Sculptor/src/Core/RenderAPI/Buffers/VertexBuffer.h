@@ -35,8 +35,6 @@ namespace Sculptor::Core
 
 		LOGICAL_DEVICE
 
-		static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
 	private:
 		Buffer vertexBuffer;
 

@@ -17,8 +17,6 @@ namespace Sculptor::Core
 
 		~ShaderModule() = default;
 
-		VkShaderModule CreateShaderModule(const std::vector<char>& code) const;
-
 		void DestroyShaderModules() const;
 
 		void CreateShaderStages();

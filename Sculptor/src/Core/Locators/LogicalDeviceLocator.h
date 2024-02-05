@@ -1,9 +1,6 @@
 #pragma once
 
-namespace Sculptor::Core
-{
-	class LogicalDevice;
-}
+#include "Core/RenderAPI/Devices/LogicalDevice.h"
 
 namespace Sculptor::Core
 {

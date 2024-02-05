@@ -29,7 +29,8 @@ namespace Sculptor::Core
 	                                   const std::weak_ptr<LogicalDevice>& device)
 		:	renderApi(renderApi),
 			swapChain(swapChain),
-			logicalDevice(device)
+			logicalDevice(device),
+			currentFrame(0)
 	{
 		shaderModule = std::make_shared<ShaderModule>(device);
 	}

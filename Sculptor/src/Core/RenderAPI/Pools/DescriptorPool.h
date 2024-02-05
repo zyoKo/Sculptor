@@ -14,19 +14,19 @@ namespace Sculptor::Core
 
 		~DescriptorPool() = default;
 
-		void Create()
+		void Create(uint32_t descriptorCount)
 		{
 			LOGICAL_DEVICE_LOCATOR
 
 			VkDescriptorPoolSize poolSize{};
 			poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			poolSize.descriptorCount = static_cast<uint32_t>(2); // TODO: 2 = MAX_FRAMES_IN_FLIGHT here
+			poolSize.descriptorCount = descriptorCount;
 
 			VkDescriptorPoolCreateInfo poolInfo{};
 			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 			poolInfo.poolSizeCount = 1;
 			poolInfo.pPoolSizes = &poolSize;
-			poolInfo.maxSets = static_cast<uint32_t>(2); // TODO: 2 = MAX_FRAMES_IN_FLIGHT here
+			poolInfo.maxSets = descriptorCount;
 
 			VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool.")
 		}
@@ -36,6 +36,8 @@ namespace Sculptor::Core
 			LOGICAL_DEVICE_LOCATOR
 
 			vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+
+			int i = 0;
 		}
 
 		const VkDescriptorPool& GetDescriptorPool() const

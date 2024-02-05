@@ -6,6 +6,7 @@
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Data/Constants.h"
 #include "Structures/Vertex.h"
+#include "Utilities/GetShared.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -21,7 +22,7 @@ namespace Sculptor::Core
 
 	void VertexBuffer::Create(const BufferProperties& bufferProperties)
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		Buffer stagingBuffer{};
 		stagingBuffer.Create(bufferProperties);
@@ -42,44 +43,7 @@ namespace Sculptor::Core
 		Buffer::Copy(stagingBuffer, vertexBuffer, bufferProperties.bufferSize);
 		
 		stagingBuffer.Destroy();
-
-		//const BufferProperties properties{
-		//	bufferProperties.bufferSize,
-		//	VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		//};
-		//
-		//vertexBuffer.Create(properties);
-		//
-		//void* data;
-		//vkMapMemory(device, vertexBuffer.GetBufferMemory(), 0, properties.bufferSize, 0, &data);
-		//memcpy(data, VERTICES.data(), static_cast<size_t>(properties.bufferSize));
-		//vkUnmapMemory(device, vertexBuffer.GetBufferMemory());
 	}
-
-	//void VertexBuffer::Create(uint64_t bufferSize)
-	//{
-	//	VkBufferCreateInfo bufferInfo{};
-	//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	//	bufferInfo.size = bufferSize;
-	//	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	//	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	//
-	//	HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
-	//
-	//	const VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
-	//	S_ASSERT(result != VK_SUCCESS, "Failed to create Vertex Buffer.");
-	//
-	//	VkMemoryRequirements memRequirements{};
-	//	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-	//
-	//	AllocateMemory(memRequirements);
-	//
-	//	BindBufferMemory();
-	//
-	//	MapMemory(bufferInfo, VERTICES.data());
-	//	UnMapMemory();
-	//}
 
 	void VertexBuffer::BindBufferMemory() const
 	{
@@ -107,41 +71,16 @@ namespace Sculptor::Core
 		vertexBuffer.Destroy();
 	}
 
-	uint32_t VertexBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-	{
-		LOGICAL_DEVICE_LOCATOR;
-
-		const auto physicalDevicePtr = logicalDevicePtr->GetPhysicalDevice().lock();
-		if (!physicalDevicePtr)
-		{
-			std::cerr << "Physical Device pointer is null.\n";
-			std::cerr << "Failed to Find Memory for Vertex Buffer.\n";
-			__debugbreak();
-		}
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
-
-		VkPhysicalDeviceMemoryProperties memProperties{};
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
-		{
-			if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-			{
-				return i;
-			}
-		}
-
-		S_ASSERT(true, "Failed to find suitable memory type.");
-		return -1;	// should never reach here
-	}
-
 	void VertexBuffer::AllocateMemory(const VkMemoryRequirements& memoryRequirements)
 	{
 		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
 
+		GetShared physicalDeviceObject(logicalDevicePtr->GetPhysicalDevice());
+		const auto physicalDevice = physicalDeviceObject->GetPrimaryPhysicalDevice();
+
 		constexpr auto memoryTypeFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-		const auto& memoryType = FindMemoryType(memoryRequirements.memoryTypeBits, memoryTypeFlags);
+		const auto& memoryType = BaseBuffer::FindMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryTypeFlags);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

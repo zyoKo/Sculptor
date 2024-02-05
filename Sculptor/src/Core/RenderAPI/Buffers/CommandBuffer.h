@@ -33,6 +33,10 @@ namespace Sculptor::Core
 
 		void End() const;
 
+		static VkCommandBuffer BeginSingleTimeCommand(const VkCommandPool& commandPool, const VkDevice& device);
+
+		static void EndSingleTimeCommand(const VkCommandBuffer& commandBuffer);
+
 		const VkCommandBuffer& GetBuffer() const;
 
 		void SetCommandPool(const std::weak_ptr<CommandPool>& commandPool);

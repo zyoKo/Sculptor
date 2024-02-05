@@ -23,6 +23,7 @@ project "Sculptor"
         vendordir .. "/glad/include",
         vendordir .. "/spdlog/include",
         vendordir .. "/glm/include",
+        vendordir .. "/stb/include",
 
         -- Vulkan
         vulkanSDKdir .. "/include" 
@@ -37,7 +38,8 @@ project "Sculptor"
         "_CRT_SECURE_NO_WARNINGS",
         "GLM_FORCE_RADIANS",
         "GLM_FORCE_DEPTH_ZERO_TO_ONE",
-        "_CRTDBG_MAP_ALLOC"
+        "_CRTDBG_MAP_ALLOC",
+        "STB_IMAGE_IMPLEMENTATION"
     }
 
     libdirs 
@@ -54,13 +56,13 @@ project "Sculptor"
     }
 
     filter { "configurations:Debug" }
-        buildoptions "/MTd"
+        buildoptions { "/MTd" }
         defines "DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter { "configurations:Release" }
-        buildoptions "/MT"
+        buildoptions { "/MT" }
         defines "RELEASE"
         runtime "Release"
         optimize "on"

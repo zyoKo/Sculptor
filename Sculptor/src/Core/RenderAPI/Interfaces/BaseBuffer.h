@@ -1,17 +1,18 @@
 #pragma once
 
+#include "BufferUtility.h"
 #include "Core/RenderAPI/Buffers/Structures/BufferProperties.h"
 
 namespace Sculptor::Core
 {
-	class IBuffer
+	class BaseBuffer : public BufferUtility
 	{
 	public:
-		virtual ~IBuffer() = default;
+		virtual ~BaseBuffer() = default;
 
 		virtual void Create(const BufferProperties& bufferProperties) = 0;
 
-		virtual void Copy(VkDeviceSize size) = 0;
+		virtual void Copy(VkDeviceSize size) { }
 
 		virtual void BindBuffer(const VkCommandBuffer& commandBuffer) const { }
 
@@ -40,10 +41,10 @@ namespace Sculptor::Core
 		}
 
 	protected:
-		IBuffer() = default;
-
 		VkBuffer buffer{};
 
 		VkDeviceMemory bufferMemory{};
+
+		BaseBuffer() = default;
 	};
 }

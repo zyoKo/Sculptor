@@ -2,7 +2,7 @@
 
 #include "Memory.h"
 
-#define _CRTDBG_MAP_ALLOC
+//#define _CRTDBG_MAP_ALLOC
 #include <iostream>
 #include <crtdbg.h>
 

@@ -2,6 +2,7 @@
 
 #include "CommandBuffer.h"
 
+#include "Core/Core.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Utilities/Logger/Assert.h"
@@ -10,6 +11,8 @@
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
 #include "Data/Constants.h"
+#include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/Locators/CommandPoolLocator.h"
 
 namespace Sculptor::Core
 {
@@ -91,6 +94,59 @@ namespace Sculptor::Core
 	{
 		const auto result = vkEndCommandBuffer(commandBuffer);
 		S_ASSERT(result != VK_SUCCESS, "Faield to record command buffer!");
+	}
+
+	VkCommandBuffer CommandBuffer::BeginSingleTimeCommand(const VkCommandPool& commandPool, const VkDevice& device)
+	{
+		const VkCommandBufferAllocateInfo allocInfo{
+			VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			nullptr,
+			commandPool,
+			VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			1
+		};
+
+		VkCommandBuffer cmdBuffer{};
+		VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, &cmdBuffer), "Failed to allocate single use command buffer")
+
+		constexpr VkCommandBufferBeginInfo beginInfo{
+			VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+			nullptr,
+			VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+			nullptr
+		};
+
+		VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &beginInfo), "Failed to create single use command buffer.")
+
+		return cmdBuffer;
+	}
+
+	void CommandBuffer::EndSingleTimeCommand(const VkCommandBuffer& commandBuffer)
+	{
+		VK_CHECK(vkEndCommandBuffer(commandBuffer), "Failed to end single use command buffer.")
+
+		const VkSubmitInfo submitInfo{
+			VK_STRUCTURE_TYPE_SUBMIT_INFO,
+			nullptr,
+			0,
+			nullptr,
+			nullptr,
+			1,
+			&commandBuffer,
+			0,
+			nullptr
+		};
+
+		LOGICAL_DEVICE_LOCATOR
+
+		COMMAND_POOL_LOCATOR
+
+		const auto& graphicsQueue = logicalDevicePtr->GetQueueFamilies().GetGraphicsQueue();
+
+		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE), "Failed to submit info to graphics queue.")
+		VK_CHECK(vkQueueWaitIdle(graphicsQueue), "Failed to wait for graphics queue to be idle.")
+
+		vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
 	}
 
 	const VkCommandBuffer& CommandBuffer::GetBuffer() const
