@@ -1,6 +1,6 @@
 #include <SculptorPch.h>
 
-#include "ImageViews.h"
+#include "SwapChainImageView.h"
 
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
@@ -8,13 +8,13 @@
 
 namespace Sculptor::Core
 {
-	ImageViews::ImageViews(const std::weak_ptr<LogicalDevice>& device,
+	SwapChainImageView::SwapChainImageView(const std::weak_ptr<LogicalDevice>& device,
 		const std::weak_ptr<SwapChain>& swapChain)
 		:	swapChain(swapChain),
 			logicalDevice(device)
 	{ }
 
-	void ImageViews::Create()
+	void SwapChainImageView::Create()
 	{
 		const auto swapChainPtr = swapChain.lock();
 		if (!swapChainPtr)
@@ -58,7 +58,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	void ImageViews::CleanUp() const
+	void SwapChainImageView::CleanUp() const
 	{
 		const auto logicalDevicePtr = logicalDevice.lock();
 		if (!logicalDevicePtr)
@@ -72,7 +72,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	const std::vector<VkImageView>& ImageViews::GetSwapChainImageViews() const
+	const std::vector<VkImageView>& SwapChainImageView::GetSwapChainImageViews() const
 	{
 		return swapChainImageViews;
 	}

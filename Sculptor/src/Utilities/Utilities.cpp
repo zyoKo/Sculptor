@@ -12,7 +12,7 @@ namespace Sculptor
 	std::vector<char> Utilities::ReadFile(const std::string& filename)
 	{
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
-		S_ASSERT(!file.is_open(), "Failed to open file!");
+		S_ASSERT(!file.is_open(), "Failed to open file!")
 
 		const auto fileSize = static_cast<size_t>(file.tellg());
 		std::vector<char> buffer(fileSize);
@@ -45,9 +45,9 @@ namespace Sculptor
 
 		stbi_uc* pixels = stbi_load(fileName.c_str(), textureWidth, textureHeight, &textureChannel, STBI_rgb_alpha);
 
-		imageSize = static_cast<VkDeviceSize>(*textureWidth) * static_cast<VkDeviceSize>(*textureHeight) * 4;
-
 		S_ASSERT(pixels == nullptr, "Failed to load texture image.")
+
+		imageSize = static_cast<VkDeviceSize>(*textureWidth) * static_cast<VkDeviceSize>(*textureHeight) * 4;
 
 		return pixels;
 	}

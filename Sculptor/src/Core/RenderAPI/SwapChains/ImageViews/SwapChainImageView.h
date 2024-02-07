@@ -9,13 +9,13 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class ImageViews
+	class SwapChainImageView
 	{
 	public:
-		ImageViews(const std::weak_ptr<LogicalDevice>& device,
+		SwapChainImageView(const std::weak_ptr<LogicalDevice>& device,
 			const std::weak_ptr<SwapChain>& swapChain);
 
-		~ImageViews() = default;
+		~SwapChainImageView() = default;
 
 		void Create();
 

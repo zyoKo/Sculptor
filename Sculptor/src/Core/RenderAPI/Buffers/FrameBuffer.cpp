@@ -2,7 +2,7 @@
 
 #include "FrameBuffer.h"
 
-#include "Core/RenderAPI/SwapChains/ImageViews/ImageViews.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
@@ -10,7 +10,7 @@
 
 namespace Sculptor::Core
 {
-	FrameBuffer::FrameBuffer(const std::weak_ptr<ImageViews>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
+	FrameBuffer::FrameBuffer(const std::weak_ptr<SwapChainImageView>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
 		const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice)
 		:	imageViews(imageViews),
 			renderApi(renderApi),
@@ -93,7 +93,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	void FrameBuffer::SetImageViews(const std::weak_ptr<ImageViews>& imageViews)
+	void FrameBuffer::SetImageViews(const std::weak_ptr<SwapChainImageView>& imageViews)
 	{
 		this->imageViews = imageViews;
 	}

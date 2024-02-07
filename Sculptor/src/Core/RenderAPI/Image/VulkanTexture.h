@@ -9,9 +9,14 @@ namespace Sculptor::Core
 	public:
 		VulkanTexture() = default;
 
-		void CreateTexture(const VkDevice& device, const VkPhysicalDevice& physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+		void CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
 			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) override;
 
-		void AllocateBuffer(BufferProperties& bufferProperties) override;
+		void AllocateBuffer(TextureBufferProperties& textureBufferProperties) override;
+
+		void CopyBufferToImage(const VkBuffer buffer, uint32_t width, uint32_t height) const;
+
+	private:
+		void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout) const;
 	};
 }

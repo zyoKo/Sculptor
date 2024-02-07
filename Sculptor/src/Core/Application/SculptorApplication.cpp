@@ -15,7 +15,7 @@
 #include "Platform/Windows/WindowsWindow.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 #include "Platform/Windows/WindowData/WindowProperties.h"
-#include "Core/RenderAPI/SwapChains/ImageViews/ImageViews.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
 #include "Core/RenderAPI/Buffers/FrameBuffer.h"
@@ -30,6 +30,7 @@
 #include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+#include "Core/RenderAPI/Image/VulkanTexture.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -41,12 +42,13 @@ namespace Sculptor::Core
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
 			swapChain(std::make_shared<SwapChain>()),
-			imageViews(std::make_shared<ImageViews>(logicalDevice, swapChain)),
+			imageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
 			renderApi(std::make_shared<RenderApi>(swapChain, logicalDevice)),
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
 			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
+			texture(std::make_shared<VulkanTexture>()),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
 			indexBuffer(std::make_shared<IndexBuffer>()),
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
@@ -130,6 +132,12 @@ namespace Sculptor::Core
 
 		commandPool->Create();
 
+		TextureBufferProperties textureBufferProperties{};
+		textureBufferProperties.imageSize = 0; // Calculated after texture data is read from the file
+		textureBufferProperties.usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		textureBufferProperties.propertyFlags =	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		texture->AllocateBuffer(textureBufferProperties);
+
 		// Vertex Buffer
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 		const BufferProperties vertexBufferProperties{
@@ -206,6 +214,8 @@ namespace Sculptor::Core
 		descriptorSetLayout->CleanUp();
 
 		renderApi->CleanUp();
+
+		texture->Destroy(logicalDevice->Get());
 
 		vertexBuffer->CleanUp();
 

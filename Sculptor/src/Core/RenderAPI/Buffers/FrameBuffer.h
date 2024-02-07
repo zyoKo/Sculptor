@@ -3,7 +3,7 @@
 namespace Sculptor::Core
 {
 	class RenderApi;
-	class ImageViews;
+	class SwapChainImageView;
 	class SwapChain;
 	class LogicalDevice;
 }
@@ -15,7 +15,7 @@ namespace Sculptor::Core
 	public:
 		FrameBuffer() = default;
 
-		FrameBuffer(const std::weak_ptr<ImageViews>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
+		FrameBuffer(const std::weak_ptr<SwapChainImageView>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
 			const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice);
 
 		~FrameBuffer() = default;
@@ -24,7 +24,7 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
-		void SetImageViews(const std::weak_ptr<ImageViews>& imageViews);
+		void SetImageViews(const std::weak_ptr<SwapChainImageView>& imageViews);
 
 		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
 
@@ -37,7 +37,7 @@ namespace Sculptor::Core
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
-		std::weak_ptr<ImageViews> imageViews;
+		std::weak_ptr<SwapChainImageView> imageViews;
 
 		std::weak_ptr<RenderApi> renderApi;
 

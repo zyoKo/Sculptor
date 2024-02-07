@@ -50,7 +50,7 @@ namespace Sculptor::Core
 
 		friend class RenderApi;
 
-		friend class ImageViews;
+		friend class SwapChainImageView;
 
 		friend class GraphicsPipeline;
 

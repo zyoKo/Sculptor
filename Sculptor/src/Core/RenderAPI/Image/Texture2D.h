@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/RenderAPI/Buffers/Structures/BufferProperties.h"
 #include "Core/RenderAPI/Interfaces/BufferUtility.h"
+#include "Structures/TextureBufferProperties.h"
 
 namespace Sculptor::Core
 {
@@ -10,9 +10,9 @@ namespace Sculptor::Core
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void AllocateBuffer(BufferProperties& bufferProperties) = 0;
+		virtual void AllocateBuffer(TextureBufferProperties& bufferProperties) = 0;
 
-		virtual void CreateTexture(const VkDevice& device, const VkPhysicalDevice& physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+		virtual void CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
 			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) = 0;
 
 		const VkImage& GetTextureImage() const

@@ -1,5 +1,13 @@
 #pragma once
 
+using I16 = int16_t;
+using I32 = int32_t;
+using I64 = int64_t;
+
+using U16 = uint16_t;
+using U32 = uint32_t;
+using U64 = uint64_t;
+
 #define VK_CHECK(condition, message, ...) \
 	do \
 	{ \
