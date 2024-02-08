@@ -73,7 +73,7 @@ namespace Sculptor::Core
 
 		const auto physicalDevicePtr = logicalDevicePtr->GetPhysicalDevice().lock();
 		S_ASSERT(physicalDevicePtr == nullptr, "PhysicalDevice is null.")
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
 		constexpr VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
 

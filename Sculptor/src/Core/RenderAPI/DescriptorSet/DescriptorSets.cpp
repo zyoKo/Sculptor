@@ -7,13 +7,16 @@
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
+#include "Core/RenderAPI/Image/TextureImageView.h"
+#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
 	void DescriptorSets::Allocate(const std::vector<std::weak_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
-		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers)
+			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
+			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -28,11 +31,12 @@ namespace Sculptor::Core
 			layouts.emplace_back(descriptorSetLayout);
 		}
 
-		AllocateAndUpdateDescriptorSets(layouts, uniformBuffers);
+		AllocateAndUpdateDescriptorSets(layouts, uniformBuffers, textureDataList);
 	}
 
 	void DescriptorSets::Allocate(const std::weak_ptr<DescriptorSetLayout>& weakDescriptorSetLayout,
-		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers)
+			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
+			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -42,7 +46,7 @@ namespace Sculptor::Core
 
 		const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 
-		AllocateAndUpdateDescriptorSets(layouts, uniformBuffers);
+		AllocateAndUpdateDescriptorSets(layouts, uniformBuffers, textureDataList);
 	}
 
 	const std::vector<VkDescriptorSet>& DescriptorSets::GetDescriptorSets() const
@@ -52,7 +56,8 @@ namespace Sculptor::Core
 
 	void DescriptorSets::AllocateAndUpdateDescriptorSets(
 		const std::vector<VkDescriptorSetLayout>& layouts,
-		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers)
+		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
+		const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -70,27 +75,44 @@ namespace Sculptor::Core
 
 		VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()), "Failed to create descriptor sets.")
 
-		for (size_t i = 0; i < 2; ++i)
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			const auto& uniformBuffer = uniformBuffers[i]->GetBuffer();
 
+			// Uniform Buffer Info
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = uniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.range = sizeof(UniformBufferObject);
 
-			VkWriteDescriptorSet descriptorWrite{};
-			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = descriptorSets[i];
-			descriptorWrite.dstBinding = 0;
-			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrite.descriptorCount = 1;
-			descriptorWrite.pBufferInfo = &bufferInfo;
-			descriptorWrite.pImageInfo = nullptr;		// Optional
-			descriptorWrite.pTexelBufferView = nullptr;	// Optional
+			// Image Info
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = std::get<0>(textureDataList[0]).GetImageView();
+			imageInfo.sampler = std::get<1>(textureDataList[0]).GetTextureSampler();
 
-			vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = descriptorSets[i];
+			descriptorWrites[0].dstBinding = 0;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pBufferInfo = &bufferInfo;
+			descriptorWrites[0].pImageInfo = nullptr;		// Optional
+			descriptorWrites[0].pTexelBufferView = nullptr;	// Optional
+
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = descriptorSets[i];
+			descriptorWrites[1].dstBinding = 1;
+			descriptorWrites[1].dstArrayElement = 0;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[1].descriptorCount = 1;
+			descriptorWrites[1].pImageInfo = &imageInfo;
+			descriptorWrites[1].pBufferInfo = nullptr;		// Optional
+			descriptorWrites[1].pTexelBufferView = nullptr;	// Optional
+
+			vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 }

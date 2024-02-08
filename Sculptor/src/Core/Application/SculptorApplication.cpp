@@ -52,7 +52,7 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>()),
-			textureImageView(std::make_shared<TextureImageView>()),
+			textureImageView(std::make_shared<TextureImageView>(logicalDevice)),
 			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
 			indexBuffer(std::make_shared<IndexBuffer>()),
@@ -179,7 +179,10 @@ namespace Sculptor::Core
 
 		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
 
-		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers);
+		// TODO: Fix this and make this more manageable
+		std::vector<std::tuple<TextureImageView, TextureSampler>> textureDataList;
+		textureDataList.emplace_back(*textureImageView, *textureSampler);
+		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{

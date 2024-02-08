@@ -2,13 +2,13 @@
 
 #include "TextureImageView.h"
 
-#include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 
 namespace Sculptor::Core
 {
-	TextureImageView::TextureImageView()
-		:	textureImageView(nullptr)
+	TextureImageView::TextureImageView(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept
+		:	logicalDevice(std::move(logicalDevicePtr)),
+			textureImageView(nullptr)
 	{ }
 
 	void TextureImageView::Create(const VkImage image, VkFormat format /* = VK_FORMAT_R8G8B8A8_SRGB */)

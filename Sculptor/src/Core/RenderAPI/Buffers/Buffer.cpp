@@ -17,7 +17,7 @@ namespace Sculptor::Core
 		LOGICAL_DEVICE_LOCATOR
 
 		GetShared physicalDevicePtr(logicalDevicePtr->GetPhysicalDevice());
-		const auto physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		const auto physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
 		const VkBufferCreateInfo bufferInfo{
 			VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

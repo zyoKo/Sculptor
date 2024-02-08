@@ -76,7 +76,7 @@ namespace Sculptor::Core
 		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
 
 		GetShared physicalDeviceObject(logicalDevicePtr->GetPhysicalDevice());
-		const auto physicalDevice = physicalDeviceObject->GetPrimaryPhysicalDevice();
+		const auto physicalDevice = physicalDeviceObject->GetPrimaryDevice();
 
 		constexpr auto memoryTypeFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
