@@ -15,7 +15,7 @@ namespace Sculptor::Core
 	public:
 		TextureImageView();
 
-		void Create(const VkImage image, VkFormat format);
+		void Create(const VkImage image, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
 
 		VkImageView GetImageView() const;
 

@@ -11,7 +11,7 @@ namespace Sculptor::Core
 		:	textureImageView(nullptr)
 	{ }
 
-	void TextureImageView::Create(const VkImage image, VkFormat format)
+	void TextureImageView::Create(const VkImage image, VkFormat format /* = VK_FORMAT_R8G8B8A8_SRGB */)
 	{
 		textureImageView = CreateImageView(image, format);
 	}
@@ -24,8 +24,9 @@ namespace Sculptor::Core
 	void TextureImageView::Destroy() const
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto& device = logicalDevicePtr->Get();
 
-		vkDestroyImageView(logicalDevicePtr->Get(), textureImageView, nullptr);
+		vkDestroyImageView(device, textureImageView, nullptr);
 	}
 }
 

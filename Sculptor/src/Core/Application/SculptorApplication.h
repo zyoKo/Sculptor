@@ -28,6 +28,8 @@ namespace Sculptor::Core
 	class DescriptorPool;
 	class DescriptorSets;
 	class VulkanTexture;
+	class TextureImageView;
+	class TextureSampler;
 }
 
 namespace Sculptor::Core
@@ -81,6 +83,10 @@ namespace Sculptor::Core
 		uint32_t currentFrame;
 
 		std::shared_ptr<VulkanTexture> texture;
+
+		std::shared_ptr<TextureImageView> textureImageView;
+
+		std::shared_ptr<TextureSampler> textureSampler;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer;
 

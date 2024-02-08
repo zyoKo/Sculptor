@@ -30,7 +30,10 @@
 #include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+#include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/VulkanTexture.h"
+#include "Core/RenderAPI/Image/TextureImageView.h"
+#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -49,6 +52,8 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>()),
+			textureImageView(std::make_shared<TextureImageView>()),
+			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
 			indexBuffer(std::make_shared<IndexBuffer>()),
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
@@ -138,6 +143,10 @@ namespace Sculptor::Core
 		textureBufferProperties.propertyFlags =	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		texture->AllocateBuffer(textureBufferProperties);
 
+		textureImageView->Create(texture->GetTextureImage());
+
+		textureSampler->Create();
+
 		// Vertex Buffer
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
 		const BufferProperties vertexBufferProperties{
@@ -214,6 +223,10 @@ namespace Sculptor::Core
 		descriptorSetLayout->CleanUp();
 
 		renderApi->CleanUp();
+
+		textureSampler->Destroy();
+
+		textureImageView->Destroy();
 
 		texture->Destroy(logicalDevice->Get());
 
