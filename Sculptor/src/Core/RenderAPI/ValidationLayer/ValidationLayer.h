@@ -32,7 +32,7 @@ namespace Sculptor::Core
 
 		static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-		void SetupDebugMessenger(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper);
+		void SetupDebugMessenger(const std::weak_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper);
 
 		void CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const;
 

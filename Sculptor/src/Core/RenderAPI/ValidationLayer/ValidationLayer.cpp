@@ -13,7 +13,7 @@ namespace Sculptor::Core
 			enableValidationLayers(false)
 	{
 #ifdef DEBUG
-		enableValidationLayers = true;
+		enableValidationLayers = true; /* true */
 #endif
 	}
 
@@ -22,7 +22,7 @@ namespace Sculptor::Core
 		if (enableValidationLayers && !CheckValidationLayerSupport())
 		{
 			// TODO: Replace with Logger
-			std::cerr << "Validation Layer Requested, but not available!" << std::endl;
+			std::cerr << "Validation Layer Requested, but not available!\n";
 
 			return false;
 		}
@@ -35,16 +35,19 @@ namespace Sculptor::Core
 		return enableValidationLayers;
 	}
 
-	void ValidationLayer::SetupDebugMessenger(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
+	void ValidationLayer::SetupDebugMessenger(const std::weak_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
 	{
+		const auto vulkanInstance = vulkanInstanceWrapper.lock();
+		S_ASSERT(vulkanInstance == nullptr, "Failed to Setup Debug Messenger.\n");
+
 		if (!enableValidationLayers)
 			return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		PopulateDebugMessengerCreateInfo(createInfo);
 
-		const VkResult debugResult = CreateDebugUtilsMessengerEXT(vulkanInstanceWrapper->GetInstance(), &createInfo, nullptr, &debugMessenger);
-		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!");
+		const VkResult debugResult = CreateDebugUtilsMessengerEXT(vulkanInstance->GetInstance(), &createInfo, nullptr, &debugMessenger);
+		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!")
 	}
 
 	void ValidationLayer::CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const

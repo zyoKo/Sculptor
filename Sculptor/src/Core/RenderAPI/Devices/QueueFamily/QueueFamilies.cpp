@@ -12,17 +12,23 @@ namespace Sculptor::Core
 	{
 	}
 
-	void QueueFamilies::InstantiateAndFindQueueFamilies(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
+	void QueueFamilies::InstantiateAndFindQueueFamilies(std::weak_ptr<PhysicalDevice> weakPhysicalDevice,
+		std::weak_ptr<Windows::VulkanWindowSurface> weakWindowSurface)
 	{
-		// Two step process to get Queue Families
+		GetShared<PhysicalDevice> physicalDevicePtr{ std::move(weakPhysicalDevice) };
+		const auto physicalDevice = physicalDevicePtr->GetPrimaryDevice();
+
+		// Two-step process to get Queue Families
 		uint32_t queueFamilyCount;
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice->GetPrimaryPhysicalDevice(), &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
 		queueFamilies.resize(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice->GetPrimaryPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-		S_ASSERT(queueFamilies.empty(), "Instantiate Queue Family List before proceeding to get Graphic Family!");
+		S_ASSERT(queueFamilies.empty(), "Instantiate Queue Family List before proceeding to get Graphic Family!")
+
+		GetShared<Windows::VulkanWindowSurface> vulkanWindowSurfacePtr{ std::move(weakWindowSurface) };
+		const auto windowSurface = vulkanWindowSurfacePtr->GetSurface();
 
 		int i = 0;
 		for (const auto& queueFamily : queueFamilies)
@@ -31,7 +37,7 @@ namespace Sculptor::Core
 				queueFamilyIndices.graphicsFamily = i;
 
 			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice->GetPrimaryPhysicalDevice(), i, vulkanWindowSurface->GetSurface(), &presentSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, windowSurface, &presentSupport);
 
 			if (presentSupport)
 				queueFamilyIndices.presetFamily = i;

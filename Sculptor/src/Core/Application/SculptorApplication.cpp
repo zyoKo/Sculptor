@@ -2,6 +2,10 @@
 
 #include "SculptorApplication.h"
 
+#include "Core/Locators/CommandPoolLocator.h"
+#include "Core/Locators/DescriptorPoolLocator.h"
+#include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/Locators/SwapChainLocator.h"
 #include "Platform/Windows/WindowData/WindowConstants.h"
 #include "Utilities/ExtensionManager.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
@@ -11,35 +15,56 @@
 #include "Platform/Windows/WindowsWindow.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 #include "Platform/Windows/WindowData/WindowProperties.h"
-#include "Core/RenderAPI/SwapChains/ImageViews/ImageViews.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
 #include "Core/RenderAPI/Buffers/FrameBuffer.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
+#include "Core/RenderAPI/Buffers/IndexBuffer.h"
+#include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
+#include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
+#include "Core/RenderAPI/Data/Constants.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
+#include "Core/RenderAPI/Pools/DescriptorPool.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+#include "Core/RenderAPI/Image/TextureImageView.h"
+#include "Core/RenderAPI/Image/VulkanTexture.h"
+#include "Core/RenderAPI/Image/TextureImageView.h"
+#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
-	constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 	SculptorApplication::SculptorApplication()
 		:	window(std::make_shared<WindowsWindow>()),
 			vulkanInstanceWrapper(std::make_shared<VulkanInstanceWrapper>()),
 			validationLayer(std::make_shared<ValidationLayer>()),
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
-			swapChain(std::make_shared<SwapChain>()),
-			imageViews(std::make_shared<ImageViews>(logicalDevice, swapChain)),
+			swapChain(std::make_shared<SwapChain>(logicalDevice)),
+			swapChainImageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
 			renderApi(std::make_shared<RenderApi>(swapChain, logicalDevice)),
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
-			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChain, logicalDevice)),
+			frameBuffer(std::make_shared<FrameBuffer>(swapChainImageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
-			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice))
+			texture(std::make_shared<VulkanTexture>()),
+			textureImageView(std::make_shared<TextureImageView>(logicalDevice)),
+			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
+			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
+			indexBuffer(std::make_shared<IndexBuffer>()),
+			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
+			descriptorPool(std::make_shared<DescriptorPool>()),
+			descriptorSets(std::make_shared<DescriptorSets>())
 	{
+		LogicalDeviceLocator::Provide(logicalDevice);
+		CommandPoolLocator::Provide(commandPool);
+		SwapChainLocator::Provide(swapChain);
+		DescriptorPoolLocator::Provide(descriptorPool);
+
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -55,6 +80,15 @@ namespace Sculptor::Core
 		}
 
 		graphicsPipeline->SetVertexBuffer(vertexBuffer);
+		graphicsPipeline->SetIndexBuffer(indexBuffer);
+		graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
+		graphicsPipeline->SetDescriptorSets(descriptorSets);
+
+		uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			uniformBuffers.emplace_back(std::make_shared<UniformBuffer>());
+		}
 
 		Utils::ExtensionManager::Initialize(validationLayer);
 	}
@@ -83,27 +117,72 @@ namespace Sculptor::Core
 
 		validationLayer->SetupDebugMessenger(vulkanInstanceWrapper);
 
-		windowSurface->CreateWindowSurface(vulkanInstanceWrapper, window);
+		windowSurface->Create(vulkanInstanceWrapper, window);
 
 		// Physical-Device selection abstracted to the method call below
 		// Queue-Family Initialization abstracted to method call below
-		logicalDevice->CreateLogicalDevice(vulkanInstanceWrapper, validationLayer, windowSurface);
+		logicalDevice->Create(vulkanInstanceWrapper, validationLayer, windowSurface);
 
-		swapChain->CreateSwapChain(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface);
 
-		imageViews->CreateImageViews();
+		swapChainImageViews->Create();
 
-		renderApi->CreateRenderPass();
+		renderApi->Create();
 
-		graphicsPipeline->CreateGraphicsPipeline();
+		descriptorSetLayout->Create();
 
-		frameBuffer->CreateFrameBuffer();
+		graphicsPipeline->Create();
 
-		commandPool->CreateCommandPool();
+		frameBuffer->Create();
 
+		commandPool->Create();
+
+		TextureBufferProperties textureBufferProperties{};
+		textureBufferProperties.imageSize = 0; // Calculated after texture data is read from the file
+		textureBufferProperties.usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		textureBufferProperties.propertyFlags =	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		texture->AllocateBuffer(textureBufferProperties);
+
+		textureImageView->Create(texture->GetTextureImage());
+
+		textureSampler->Create();
+
+		// Vertex Buffer
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
+		const BufferProperties vertexBufferProperties{
+			bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+		vertexBuffer->Create(vertexBufferProperties);
 
-		vertexBuffer->Create(bufferSize);
+		// Index Buffer
+		const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
+		const BufferProperties indexBufferProperties{
+			indexBufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+		indexBuffer->Create(indexBufferProperties);
+
+		// Uniform Buffers
+		constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
+		constexpr BufferProperties uniformBufferProperties{
+			uniformBufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+		for (const auto& buffer : uniformBuffers)
+		{
+			buffer->Create(uniformBufferProperties);
+		}
+
+		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
+
+		// TODO: Fix this and make this more manageable
+		std::vector<std::tuple<TextureImageView, TextureSampler>> textureDataList;
+		textureDataList.emplace_back(*textureImageView, *textureSampler);
+		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
@@ -124,8 +203,6 @@ namespace Sculptor::Core
 			DrawFrame();
 		}
 
-		//vkDeviceWaitIdle(logicalDevice->Get());
-
 		RecreateSwapChain();
 	}
 
@@ -142,17 +219,28 @@ namespace Sculptor::Core
 
 		commandPool->CleanUp();
 
-		//frameBuffer->CleanUp();
-
 		graphicsPipeline->CleanUp();
+
+		descriptorPool->CleanUp();
+
+		descriptorSetLayout->CleanUp();
 
 		renderApi->CleanUp();
 
+		textureSampler->Destroy();
+
+		textureImageView->Destroy();
+
+		texture->Destroy(logicalDevice->Get());
+
 		vertexBuffer->CleanUp();
 
-		//imageViews->CleanUp();
+		indexBuffer->CleanUp();
 
-		//swapChain->CleanUp();
+		for (const auto& buffer : uniformBuffers)
+		{
+			buffer->Destroy();
+		}
 
 		logicalDevice->CleanUp();
 
@@ -167,6 +255,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::DrawFrame()
 	{
+		graphicsPipeline->UpdateCurrentFrame(currentFrame);
+
 		inFlightFences[currentFrame].Wait();
 
 		inFlightFences[currentFrame].Reset();
@@ -185,7 +275,9 @@ namespace Sculptor::Core
 			RecreateSwapChain();
 			return;
 		}
-		S_ASSERT(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR, "Failed to acquire swap chain image.");
+		S_ASSERT(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR, "Failed to acquire swap chain image.")
+
+		uniformBuffers[currentFrame]->Update();
 
 		// Only reset the fence if we are submitting work
 		inFlightFences[currentFrame].Reset();
@@ -212,8 +304,8 @@ namespace Sculptor::Core
 		const auto& graphicsQueue = logicalDevice->GetQueueFamilies().GetGraphicsQueue();
 		const auto& presentQueue = logicalDevice->GetQueueFamilies().GetPresentQueue();
 
-		result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get());
-		S_ASSERT(result != VK_SUCCESS, "Failed to submit draw command buffer.");
+		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get()),
+			"Failed to submit draw command buffer.")
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -243,7 +335,7 @@ namespace Sculptor::Core
 	{
 		frameBuffer->CleanUp();
 
-		imageViews->CleanUp();
+		swapChainImageViews->Destroy();
 
 		swapChain->CleanUp();
 	}
@@ -258,14 +350,14 @@ namespace Sculptor::Core
 			glfwWaitEvents();
 		}
 
-		vkDeviceWaitIdle(logicalDevice->Get());
+		VK_CHECK(vkDeviceWaitIdle(logicalDevice->Get()), "Device failed to wait idle.")
 
 		CleanUpSwapChain();
 
-		swapChain->CreateSwapChain(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface);
 
-		imageViews->CreateImageViews();
+		swapChainImageViews->Create();
 
-		frameBuffer->CreateFrameBuffer();
+		frameBuffer->Create();
 	}
 }

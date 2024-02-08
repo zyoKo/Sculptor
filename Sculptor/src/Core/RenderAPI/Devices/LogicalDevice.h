@@ -17,10 +17,12 @@ namespace Sculptor::Core
 
 		~LogicalDevice() = default;
 
-		void CreateLogicalDevice(
-			const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
-			const std::shared_ptr<ValidationLayer>& validationLayer, 
-			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+		void Create(
+			const std::weak_ptr<VulkanInstanceWrapper>& instance,
+			const std::weak_ptr<ValidationLayer>& validationLayer,
+			const std::weak_ptr<Windows::VulkanWindowSurface>& surface);
+
+		void SetAnisotropyFeatures(bool value) const;
 
 		const VkDevice& Get() const;
 
@@ -37,12 +39,10 @@ namespace Sculptor::Core
 
 		QueueFamilies queueFamilies;
 
-		VkPhysicalDeviceFeatures deviceFeatures;
-
 		friend class RenderApi;
 
-		void InstantiatePhysicalDevicesAndQueueFamilies(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
-			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+		void InstantiatePhysicalDevicesAndQueueFamilies(const std::weak_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+			const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
 		bool CheckDeviceExtensionSupport() const;
 	};

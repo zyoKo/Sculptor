@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Buffer.h"
+#include "Structures/BufferProperties.h"
 #include "Utilities/Macros.h"
 
 namespace Sculptor::Core
@@ -17,11 +19,13 @@ namespace Sculptor::Core
 
 		VertexBuffer(const std::weak_ptr<LogicalDevice>& device);
 
-		VertexBuffer(uint64_t bufferSize);
+		VertexBuffer(const BufferProperties& bufferProperties);
 
 		~VertexBuffer() = default;
 
-		void Create(uint64_t bufferSize);
+		void Create(const BufferProperties& bufferProperties);
+
+		//void Create(uint64_t bufferSize);
 
 		void BindBufferMemory() const;
 
@@ -32,11 +36,7 @@ namespace Sculptor::Core
 		LOGICAL_DEVICE
 
 	private:
-		VkBuffer buffer{};
-
-		VkDeviceMemory bufferMemory{};
-
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+		Buffer vertexBuffer;
 
 		void AllocateMemory(const VkMemoryRequirements& memoryRequirements);
 

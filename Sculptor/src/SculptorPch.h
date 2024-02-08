@@ -25,3 +25,8 @@
 #include <algorithm>
 #include <array>
 #include <fstream>
+#include <format>
+
+// Project Necessary Files
+#include "Core/Core.h"
+#include "Utilities/GetShared.h"

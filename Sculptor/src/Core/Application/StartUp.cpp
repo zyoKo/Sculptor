@@ -1,20 +1,19 @@
 #include <SculptorPch.h>
 
 #include "Core/Application/SculptorApplication.h"
+#include "Core/Memory/Memory.h"
 
 int main()
 {
+	Sculptor::Core::Memory::LeakCheckpointA();
+
 	Sculptor::Core::SculptorApplication application;
 
-	try
-	{
-		application.Sculpt();
-	}
-	catch( const std::exception& exception)
-	{
-		std::cerr << exception.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+	application.Sculpt();
 
-	return EXIT_SUCCESS;
+	Sculptor::Core::Memory::LeakCheckpointB();
+
+	//Sculptor::Core::Memory::CheckForLeaks();
+
+	return 0;
 }

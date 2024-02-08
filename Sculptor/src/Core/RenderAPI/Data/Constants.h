@@ -37,4 +37,6 @@ namespace Sculptor::Core
 	};
 
 	static constexpr float DEFAULT_LINE_WIDTH_FOR_RASTERIZER{ 1.0f };
+
+	static constexpr unsigned MAX_FRAMES_IN_FLIGHT{ 2 };
 }

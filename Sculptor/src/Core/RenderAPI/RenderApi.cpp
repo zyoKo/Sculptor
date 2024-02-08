@@ -16,7 +16,7 @@ namespace Sculptor::Core
 			logicalDevice(logicalDevice)
 	{ }
 
-	void RenderApi::CreateRenderPass()
+	void RenderApi::Create()
 	{
 		const auto swapChainPtr = swapChain.lock();
 		if (!swapChainPtr)
@@ -111,13 +111,6 @@ namespace Sculptor::Core
 		const auto& queueFamilies = device.GetQueueFamilies();
 		const bool isDeviceSuitable = queueFamilies.GetQueueFamilyIndices().IsComplete();
 
-		const auto physicalDevice = device.GetPhysicalDevice().lock();
-		if (!physicalDevice)
-		{
-			std::cerr << "Initialize Physical Device before checking device suitability." << std::endl;
-			return false;
-		}
-
 		const bool checkDeviceExtensionSupport = device.CheckDeviceExtensionSupport();
 
 		bool swapChainAdequate = false;
@@ -127,7 +120,10 @@ namespace Sculptor::Core
 			swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
 		}
 
-		return isDeviceSuitable && checkDeviceExtensionSupport && swapChainAdequate;
+		GetShared<PhysicalDevice> physicalDevice{ device.GetPhysicalDevice() };
+		const bool isAnisotropyEnabled = physicalDevice->GetDeviceFeatures().samplerAnisotropy;
+
+		return isDeviceSuitable && checkDeviceExtensionSupport && swapChainAdequate && isAnisotropyEnabled;
 	}
 
 	void RenderApi::DrawFrame()

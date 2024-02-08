@@ -16,7 +16,7 @@ namespace Sculptor::Windows
 
 		~VulkanWindowSurface() = default;
 
-		void CreateWindowSurface(const std::shared_ptr<Core::VulkanInstanceWrapper>& vulkanInstanceWrapper, 
+		void Create(const std::shared_ptr<Core::VulkanInstanceWrapper>& vulkanInstanceWrapper, 
 			const std::shared_ptr<Core::WindowsWindow>& nativeWindow);
 
 		void CleanUp(const std::shared_ptr<Core::VulkanInstanceWrapper>& vulkanInstanceWrapper) const;

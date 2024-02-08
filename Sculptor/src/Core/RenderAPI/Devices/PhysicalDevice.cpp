@@ -1,5 +1,7 @@
 #include <SculptorPch.h>
 
+#include <utility>
+
 #include "PhysicalDevice.h"
 
 #include "Utilities/Logger/Assert.h"
@@ -17,34 +19,41 @@ namespace Sculptor::Core
 		FetchAllPhysicalDevicesAndPickPrimary(vulkanInstanceWrapper);
 	}
 
-	void PhysicalDevice::FetchAllPhysicalDevicesAndPickPrimary(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
+	void PhysicalDevice::SetAnisotropyFeatures(bool value)
 	{
+		physicalDeviceFeatures.samplerAnisotropy = value;
+	}
+
+	void PhysicalDevice::FetchAllPhysicalDevicesAndPickPrimary(std::weak_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper)
+	{
+		GetShared<VulkanInstanceWrapper> vulkanInstanceWrapperPtr{ std::move(vulkanInstanceWrapper) };
+		const auto& vulkanInstance = vulkanInstanceWrapperPtr->GetInstance();
+
 		// Get the count of available devices
 		uint32_t deviceCount;
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, nullptr);
-		S_ASSERT(deviceCount == 0, "Failed to find any GPUs with Vulkan Support!");
+		VK_CHECK(vkEnumeratePhysicalDevices(vulkanInstance, &deviceCount, nullptr), "Failed to get device count.")
+		S_ASSERT(deviceCount == 0, "Failed to find any GPUs with Vulkan Support!")
 
 		// Put those devices in vector of VkPhysical Devices
 		physicalDevicesList.resize(deviceCount);
-		vkEnumeratePhysicalDevices(vulkanInstanceWrapper->GetInstance(), &deviceCount, physicalDevicesList.data());
+		VK_CHECK(vkEnumeratePhysicalDevices(vulkanInstance, &deviceCount, physicalDevicesList.data()), "Failed to populate Physical Devices List.")
 
 		PickPrimaryPhysicalDevice();
 	}
 
-	const std::vector<VkPhysicalDevice>& PhysicalDevice::GetAllPhysicalDevices()
+	const std::vector<VkPhysicalDevice>& PhysicalDevice::GetAllDevices() const
 	{
 		return physicalDevicesList;
 	}
 
-	const VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice() const
+	VkPhysicalDevice PhysicalDevice::GetPrimaryDevice() const
 	{
-		S_ASSERT(primaryPhysicalDevice == VK_NULL_HANDLE, "Fetching Primary PhysicalDevice before instantiating it!");
 		return primaryPhysicalDevice;
 	}
 
-	VkPhysicalDevice& PhysicalDevice::GetPrimaryPhysicalDevice()
+	const VkPhysicalDeviceFeatures& PhysicalDevice::GetDeviceFeatures() const
 	{
-		return primaryPhysicalDevice;
+		return physicalDeviceFeatures;
 	}
 
 	void PhysicalDevice::PickPrimaryPhysicalDevice()

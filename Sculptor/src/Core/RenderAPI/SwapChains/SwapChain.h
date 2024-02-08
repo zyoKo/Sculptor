@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SwapChainSupportDetails.h"
+#include "Structure/SwapChainSupportDetails.h"
 #include "Utilities/Macros.h"
 
 namespace Sculptor::Windows
@@ -11,9 +11,7 @@ namespace Sculptor::Windows
 namespace Sculptor::Core
 {
 	class LogicalDevice;
-
 	class PhysicalDevice;
-
 	class WindowsWindow;
 }
 
@@ -22,18 +20,19 @@ namespace Sculptor::Core
 	class SwapChain
 	{
 	public:
-		SwapChain();
+		SwapChain(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept;
 
 		~SwapChain() = default;
 
-		void CreateSwapChain(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
-			const std::weak_ptr<LogicalDevice>& logicalDevice);
+		void Create(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface);
 
 		const VkSwapchainKHR& Get() const;
 
-		LOGICAL_DEVICE
+		const VkExtent2D& GetSwapChainExtent() const;
 
 		void CleanUp() const;
+
+		LOGICAL_DEVICE
 
 	private:
 		VkSwapchainKHR swapChain;
@@ -44,20 +43,20 @@ namespace Sculptor::Core
 
 		VkExtent2D swapChainExtent;
 
-		friend class LogicalDevice;
+		FRIEND(LogicalDevice)
 
-		friend class RenderApi;
+		FRIEND(RenderApi)
 
-		friend class ImageViews;
+		FRIEND(SwapChainImageView)
 
-		friend class GraphicsPipeline;
+		FRIEND(GraphicsPipeline)
 
-		friend class FrameBuffer;
+		FRIEND(FrameBuffer)
 
-		friend class CommandBuffer;
+		FRIEND(CommandBuffer)
 
 		static SwapChainSupportDetails QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
-			const std::weak_ptr<PhysicalDevice>& physicalDevice);
+			const std::weak_ptr<PhysicalDevice>& weakPhysicalDevice);
 
 		static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 

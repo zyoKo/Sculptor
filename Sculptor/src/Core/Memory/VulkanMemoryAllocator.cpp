@@ -18,7 +18,7 @@ namespace Sculptor::Core
 	{
 		HANDLE_WEAK_VULKAN_INSTANCE_WRAPPER
 
-		HANDLE_WEAK_LOGICAL_DEVICE
+		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
 
 		VmaAllocatorCreateInfo vmaInfo{};
 		vmaInfo.device = logicalDevice.lock()->Get();
