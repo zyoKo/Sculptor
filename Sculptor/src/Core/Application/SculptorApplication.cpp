@@ -41,11 +41,11 @@ namespace Sculptor::Core
 			validationLayer(std::make_shared<ValidationLayer>()),
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
-			swapChain(std::make_shared<SwapChain>()),
-			imageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
+			swapChain(std::make_shared<SwapChain>(logicalDevice)),
+			swapChainImageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
 			renderApi(std::make_shared<RenderApi>(swapChain, logicalDevice)),
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
-			frameBuffer(std::make_shared<FrameBuffer>(imageViews, renderApi, swapChain, logicalDevice)),
+			frameBuffer(std::make_shared<FrameBuffer>(swapChainImageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>()),
@@ -118,9 +118,9 @@ namespace Sculptor::Core
 		// Queue-Family Initialization abstracted to method call below
 		logicalDevice->Create(vulkanInstanceWrapper, validationLayer, windowSurface);
 
-		swapChain->Create(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface);
 
-		imageViews->Create();
+		swapChainImageViews->Create();
 
 		renderApi->Create();
 
@@ -319,7 +319,7 @@ namespace Sculptor::Core
 	{
 		frameBuffer->CleanUp();
 
-		imageViews->CleanUp();
+		swapChainImageViews->Destroy();
 
 		swapChain->CleanUp();
 	}
@@ -334,13 +334,13 @@ namespace Sculptor::Core
 			glfwWaitEvents();
 		}
 
-		vkDeviceWaitIdle(logicalDevice->Get());
+		VK_CHECK(vkDeviceWaitIdle(logicalDevice->Get()), "Device failed to wait idle.")
 
 		CleanUpSwapChain();
 
-		swapChain->Create(windowSurface, logicalDevice);
+		swapChain->Create(windowSurface);
 
-		imageViews->Create();
+		swapChainImageViews->Create();
 
 		frameBuffer->Create();
 	}

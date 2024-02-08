@@ -1,35 +1,34 @@
 #pragma once
 
+#include "Core/RenderAPI/Image/ImageView.h"
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
 	class LogicalDevice;
-
 	class SwapChain;
 }
 
 namespace Sculptor::Core
 {
-	class SwapChainImageView
+	class SwapChainImageView : public ImageView
 	{
 	public:
-		SwapChainImageView(const std::weak_ptr<LogicalDevice>& device,
-			const std::weak_ptr<SwapChain>& swapChain);
-
-		~SwapChainImageView() = default;
+		SwapChainImageView(std::weak_ptr<LogicalDevice> device, std::weak_ptr<SwapChain> swapChain) noexcept;
 
 		void Create();
 
-		void CleanUp() const;
+		void Destroy() const override;
 
 		const std::vector<VkImageView>& GetSwapChainImageViews() const;
+
+		LOGICAL_DEVICE
+
+		SWAP_CHAIN
 
 	private:
 		std::vector<VkImageView> swapChainImageViews;
 
-		std::weak_ptr<SwapChain> swapChain;
-
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		friend class FrameBuffer;
+		FRIEND(FrameBuffer)
 	};
 }

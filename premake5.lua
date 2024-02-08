@@ -19,6 +19,11 @@ workspace "Sculptor"
         "Release"
     }
 
+    flags 
+    {
+        "MultiProcessorCompile"
+    }
+
     sourcedir = "./src"
     vendordir = "./vendor"
     outputdir = "%{cfg.buildcfg}_%{cfg.system}_%{cfg.architecture}"

@@ -10,28 +10,20 @@
 
 namespace Sculptor::Core
 {
-	SwapChain::SwapChain()
-		:	swapChain(nullptr),
+	SwapChain::SwapChain(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept
+		:	logicalDevice(std::move(logicalDevicePtr)),
+			swapChain(nullptr),
 			swapChainImageFormat{},
 			swapChainExtent{}
 	{ }
 
-	void SwapChain::Create(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
-	                                 const std::weak_ptr<LogicalDevice>& logicalDevice)
+	void SwapChain::Create(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface)
 	{
-		const auto device = logicalDevice.lock();
-		S_ASSERT(device == nullptr, "Logical Device not set before creating SwapChain!");
-		this->logicalDevice = logicalDevice;
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto& device = logicalDevicePtr->Get();
+		const auto& physicalDevicePtr = logicalDevicePtr->GetPhysicalDevice();
 
-		const auto& logicalDevicePtr = device->Get();
-		const auto& physicalDevicePtr = device->GetPhysicalDevice();
-
-		const auto window = windowSurface.lock();
-		if (!window)
-		{
-			std::cerr << "Window Surface is not initialized while creating Swap Chain!" << std::endl;
-			return;
-		}
+		GetShared<Windows::VulkanWindowSurface> windowSurfacePtr{ windowSurface };
 
 		const SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(windowSurface, physicalDevicePtr);
 
@@ -40,7 +32,7 @@ namespace Sculptor::Core
 
 		const auto presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
 
-		const auto extent = ChooseSwapExtent(swapChainSupport.capabilities, window->GetNativeWindow());
+		const auto extent = ChooseSwapExtent(swapChainSupport.capabilities, windowSurfacePtr->GetNativeWindow());
 		swapChainExtent = extent;
 
 		// We do +1 cause sometimes we have to wait on the driver to complete internal operations
@@ -56,7 +48,7 @@ namespace Sculptor::Core
 
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = window->GetSurface();
+		createInfo.surface = windowSurfacePtr->GetSurface();
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -67,7 +59,7 @@ namespace Sculptor::Core
 
 		// Need to specify how to handle swap chain images that will be used across multiple queue families
 		// Render to graphics queue family then transfer the image to presentation queue
-		const auto indices = device->GetQueueFamilies().GetQueueFamilyIndices();
+		const auto indices = logicalDevicePtr->GetQueueFamilies().GetQueueFamilyIndices();
 		const std::array<uint32_t, 2> queueFamilyIndices = {
 			indices.graphicsFamily.value(),
 			indices.presetFamily.value()
@@ -103,12 +95,12 @@ namespace Sculptor::Core
 		// so we need to recreate swap chain (later)
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		const VkResult result = vkCreateSwapchainKHR(logicalDevicePtr, &createInfo, nullptr, &swapChain);
+		const VkResult result = vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Swapchain!");
 
-		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(logicalDevicePtr, swapChain, &imageCount, swapChainImages.data());
+		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 	}
 
 	const VkSwapchainKHR& SwapChain::Get() const
@@ -123,45 +115,47 @@ namespace Sculptor::Core
 
 	void SwapChain::CleanUp() const
 	{
-		const auto device = logicalDevice.lock();
-		S_ASSERT(device == nullptr, "Logical Device is not set.");
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto& device = logicalDevicePtr->Get();
 
-		vkDestroySwapchainKHR(device->Get(), swapChain, nullptr);
+		vkDestroySwapchainKHR(device, swapChain, nullptr);
 	}
 
 	SwapChainSupportDetails SwapChain::QuerySwapChainSupport(const std::weak_ptr<Windows::VulkanWindowSurface>& windowSurface,
-		const std::weak_ptr<PhysicalDevice>& physicalDevice)
+		const std::weak_ptr<PhysicalDevice>& weakPhysicalDevice)
 	{
 		SwapChainSupportDetails details;
 
-		const auto surfacePtr = windowSurface.lock();
-		S_ASSERT(surfacePtr == nullptr, "Initialize Window Surface before querying for Swap Chain support!");
+		GetShared<Windows::VulkanWindowSurface> surfacePtr{ windowSurface };
 		const auto& surface = surfacePtr->GetSurface();
 
-		const auto physicalDevicePtr = physicalDevice.lock();
-		S_ASSERT(physicalDevicePtr == nullptr, "Physical Device is null!");
-		const auto& device = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		GetShared<PhysicalDevice> physicalDevicePtr { weakPhysicalDevice };
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+		VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.capabilities), 
+			"Failed to get Physcial Device Surface Capabilities.")
 
 		// Check for supported surface formats
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr),
+			"Failed to get Physical Device Surface Format.")
 
 		if (formatCount != 0)
 		{
 			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, details.formats.data());
 		}
 
 		// Check for supported presentation modes
 		uint32_t presetModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presetModeCount, nullptr);
+		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presetModeCount, nullptr),
+			"Failed to get Physical Device Surface Present Mode KHR.")
 
 		if (presetModeCount != 0)
 		{
 			details.presentModes.resize(presetModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presetModeCount, details.presentModes.data());
+			VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presetModeCount, details.presentModes.data()),
+				"Failed to get Physical Device Surface Present Mode KHR.")
 		}
 
 		return details;

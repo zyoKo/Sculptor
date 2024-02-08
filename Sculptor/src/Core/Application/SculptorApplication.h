@@ -62,7 +62,7 @@ namespace Sculptor::Core
 
 		std::shared_ptr<SwapChain> swapChain;
 
-		std::shared_ptr<SwapChainImageView> imageViews;
+		std::shared_ptr<SwapChainImageView> swapChainImageViews;
 
 		std::shared_ptr<RenderApi> renderApi;
 

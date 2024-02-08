@@ -1,20 +1,30 @@
 #pragma once
 
+#include "ImageView.h"
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
-	class TextureImageView
+	class LogicalDevice;
+}
+
+namespace Sculptor::Core
+{
+	class TextureImageView : public ImageView
 	{
 	public:
-		TextureImageView() = default;
+		TextureImageView();
 
-		~TextureImageView() = default;
-
-		VkImageView Create(const VkImage image, VkFormat format);
+		void Create(const VkImage image, VkFormat format);
 
 		VkImageView GetImageView() const;
 
+		void Destroy() const override;
+
+		LOGICAL_DEVICE
+
 	private:
-		VkImageView imageView;
+		VkImageView textureImageView;
 	};
 }
 
