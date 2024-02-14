@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/RenderAPI/Interfaces/BaseBuffer.h"
+#include "Core/RenderAPI/Interfaces/IBaseBuffer.h"
 #include "Structures/BufferProperties.h"
 #include "Utilities/Macros.h"
 
@@ -11,23 +11,36 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class Buffer : public BaseBuffer
+	class Buffer : public IBaseBuffer
 	{
 	public:
-		Buffer() = default;
+		Buffer();
 
 		~Buffer() override = default;
 
 		void Create(const BufferProperties& properties) override;
 
-		static void Copy(const Buffer& source, const Buffer& destination, VkDeviceSize size);
-
 		void Destroy() const override;
+
+		void BindBuffer(VkCommandBuffer commandBuffer) const override;
+
+		void BindBufferMemory(VkDeviceSize bufferSize = 0) const override;
+		
+		VkBuffer GetBuffer() const override;
+
+		VkDeviceMemory GetBufferMemory() const override;
 
 		LOGICAL_DEVICE
 
-		void Copy(VkDeviceSize size) override { /* TODO: Fix this later */ }
+	private:
+		VkBuffer buffer;
 
-		void BindBufferMemory() const override;
+		VkDeviceMemory bufferMemory;
+
+		friend class IndexBuffer;
+
+		friend class VertexBuffer;
+
+		friend class UniformBuffer;
 	};
 }

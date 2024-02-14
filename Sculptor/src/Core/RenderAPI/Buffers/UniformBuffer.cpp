@@ -4,7 +4,6 @@
 
 #include "UniformBuffer.h"
 
-
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/Locators/SwapChainLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
@@ -46,7 +45,7 @@ namespace Sculptor::Core
 			glm::vec3(0.0f, 0.0f, 1.0f));
 
 		const auto swapChainPtr = SwapChainLocator::GetSwapChain().lock();
-		S_ASSERT(!swapChainPtr, "Swap Chain reference is null.\n");
+		S_ASSERT(!swapChainPtr, "Swap Chain reference is null.\n")
 		const auto& swapChainExtent = swapChainPtr->GetSwapChainExtent();
 
 		ubo.projection = glm::perspective(

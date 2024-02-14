@@ -12,32 +12,20 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class VertexBuffer
+	class VertexBuffer : public Buffer
 	{
 	public:
-		VertexBuffer() = default;
-
 		VertexBuffer(const std::weak_ptr<LogicalDevice>& device);
 
-		VertexBuffer(const BufferProperties& bufferProperties);
+		void Create(const BufferProperties& bufferProperties) override;
 
-		~VertexBuffer() = default;
+		void BindBufferMemory(VkDeviceSize bufferSize = 0) const override;
 
-		void Create(const BufferProperties& bufferProperties);
-
-		//void Create(uint64_t bufferSize);
-
-		void BindBufferMemory() const;
-
-		void Bind(const VkCommandBuffer& cmdBuffer) const;
-
-		void CleanUp() const;
+		void BindBuffer(VkCommandBuffer cmdBuffer) const override;
 
 		LOGICAL_DEVICE
 
 	private:
-		Buffer vertexBuffer;
-
 		void AllocateMemory(const VkMemoryRequirements& memoryRequirements);
 
 		void MapMemory(const VkBufferCreateInfo& bufferInfo, const void* data) const;

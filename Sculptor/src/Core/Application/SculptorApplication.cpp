@@ -70,7 +70,7 @@ namespace Sculptor::Core
 		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
 		commandBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			commandBuffers.emplace_back(std::make_shared<CommandBuffer>(commandPool, logicalDevice, renderApi, frameBuffer, swapChain, graphicsPipeline));
 
@@ -85,7 +85,7 @@ namespace Sculptor::Core
 		graphicsPipeline->SetDescriptorSets(descriptorSets);
 
 		uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			uniformBuffers.emplace_back(std::make_shared<UniformBuffer>());
 		}
@@ -184,7 +184,7 @@ namespace Sculptor::Core
 		textureDataList.emplace_back(*textureImageView, *textureSampler);
 		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
 
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			commandBuffers[i]->Create();
 
@@ -233,9 +233,9 @@ namespace Sculptor::Core
 
 		texture->Destroy(logicalDevice->Get());
 
-		vertexBuffer->CleanUp();
+		vertexBuffer->Destroy();
 
-		indexBuffer->CleanUp();
+		indexBuffer->Destroy();
 
 		for (const auto& buffer : uniformBuffers)
 		{
@@ -318,14 +318,10 @@ namespace Sculptor::Core
 		presentInfo.pImageIndices = &imageIndex;
 		presentInfo.pResults = nullptr; // Optional
 
-		result = vkQueuePresentKHR(presentQueue, &presentInfo);
+		VK_CHECK(vkQueuePresentKHR(presentQueue, &presentInfo), "Failed to preset swap chain image.")
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		{
 			RecreateSwapChain();
-		}
-		else if (result != VK_SUCCESS)
-		{
-			S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.");
 		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;

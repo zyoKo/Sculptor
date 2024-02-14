@@ -9,10 +9,8 @@ namespace Sculptor::Core
 	public:
 		IndexBuffer() = default;
 
-		void Create(const BufferProperties& bufferProperties);
+		void Create(const BufferProperties& bufferProperties) override;
 
-		void BindBuffer(const VkCommandBuffer& commandBuffer) const override;
-
-		void CleanUp() const;
+		void BindBuffer(VkCommandBuffer commandBuffer) const override;
 	};
 }

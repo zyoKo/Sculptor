@@ -4,8 +4,10 @@
 
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/Locators/CommandPoolLocator.h"
 #include "Data/Constants.h"
 #include "Structures/Vertex.h"
+#include "Utilities/BufferUtility.h"
 #include "Utilities/GetShared.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -14,11 +16,6 @@ namespace Sculptor::Core
 	VertexBuffer::VertexBuffer(const std::weak_ptr<LogicalDevice>& device)
 		:	logicalDevice(device)
 	{ }
-
-	VertexBuffer::VertexBuffer(const BufferProperties& bufferProperties)
-	{
-		Create(bufferProperties);
-	}
 
 	void VertexBuffer::Create(const BufferProperties& bufferProperties)
 	{
@@ -38,37 +35,29 @@ namespace Sculptor::Core
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 		};
 		
-		vertexBuffer.Create(properties);
-		
-		Buffer::Copy(stagingBuffer, vertexBuffer, bufferProperties.bufferSize);
+		Buffer::Create(properties);
+
+		COMMAND_POOL_LOCATOR
+
+		BufferUtility::CopyBuffer(cmdPool, device, stagingBuffer, *this, bufferProperties.bufferSize);
 		
 		stagingBuffer.Destroy();
 	}
 
-	void VertexBuffer::BindBufferMemory() const
+	void VertexBuffer::BindBufferMemory(VkDeviceSize bufferSize) const
 	{
 		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
 
 		// If the memory offset is non-zero it needs to be divisible by memoryRequirements.alignment
-		const auto& buffer = vertexBuffer.GetBuffer();
-		const auto& bufferMemory = vertexBuffer.GetBufferMemory();
-		vkBindBufferMemory(device, buffer, bufferMemory, 0);
+		vkBindBufferMemory(device, buffer, bufferMemory, bufferSize);
 	}
 
-	void VertexBuffer::Bind(const VkCommandBuffer& cmdBuffer) const
+	void VertexBuffer::BindBuffer(VkCommandBuffer cmdBuffer) const
 	{
-		//const VkBuffer vertexBuffers[] = { buffer };
-		const VkBuffer vertexBuffers[] = { vertexBuffer.GetBuffer() };
+		const VkBuffer vertexBuffers[] = { buffer };
 		constexpr VkDeviceSize offsets[] = { 0 };
 
 		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, vertexBuffers, offsets);
-	}
-
-	void VertexBuffer::CleanUp() const
-	{
-		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
-
-		vertexBuffer.Destroy();
 	}
 
 	void VertexBuffer::AllocateMemory(const VkMemoryRequirements& memoryRequirements)
@@ -80,7 +69,7 @@ namespace Sculptor::Core
 
 		constexpr auto memoryTypeFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-		const auto& memoryType = BaseBuffer::FindMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryTypeFlags);
+		const auto& memoryType = BufferUtility::FindMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, memoryTypeFlags);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -88,8 +77,8 @@ namespace Sculptor::Core
 		allocInfo.allocationSize = memoryRequirements.size;
 		allocInfo.memoryTypeIndex = memoryType;
 
-		const VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &vertexBuffer.GetBufferMemory());
-		S_ASSERT(result != VK_SUCCESS, "Failed to allocate memory for the vertex buffer.");
+		const VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
+		S_ASSERT(result != VK_SUCCESS, "Failed to allocate memory for the vertex buffer.")
 	}
 
 	void VertexBuffer::MapMemory(const VkBufferCreateInfo& bufferInfo, const void* data) const
@@ -98,7 +87,7 @@ namespace Sculptor::Core
 
 		void* newData = nullptr;
 
-		vkMapMemory(device, vertexBuffer.GetBufferMemory(), 0, bufferInfo.size, 0, &newData);
+		vkMapMemory(device, bufferMemory, 0, bufferInfo.size, 0, &newData);
 
 		memcpy(newData, data, static_cast<size_t>(bufferInfo.size));
 	}
@@ -107,6 +96,6 @@ namespace Sculptor::Core
 	{
 		HANDLE_WEAK_LOGICAL_DEVICE_DEPRECATED
 
-		vkUnmapMemory(device, vertexBuffer.GetBufferMemory());
+		vkUnmapMemory(device, bufferMemory);
 	}
 }

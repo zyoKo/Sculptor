@@ -6,13 +6,15 @@
 #include "VertexBuffer.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/Locators/CommandPoolLocator.h"
 #include "Data/Constants.h"
+#include "Utilities/BufferUtility.h"
 
 namespace Sculptor::Core
 {
 	void IndexBuffer::Create(const BufferProperties& bufferProperties)
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		LOGICAL_DEVICE_LOCATOR
 
 		Buffer stagingBuffer{};
 		stagingBuffer.Create(bufferProperties);
@@ -30,18 +32,15 @@ namespace Sculptor::Core
 
 		Buffer::Create(indexBufferProperties);
 
-		Buffer::Copy(stagingBuffer, *this, indexBufferProperties.bufferSize);
+		COMMAND_POOL_LOCATOR
+
+		BufferUtility::CopyBuffer(cmdPool, device, stagingBuffer, *this, indexBufferProperties.bufferSize);
 
 		stagingBuffer.Destroy();
 	}
 
-	void IndexBuffer::BindBuffer(const VkCommandBuffer& commandBuffer) const
+	void IndexBuffer::BindBuffer(VkCommandBuffer commandBuffer) const
 	{
 		vkCmdBindIndexBuffer(commandBuffer, buffer, 0, VK_INDEX_TYPE_UINT16);
-	}
-
-	void IndexBuffer::CleanUp() const
-	{
-		Buffer::Destroy();
 	}
 }
