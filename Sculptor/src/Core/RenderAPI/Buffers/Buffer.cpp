@@ -2,10 +2,8 @@
 
 #include "Buffer.h"
 
-#include "CommandBuffer.h"
 #include "VertexBuffer.h"
 #include "Core/Core.h"
-#include "Core/Locators/CommandPoolLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Utilities/GetShared.h"
@@ -45,20 +43,6 @@ namespace Sculptor::Core
 		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory), "Failed to allocate buffer memory.")
 
 		BindBufferMemory();
-	}
-
-	void Buffer::Copy(const Buffer& source, const Buffer& destination, VkDeviceSize size)
-	{
-		COMMAND_POOL_LOCATOR
-
-		LOGICAL_DEVICE_LOCATOR
-
-		const VkCommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommand(cmdPool, device);
-
-		const VkBufferCopy copyRegion{0, 0, size};
-		vkCmdCopyBuffer(commandBuffer, source.GetBuffer(), destination.GetBuffer(), 1, &copyRegion);
-
-		CommandBuffer::EndSingleTimeCommand(commandBuffer);
 	}
 
 	void Buffer::Destroy() const

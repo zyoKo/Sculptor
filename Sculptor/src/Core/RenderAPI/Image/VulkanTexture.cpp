@@ -8,6 +8,7 @@
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/Locators/CommandPoolLocator.h"
+#include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {

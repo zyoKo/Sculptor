@@ -1,7 +1,7 @@
 #include <SculptorPch.h>
 
 #include "Core/Application/SculptorApplication.h"
-#include "Core/Memory/Memory.h"
+#include "Core/RenderAPI/Memory/Memory.h"
 
 int main()
 {
@@ -12,8 +12,6 @@ int main()
 	application.Sculpt();
 
 	Sculptor::Core::Memory::LeakCheckpointB();
-
-	//Sculptor::Core::Memory::CheckForLeaks();
 
 	return 0;
 }

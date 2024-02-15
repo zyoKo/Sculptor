@@ -52,10 +52,10 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>()),
-			textureImageView(std::make_shared<TextureImageView>()),
+			textureImageView(std::make_shared<TextureImageView>(logicalDevice)),
 			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
-			indexBuffer(std::make_shared<IndexBuffer>()),
+			indexBuffer(std::make_shared<IndexBuffer>(logicalDevice)),
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
 			descriptorSets(std::make_shared<DescriptorSets>())
@@ -149,21 +149,12 @@ namespace Sculptor::Core
 
 		// Vertex Buffer
 		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
-		const BufferProperties vertexBufferProperties{
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		};
-		vertexBuffer->Create(vertexBufferProperties);
+		vertexBuffer->Create(VERTICES.data(), bufferSize);
 
 		// Index Buffer
 		const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
-		const BufferProperties indexBufferProperties{
-			indexBufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		};
-		indexBuffer->Create(indexBufferProperties);
+		const std::vector<uint16_t> indexBufferData = INDICES;
+		indexBuffer->Create(indexBufferData.data(), indexBufferSize);
 
 		// Uniform Buffers
 		constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
@@ -320,10 +311,7 @@ namespace Sculptor::Core
 		{
 			RecreateSwapChain();
 		}
-		else if (result != VK_SUCCESS)
-		{
-			S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.");
-		}
+		S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.")
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}

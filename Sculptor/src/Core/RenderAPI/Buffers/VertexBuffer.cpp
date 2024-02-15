@@ -2,10 +2,8 @@
 
 #include "VertexBuffer.h"
 
-#include "Core/Locators/LogicalDeviceLocator.h"
+#include "StagingBuffer.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Data/Constants.h"
-#include "Structures/Vertex.h"
 #include "Utilities/GetShared.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -15,34 +13,15 @@ namespace Sculptor::Core
 		:	logicalDevice(device)
 	{ }
 
-	VertexBuffer::VertexBuffer(const BufferProperties& bufferProperties)
+	void VertexBuffer::Create(const void* bufferData, uint64_t bufferSize)
 	{
-		Create(bufferProperties);
-	}
-
-	void VertexBuffer::Create(const BufferProperties& bufferProperties)
-	{
-		LOGICAL_DEVICE_LOCATOR
-
-		Buffer stagingBuffer{};
-		stagingBuffer.Create(bufferProperties);
-
-		void* data;
-		vkMapMemory(device, stagingBuffer.GetBufferMemory(), 0, bufferProperties.bufferSize, 0, &data);
-		memcpy(data, VERTICES.data(), static_cast<size_t>(bufferProperties.bufferSize));
-		vkUnmapMemory(device, stagingBuffer.GetBufferMemory());
+		vertexBufferProperties.bufferSize = bufferSize;
+		vertexBuffer.Create(vertexBufferProperties);
 		
-		const BufferProperties properties{
-			bufferProperties.bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-		};
-		
-		vertexBuffer.Create(properties);
-		
-		Buffer::Copy(stagingBuffer, vertexBuffer, bufferProperties.bufferSize);
-		
-		stagingBuffer.Destroy();
+		StagingBuffer stagingBuffer{ logicalDevice };
+		stagingBuffer.CreateBuffer(bufferData, bufferSize);
+		stagingBuffer.CopyBuffer(vertexBuffer, bufferSize);
+		stagingBuffer.DestroyBuffer();
 	}
 
 	void VertexBuffer::BindBufferMemory() const

@@ -20,14 +20,12 @@ namespace Sculptor::Core
 
 		void Create(const BufferProperties& properties) override;
 
-		static void Copy(const Buffer& source, const Buffer& destination, VkDeviceSize size);
-
 		void Destroy() const override;
-
-		LOGICAL_DEVICE
 
 		void Copy(VkDeviceSize size) override { /* TODO: Fix this later */ }
 
 		void BindBufferMemory() const override;
+
+		LOGICAL_DEVICE
 	};
 }

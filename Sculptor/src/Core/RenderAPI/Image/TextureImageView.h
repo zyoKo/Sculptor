@@ -13,7 +13,7 @@ namespace Sculptor::Core
 	class TextureImageView : public ImageView
 	{
 	public:
-		TextureImageView();
+		TextureImageView(std::weak_ptr<LogicalDevice> device) noexcept;
 
 		void Create(const VkImage image, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
 
