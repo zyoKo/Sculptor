@@ -13,18 +13,22 @@ namespace Sculptor::Core
 
 		~PhysicalDevice() = default;
 
-		void FetchAllPhysicalDevicesAndPickPrimary(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper);
+		void SetAnisotropyFeatures(bool value);
 
-		const std::vector<VkPhysicalDevice>& GetAllPhysicalDevices();
+		void FetchAllPhysicalDevicesAndPickPrimary(std::weak_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper);
 
-		const VkPhysicalDevice& GetPrimaryPhysicalDevice() const;
+		const std::vector<VkPhysicalDevice>& GetAllDevices() const;
 
-		VkPhysicalDevice& GetPrimaryPhysicalDevice();
+		VkPhysicalDevice GetPrimaryDevice() const;
+
+		const VkPhysicalDeviceFeatures& GetDeviceFeatures() const;
 
 	private:
 		VkPhysicalDevice primaryPhysicalDevice;
 
 		std::vector<VkPhysicalDevice> physicalDevicesList;
+
+		VkPhysicalDeviceFeatures physicalDeviceFeatures{};
 
 		void PickPrimaryPhysicalDevice();
 

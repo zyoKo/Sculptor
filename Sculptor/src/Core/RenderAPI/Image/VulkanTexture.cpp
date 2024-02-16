@@ -8,6 +8,7 @@
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/Locators/CommandPoolLocator.h"
+#include "Utilities/BufferUtility.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -46,7 +47,7 @@ namespace Sculptor::Core
 			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 			nullptr,
 			memRequirements.size,
-			FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties)
+			BufferUtility::FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties)
 		};
 
 		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory), "Failed to create image.")
@@ -74,7 +75,7 @@ namespace Sculptor::Core
 
 		const auto physicalDevicePtr = logicalDevicePtr->GetPhysicalDevice().lock();
 		S_ASSERT(physicalDevicePtr == nullptr, "PhysicalDevice is null.")
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
 		constexpr VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
 

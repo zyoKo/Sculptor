@@ -13,8 +13,7 @@ namespace Sculptor::Core
 
 		~QueueFamilies() = default;
 
-		void InstantiateAndFindQueueFamilies(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-			const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
+		void InstantiateAndFindQueueFamilies(std::weak_ptr<PhysicalDevice> weakPhysicalDevice, std::weak_ptr<Windows::VulkanWindowSurface> weakWindowSurface);
 
 		const std::vector<VkQueueFamilyProperties>& GetQueueFamiliesList() const;
 

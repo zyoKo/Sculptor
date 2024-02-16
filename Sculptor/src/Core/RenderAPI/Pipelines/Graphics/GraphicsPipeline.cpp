@@ -279,7 +279,7 @@ namespace Sculptor::Core
 		{
 			int i = 0;
 		}
-		vertexBufferPtr->Bind(cmdBuffer);
+		vertexBufferPtr->BindBuffer(cmdBuffer);
 
 		const auto indexBufferPtr = indexBuffer.lock();
 		if (!indexBufferPtr)

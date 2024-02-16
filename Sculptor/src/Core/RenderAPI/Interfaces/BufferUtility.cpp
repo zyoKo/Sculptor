@@ -11,8 +11,7 @@
 
 namespace Sculptor::Core
 {
-	uint32_t BufferUtility::FindMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter,
-		VkMemoryPropertyFlags properties)
+	uint32_t BufferUtility::FindMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memProperties{};
 		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);

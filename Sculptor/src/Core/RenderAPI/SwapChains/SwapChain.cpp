@@ -130,7 +130,7 @@ namespace Sculptor::Core
 		const auto& surface = surfacePtr->GetSurface();
 
 		GetShared<PhysicalDevice> physicalDevicePtr { weakPhysicalDevice };
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
 		VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.capabilities), 
 			"Failed to get Physcial Device Surface Capabilities.")

@@ -17,6 +17,8 @@ namespace Sculptor::Core
 
 		void Destroy() const;
 
+		VkSampler GetTextureSampler() const;
+
 		LOGICAL_DEVICE
 
 	private:

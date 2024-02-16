@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Core/RenderAPI/Interfaces/BufferUtility.h"
 #include "Structures/TextureBufferProperties.h"
 
 namespace Sculptor::Core
 {
-	class Texture2D : public BufferUtility
+	class Texture2D
 	{
 	public:
 		virtual ~Texture2D() = default;

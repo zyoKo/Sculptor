@@ -26,7 +26,7 @@ namespace Sculptor::Core
 
 		const auto weakPhysicalDevice = logicalDevicePtr->GetPhysicalDevice();
 		GetShared<PhysicalDevice> physicalDevicePtr{ weakPhysicalDevice };
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryPhysicalDevice();
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
 		VkPhysicalDeviceProperties physicalDeviceProperties{};
 		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
@@ -48,6 +48,19 @@ namespace Sculptor::Core
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
 
+		VkFormatProperties formatProperties{};
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_R8G8B8A8_SRGB, &formatProperties);
+
+		VkImageFormatProperties imageFormatProperties{};
+		vkGetPhysicalDeviceImageFormatProperties(
+			physicalDevice, 
+			VK_FORMAT_R8G8B8A8_SRGB, 
+			VK_IMAGE_TYPE_2D, 
+			VK_IMAGE_TILING_LINEAR,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			0,
+			&imageFormatProperties);
+
 		VK_CHECK(vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler), "Failed to create texture sampler.")
 	}
 
@@ -57,5 +70,10 @@ namespace Sculptor::Core
 		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroySampler(device, textureSampler, nullptr);
+	}
+
+	VkSampler TextureSampler::GetTextureSampler() const
+	{
+		return textureSampler;
 	}
 }

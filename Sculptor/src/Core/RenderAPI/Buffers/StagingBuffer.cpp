@@ -3,6 +3,7 @@
 #include "StagingBuffer.h"
 
 #include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/RenderAPI/Interfaces/BufferUtility.h"
 
 namespace Sculptor::Core
 {

@@ -23,12 +23,12 @@ namespace Sculptor::Core
 		stagingBuffer.DestroyBuffer();
 	}
 
-	void IndexBuffer::BindBuffer(const VkCommandBuffer& commandBuffer) const
+	void IndexBuffer::BindBuffer(VkCommandBuffer commandBuffer) const
 	{
 		vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
 	}
 
-	void IndexBuffer::CleanUp() const
+	void IndexBuffer::Destroy() const
 	{
 		indexBuffer.Destroy();
 	}

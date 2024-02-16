@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Buffer.h"
 
 namespace Sculptor::Core
@@ -8,7 +9,7 @@ namespace Sculptor::Core
 	public:
 		UniformBuffer();
 
-		void Create(const BufferProperties& properties) override;
+		void Create(const BufferProperties& properties);
 
 		void Update() const;
 

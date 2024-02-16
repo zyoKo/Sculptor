@@ -13,9 +13,9 @@ namespace Sculptor::Core
 
 		void Create(const void* bufferData, uint64_t bufferSize);
 
-		void BindBuffer(const VkCommandBuffer& commandBuffer) const;
+		void BindBuffer(VkCommandBuffer commandBuffer) const;
 
-		void CleanUp() const;
+		void Destroy() const;
 
 		LOGICAL_DEVICE
 

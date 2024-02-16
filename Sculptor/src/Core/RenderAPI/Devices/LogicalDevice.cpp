@@ -10,21 +10,22 @@ namespace Sculptor::Core
 {
 	LogicalDevice::LogicalDevice()
 		:	logicalDevice(nullptr),
-			physicalDevice(std::make_shared<PhysicalDevice>()),
-			deviceFeatures{}
-	{ }
+			physicalDevice(std::make_shared<PhysicalDevice>())
+	{
+		// Enable Anisotropy
+		physicalDevice->SetAnisotropyFeatures(true);
+	}
 
 	void LogicalDevice::Create(
-		const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
-		const std::shared_ptr<ValidationLayer>& validationLayer, 
-		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
+		const std::weak_ptr<VulkanInstanceWrapper>& instance,
+		const std::weak_ptr<ValidationLayer>& validationLayer, 
+		const std::weak_ptr<Windows::VulkanWindowSurface>& surface)
 	{
 		// -- Big Step here --
 		// Physical Devices and Queue Families Initialization
-		InstantiatePhysicalDevicesAndQueueFamilies(vulkanInstanceWrapper, vulkanWindowSurface);
+		InstantiatePhysicalDevicesAndQueueFamilies(instance, surface);
 
-		const bool allGood = RenderApi::IsDeviceSuitable(*this, vulkanWindowSurface);
-		std::cout << "Can Create Logical Device?: " << std::boolalpha << allGood << std::endl;
+		S_ASSERT(!RenderApi::IsDeviceSuitable(*this, surface), "No suitable Device found with all requested features.")
 
 		// Queue Family Indices
 		const auto& indices = queueFamilies.GetQueueFamilyIndices();
@@ -35,7 +36,7 @@ namespace Sculptor::Core
 			indices.presetFamily.value()
 		};
 
-		// required to setup queuePriority because Vulkan demands it even if there is only single queue
+		// required to set up queuePriority because Vulkan demands it even if there is only single queue
 		constexpr float queuePriority = 1.0f;
 		for (const auto queueFamily : uniqueQueueFamilies)
 		{
@@ -53,15 +54,16 @@ namespace Sculptor::Core
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size());
 		createInfo.pQueueCreateInfos = queueCreateInfoList.data();
-		createInfo.pEnabledFeatures = &deviceFeatures;
-
+		createInfo.pEnabledFeatures = &physicalDevice->GetDeviceFeatures();
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
 		createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
 
-		if (validationLayer && validationLayer->IsEnabled()) 
+		GetShared<ValidationLayer> validationLayerPtr { validationLayer };
+
+		if (validationLayerPtr != nullptr && validationLayerPtr->IsEnabled())
 		{
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
-			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerPtr->GetValidationLayersArray().size());
+			createInfo.ppEnabledLayerNames = validationLayerPtr->GetValidationLayersArray().data();
 		}
 		else 
 		{
@@ -70,7 +72,7 @@ namespace Sculptor::Core
 
 		createInfo.pNext = nullptr;
 
-		const auto result = vkCreateDevice(physicalDevice->GetPrimaryPhysicalDevice(), &createInfo, nullptr, &logicalDevice);
+		const auto result = vkCreateDevice(physicalDevice->GetPrimaryDevice(), &createInfo, nullptr, &logicalDevice);
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
 
 		// Graphics-Queue for Logical Device
@@ -86,6 +88,11 @@ namespace Sculptor::Core
 			indices.presetFamily.value(),
 			0,
 			&queueFamilies.GetPresentQueue());
+	}
+
+	void LogicalDevice::SetAnisotropyFeatures(bool value) const
+	{
+		physicalDevice->SetAnisotropyFeatures(value);
 	}
 
 	const VkDevice& LogicalDevice::Get() const
@@ -108,8 +115,8 @@ namespace Sculptor::Core
 		vkDestroyDevice(logicalDevice, nullptr);
 	}
 
-	void LogicalDevice::InstantiatePhysicalDevicesAndQueueFamilies(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
-		const std::shared_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
+	void LogicalDevice::InstantiatePhysicalDevicesAndQueueFamilies(const std::weak_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper,
+		const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
 	{
 		physicalDevice->FetchAllPhysicalDevicesAndPickPrimary(vulkanInstanceWrapper);
 
@@ -118,7 +125,7 @@ namespace Sculptor::Core
 
 	bool LogicalDevice::CheckDeviceExtensionSupport() const
 	{
-		const auto& device = physicalDevice->GetPrimaryPhysicalDevice();
+		const auto& device = physicalDevice->GetPrimaryDevice();
 
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
