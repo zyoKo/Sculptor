@@ -22,7 +22,6 @@ namespace Sculptor::Core
 			resourceName(name),
 			descriptorPool(VK_NULL_HANDLE),
 			descriptorSetLayout(VK_NULL_HANDLE),
-			descriptorSets(std::move(descriptorSets)),
 			descriptorWrites(std::move(writeDescriptorSets)),
 			layoutBindings(std::move(descriptorLayoutBindings))
 	{
