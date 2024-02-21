@@ -13,10 +13,11 @@ namespace Sculptor::Core
 		static VkVertexInputBindingDescription GetBindingDescription(const uint32_t bindingPoint, const uint32_t stride)
 		{
 			// input rate has another parameter VK_VERTEX_INPUT_RATE_INSTANCE for instance rendering
-			VkVertexInputBindingDescription bindingDescription{};
-			bindingDescription.binding		= bindingPoint;
-			bindingDescription.stride		= stride;
-			bindingDescription.inputRate	= VK_VERTEX_INPUT_RATE_VERTEX;
+			const VkVertexInputBindingDescription bindingDescription{
+				.binding = bindingPoint,
+				.stride = stride,
+				.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+			};
 
 			return bindingDescription;
 		}

@@ -44,11 +44,14 @@ namespace Sculptor::Core
 			poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			poolSizes[1].descriptorCount = descriptorCount;
 
-			VkDescriptorPoolCreateInfo poolInfo{};
-			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			poolInfo.poolSizeCount = static_cast<U32>(poolSizes.size());
-			poolInfo.pPoolSizes = poolSizes.data();
-			poolInfo.maxSets = descriptorCount;
+			const VkDescriptorPoolCreateInfo poolInfo{
+				.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+				.pNext = nullptr,
+				.flags = 0,
+				.maxSets = descriptorCount,
+				.poolSizeCount = static_cast<U32>(poolSizes.size()),
+				.pPoolSizes = poolSizes.data()
+			};
 
 			VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool.")
 		}

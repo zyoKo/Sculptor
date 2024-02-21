@@ -5,7 +5,7 @@ namespace Sculptor::Core
 	class DescriptorSetLayout
 	{
 	public:
-		DescriptorSetLayout() = default;
+		DescriptorSetLayout();
 
 		~DescriptorSetLayout() = default;
 
@@ -13,9 +13,11 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
-		const VkDescriptorSetLayout& GetDescriptorSetLayout() const;
+		[[nodiscard]] VkDescriptorSetLayout GetDescriptorSetLayout() const;
+
+		[[nodiscard]] const VkDescriptorSetLayout* GetDescriptorSetLayoutPointer() const;
 
 	private:
-		VkDescriptorSetLayout descriptorSetLayout{};
+		VkDescriptorSetLayout descriptorSetLayout;
 	};
 }

@@ -55,7 +55,7 @@ namespace Sculptor::Core
 		BindMemory(device, 0);
 	}
 
-	void VulkanTexture::AllocateBuffer(TextureBufferProperties& textureBufferProperties)
+	void VulkanTexture::AllocateBuffer(TextureBufferProperties&& textureBufferProperties)
 	{
 		LOGICAL_DEVICE_LOCATOR
 

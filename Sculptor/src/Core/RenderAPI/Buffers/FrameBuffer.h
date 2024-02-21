@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
 	class RenderApi;
@@ -15,8 +17,10 @@ namespace Sculptor::Core
 	public:
 		FrameBuffer() = default;
 
-		FrameBuffer(const std::weak_ptr<SwapChainImageView>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
-			const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice);
+		FrameBuffer(std::weak_ptr<SwapChainImageView> imageViews,
+					std::weak_ptr<RenderApi> renderApi,
+					std::weak_ptr<SwapChain> swapChain,
+					std::weak_ptr<LogicalDevice> logicalDevice) noexcept;
 
 		~FrameBuffer() = default;
 
@@ -24,15 +28,15 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
-		void SetImageViews(const std::weak_ptr<SwapChainImageView>& imageViews);
+		void SetImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept;
 
-		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
-
-		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
-
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& logicalDevice);
+		void SetRenderApi(std::weak_ptr<RenderApi> renderApi) noexcept;
 
 		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
+
+		SWAP_CHAIN
+
+		LOGICAL_DEVICE
 
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
@@ -41,10 +45,6 @@ namespace Sculptor::Core
 
 		std::weak_ptr<RenderApi> renderApi;
 
-		std::weak_ptr<SwapChain> swapChain;
-
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		friend class CommandBuffer;
+		FRIEND(CommandBuffer)
 	};
 }

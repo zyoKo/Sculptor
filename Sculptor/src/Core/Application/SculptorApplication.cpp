@@ -137,11 +137,12 @@ namespace Sculptor::Core
 
 		commandPool->Create();
 
-		TextureBufferProperties textureBufferProperties{};
-		textureBufferProperties.imageSize = 0; // Calculated after texture data is read from the file
-		textureBufferProperties.usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		textureBufferProperties.propertyFlags =	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		texture->AllocateBuffer(textureBufferProperties);
+		TextureBufferProperties textureBufferProperties{
+			.imageSize = 0,	// Calculated after texture data is read from the file
+			.usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		};
+		texture->AllocateBuffer(std::move(textureBufferProperties));
 
 		textureImageView->Create(texture->GetTextureImage());
 
@@ -201,7 +202,7 @@ namespace Sculptor::Core
 	{
 		CleanUpSwapChain();
 
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			imageAvailableSemaphores[i].Destroy();
 			renderFinishedSemaphores[i].Destroy();

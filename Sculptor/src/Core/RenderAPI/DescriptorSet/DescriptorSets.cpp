@@ -59,17 +59,19 @@ namespace Sculptor::Core
 		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
 		const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
 	{
-		LOGICAL_DEVICE_LOCATOR
+		GetShared<LogicalDevice> logicalDevicePtr { LogicalDeviceLocator::GetLogicalDevice() };
+		const auto& device = logicalDevicePtr->Get();
 
-		const auto descriptorPoolPtr = DescriptorPoolLocator::GetDescriptorPool().lock();
-		S_ASSERT(!descriptorPoolPtr, "Descriptor Pool reference is null.\n")
+		GetShared<DescriptorPool> descriptorPoolPtr { DescriptorPoolLocator::GetDescriptorPool() };
 		const auto descriptorPool = descriptorPoolPtr->GetDescriptorPool();
 
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
+		const VkDescriptorSetAllocateInfo allocInfo{
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+			.pNext = nullptr,
+			.descriptorPool = descriptorPool,
+			.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+			.pSetLayouts = layouts.data()
+		};
 
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 

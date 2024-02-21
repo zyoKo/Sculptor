@@ -9,7 +9,7 @@ namespace Sculptor::Core
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void AllocateBuffer(TextureBufferProperties& bufferProperties) = 0;
+		virtual void AllocateBuffer(TextureBufferProperties&& bufferProperties) = 0;
 
 		virtual void CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
 			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) = 0;

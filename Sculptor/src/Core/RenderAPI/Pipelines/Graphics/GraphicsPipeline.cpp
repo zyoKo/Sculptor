@@ -201,7 +201,7 @@ namespace Sculptor::Core
 		else
 		{
 			pipelineLayoutInfo.setLayoutCount = 1;
-			pipelineLayoutInfo.pSetLayouts = &descriptorSetPtr->GetDescriptorSetLayout();
+			pipelineLayoutInfo.pSetLayouts = descriptorSetPtr->GetDescriptorSetLayoutPointer();
 		}
 
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional

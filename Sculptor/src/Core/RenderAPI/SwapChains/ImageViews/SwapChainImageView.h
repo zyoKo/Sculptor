@@ -28,7 +28,7 @@ namespace Sculptor::Core
 
 	private:
 		std::vector<VkImageView> swapChainImageViews;
-
+		
 		FRIEND(FrameBuffer)
 	};
 }
