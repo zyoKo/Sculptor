@@ -9,8 +9,14 @@
 
 #include "DescriptorBuilder.h"
 
+#include "Core/RenderAPI/Devices/LogicalDevice.h"
+
 namespace Sculptor::Core
 {
+	DescriptorBuilder::DescriptorBuilder(std::weak_ptr<LogicalDevice> logicalDevice) noexcept
+		:	logicalDevice(logicalDevice)
+	{ }
+
 	/*! TODO: Fill this later after finishing Deferred shading
 	* \brief Returning by reference and not const reference cause we want to be able to change data within VkDescriptorSetLayoutBinding vector
 	* \param uniformBuffer	: choose uniform buffer to create descriptor set from
@@ -42,7 +48,7 @@ namespace Sculptor::Core
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.pNext = nullptr,
 			.dstSet = nullptr,
-			.dstBinding = 0,
+			.dstBinding = 0,	// To be set later in the Resource Builder
 			.dstArrayElement = 0,
 			.descriptorCount = 1,	// TODO: Manage array later
 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -69,7 +75,7 @@ namespace Sculptor::Core
 	{
 		layoutBindings.push_back({
 			.binding = binding,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.descriptorCount = 1,
 			.stageFlags = stageFlag,
 			.pImmutableSamplers = nullptr
@@ -85,7 +91,7 @@ namespace Sculptor::Core
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.pNext = nullptr,
 			.dstSet = nullptr,
-			.dstBinding = 0,
+			.dstBinding = 0,	// To be set later in the Resource Builder
 			.dstArrayElement = 0,
 			.descriptorCount = 1,	// TODO: Manage array later
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -95,5 +101,15 @@ namespace Sculptor::Core
 		});
 
 		return *this;
+	}
+
+	ResourceBuilder DescriptorBuilder::Build(std::string name)
+	{
+		ResourceBuilder resourceBuilder( logicalDevice, std::move(name), std::move(layoutBindings), std::move(descriptorWrites));
+
+		bufferInfos.clear();
+		imageInfos.clear();
+
+		return std::move(resourceBuilder);
 	}
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Core/RenderAPI/Data/Constants.h"
 #include "Utilities/Macros.h"
 
 namespace Sculptor::Core
@@ -15,10 +14,18 @@ namespace Sculptor::Core
 	public:
 		ResourceBuilder(ResourceBuilder&& resourceBuilder) noexcept;
 
-		ResourceBuilder(std::weak_ptr<LogicalDevice> logicalDevice, 
-			std::string&& name, 
+		ResourceBuilder(std::weak_ptr<LogicalDevice> logicalDevice,
+			std::string&& name,
 			std::vector<VkDescriptorSetLayoutBinding>&& descriptorLayoutBindings,
 			std::vector<VkWriteDescriptorSet>&& writeDescriptorSets) noexcept;
+
+		ResourceBuilder(ResourceBuilder&) = delete;
+
+		VkDescriptorSetLayout& GetDescriptorSetLayout();
+
+		const std::vector<VkDescriptorSet>& GetDescriptorSets() const;
+
+		~ResourceBuilder();
 
 		LOGICAL_DEVICE
 

@@ -16,13 +16,15 @@ namespace Sculptor::Core
 		:	uniformBufferMapped(nullptr)
 	{ }
 
-	void UniformBuffer::Create(const BufferProperties& properties)
+	void UniformBuffer::Create(U64 bufferSize)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
-		Buffer::Create(properties);
+		uniformBufferProperties.bufferSize = bufferSize;
+		uniformBuffer.Create(uniformBufferProperties);
 
-		vkMapMemory(device, bufferMemory, 0, properties.bufferSize, 0, &uniformBufferMapped);
+		VK_CHECK(vkMapMemory(device, uniformBuffer.GetBufferMemory(), 0, bufferSize, 0, &uniformBufferMapped),
+			"Failed to map memory in Uniform Buffer pointer.")
 	}
 
 	void UniformBuffer::Update() const
@@ -57,5 +59,15 @@ namespace Sculptor::Core
 		ubo.projection[1][1] *= -1;
 
 		memcpy(uniformBufferMapped, &ubo, sizeof(ubo));
+	}
+
+	const Buffer& UniformBuffer::GetBuffer() const
+	{
+		return uniformBuffer;
+	}
+
+	void UniformBuffer::Destroy() const
+	{
+		uniformBuffer.Destroy();
 	}
 }

@@ -15,22 +15,25 @@ namespace Sculptor::Core
 	void SwapChainImageView::Create()
 	{
 		GetShared<SwapChain> swapChainPtr{ swapChain };
+		const auto& swapChainImages = swapChainPtr->swapChainImages;
+		const auto swapChainImageFormat = swapChainPtr->swapChainImageFormat;
 
-		swapChainImageViews.resize(swapChainPtr->swapChainImages.size());
+		swapChainImageViews.resize(swapChainImages.size());
 
-		for (size_t i = 0; i < swapChainPtr->swapChainImages.size(); ++i)
+		for (size_t i = 0; i < swapChainImages.size(); ++i)
 		{
-			swapChainImageViews[i] = CreateImageView(swapChainPtr->swapChainImages[i], swapChainPtr->swapChainImageFormat);
+			swapChainImageViews[i] = CreateImageView(swapChainImages[i], swapChainImageFormat);
 		}
 	}
 
 	void SwapChainImageView::Destroy() const
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto& device = logicalDevicePtr->Get();
 
 		for (auto& imageView : swapChainImageViews)
 		{
-			vkDestroyImageView(logicalDevicePtr->Get(), imageView, nullptr);
+			vkDestroyImageView(device, imageView, nullptr);
 		}
 	}
 

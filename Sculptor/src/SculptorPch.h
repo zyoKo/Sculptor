@@ -26,6 +26,7 @@
 #include <array>
 #include <fstream>
 #include <format>
+#include <chrono>
 
 // Project Necessary Files
 #include "Core/Core.h"

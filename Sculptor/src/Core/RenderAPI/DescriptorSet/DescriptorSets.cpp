@@ -10,6 +10,7 @@
 #include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Data/Constants.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -65,13 +66,11 @@ namespace Sculptor::Core
 		GetShared<DescriptorPool> descriptorPoolPtr { DescriptorPoolLocator::GetDescriptorPool() };
 		const auto descriptorPool = descriptorPoolPtr->GetDescriptorPool();
 
-		const VkDescriptorSetAllocateInfo allocInfo{
-			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-			.pNext = nullptr,
+		const auto allocInfo = CreateInfo<VkDescriptorSetAllocateInfo>({
 			.descriptorPool = descriptorPool,
 			.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
 			.pSetLayouts = layouts.data()
-		};
+		});
 
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -79,7 +78,7 @@ namespace Sculptor::Core
 
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
-			const auto& uniformBuffer = uniformBuffers[i]->GetBuffer();
+			const auto& uniformBuffer = static_cast<VkBuffer>(*uniformBuffers[i]);
 
 			// Uniform Buffer Info
 			VkDescriptorBufferInfo bufferInfo{};

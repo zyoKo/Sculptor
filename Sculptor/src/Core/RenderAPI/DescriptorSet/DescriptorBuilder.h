@@ -1,11 +1,13 @@
 #pragma once
 
+#include "ResourceBuilder.h"
+
 namespace Sculptor::Core
 {
 	class DescriptorBuilder
 	{
 	public:
-		DescriptorBuilder() = default;
+		DescriptorBuilder(std::weak_ptr<LogicalDevice> logicalDevice) noexcept;
 
 		DescriptorBuilder& AddUniformBuffer(const VkBuffer uniformBuffer, U32 binding, VkDeviceSize bufferRange,
 			VkDeviceSize offset = 0,
@@ -15,7 +17,9 @@ namespace Sculptor::Core
 			VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
 			VkShaderStageFlags stageFlag = VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		
+		ResourceBuilder Build(std::string name);
+
+		LOGICAL_DEVICE
 
 	private:
 		std::vector<VkDescriptorSetLayoutBinding> layoutBindings;

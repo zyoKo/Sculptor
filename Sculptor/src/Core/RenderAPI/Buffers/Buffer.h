@@ -24,9 +24,18 @@ namespace Sculptor::Core
 
 		void BindBufferMemory(VkDeviceSize bufferSize = 0) const;
 		
-		VkBuffer GetBuffer() const;
+		VkBuffer& GetBuffer();
 
-		VkDeviceMemory GetBufferMemory() const;
+		const VkBuffer& GetBuffer() const;
+
+		VkDeviceMemory& GetBufferMemory();
+
+		const VkDeviceMemory& GetBufferMemory() const;
+
+		explicit operator VkBuffer() const
+		{
+			return buffer;
+		}
 
 		LOGICAL_DEVICE
 

@@ -11,33 +11,27 @@ namespace Sculptor::Core
 	public:
 		RenderApi();
 
-		RenderApi(const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice);
+		RenderApi(std::weak_ptr<LogicalDevice> logicalDevice, std::weak_ptr<SwapChain> swapChain) noexcept;
 
 		~RenderApi() = default;
 
 		void Create();
 
-		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
-
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
-
 		void CleanUp() const;
 
 		static bool IsDeviceSuitable(const LogicalDevice& device, const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
-		void DrawFrame();
+		SWAP_CHAIN
+
+		LOGICAL_DEVICE
 
 	private:
 		VkRenderPass renderPass;
 
-		std::weak_ptr<SwapChain> swapChain;
+		FRIEND(GraphicsPipeline)
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
+		FRIEND(FrameBuffer)
 
-		friend class GraphicsPipeline;
-
-		friend class FrameBuffer;
-
-		friend class CommandBuffer;
+		FRIEND(CommandBuffer)
 	};
 }

@@ -74,11 +74,6 @@ namespace Sculptor::Core
 		this->imageViews = std::move(imageViews);
 	}
 
-	void FrameBuffer::SetRenderApi(std::weak_ptr<RenderApi> renderApi) noexcept
-	{
-		this->renderApi = std::move(renderApi);
-	}
-
 	const std::vector<VkFramebuffer>& FrameBuffer::GetSwapChainFrameBuffers() const
 	{
 		return swapChainFrameBuffers;

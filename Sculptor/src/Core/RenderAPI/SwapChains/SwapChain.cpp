@@ -92,15 +92,15 @@ namespace Sculptor::Core
 		createInfo.clipped = VK_TRUE;	// VK_TRUE means we don't care about the color of the pixels that are obscured
 
 		// while application is running the swap chain might become invalid or unoptimized
-		// so we need to recreate swap chain (later)
+		// so, we need to recreate swap chain (later)
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		const VkResult result = vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create Swapchain!");
+		VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain), "Failed to create Swapchain!")
 
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+		VK_CHECK(vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr), "Failed to get swapChainImages")
 		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+		VK_CHECK(vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data()), 
+			"Failed to get swapChainImages after resize")
 	}
 
 	const VkSwapchainKHR& SwapChain::Get() const
@@ -193,17 +193,13 @@ namespace Sculptor::Core
 		{
 			return capabilities.currentExtent;
 		}
-		
-		const auto windowPtr = window.lock();
-		S_ASSERT(windowPtr == nullptr, "Window doesn't exsist when choosing swap extent.");
+
+		GetShared<WindowsWindow> windowPtr{ window };
 
 		int width, height;
 		glfwGetFramebufferSize(windowPtr->GetGLFWWindow(), &width, &height);
 
-		VkExtent2D actualExtent = {
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height)
-		};
+		VkExtent2D actualExtent = { static_cast<U32>(width), static_cast<U32>(height) };
 
 		actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);

@@ -1,5 +1,7 @@
 #include <SculptorPch.h>
 
+#include <utility>
+
 #include "RenderApi.h"
 
 #include "Utilities/Logger/Assert.h"
@@ -10,20 +12,15 @@ namespace Sculptor::Core
 		:	renderPass(nullptr)
 	{ }
 
-	RenderApi::RenderApi(const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice)
-		:	renderPass(nullptr),
-			swapChain(swapChain),
-			logicalDevice(logicalDevice)
+	RenderApi::RenderApi(std::weak_ptr<LogicalDevice> logicalDevice, std::weak_ptr<SwapChain> swapChain) noexcept
+		:	swapChain(std::move(swapChain)),
+			logicalDevice(std::move(logicalDevice)),
+			renderPass(VK_NULL_HANDLE)
 	{ }
 
 	void RenderApi::Create()
 	{
-		const auto swapChainPtr = swapChain.lock();
-		if (!swapChainPtr)
-		{
-			std::cerr << "Failed to create Render Pass!" << std::endl;
-			return;
-		}
+		GetShared<SwapChain> swapChainPtr { swapChain };
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = swapChainPtr->swapChainImageFormat;
@@ -81,25 +78,9 @@ namespace Sculptor::Core
 		S_ASSERT(result != VK_SUCCESS, "Failed to create Graphics Pipeline.");
 	}
 
-	void RenderApi::SetSwapChain(const std::weak_ptr<SwapChain>& swapChain)
-	{
-		this->swapChain = swapChain;
-	}
-
-	void RenderApi::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
-	{
-		this->logicalDevice = device;
-	}
-
 	void RenderApi::CleanUp() const
 	{
-		const auto logicalDevicePtr = logicalDevice.lock();
-		if (!logicalDevicePtr)
-		{
-			std::cerr << "Logical Device is nullptr!" << std::endl;
-			std::cerr << "Cannot cleanup pipeline Layout and Render Pass!" << std::endl;
-			return;
-		}
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyRenderPass(device, renderPass, nullptr);
@@ -124,10 +105,5 @@ namespace Sculptor::Core
 		const bool isAnisotropyEnabled = physicalDevice->GetDeviceFeatures().samplerAnisotropy;
 
 		return isDeviceSuitable && checkDeviceExtensionSupport && swapChainAdequate && isAnisotropyEnabled;
-	}
-
-	void RenderApi::DrawFrame()
-	{
-
 	}
 }

@@ -12,8 +12,8 @@
 namespace Sculptor::Core
 {
 	Buffer::Buffer()
-		:	buffer{ nullptr },
-			bufferMemory{ nullptr }
+		:	buffer{ VK_NULL_HANDLE },
+			bufferMemory{ VK_NULL_HANDLE }
 	{ }
 
 	void Buffer::Create(const BufferProperties& properties)
@@ -66,12 +66,22 @@ namespace Sculptor::Core
 		vkBindBufferMemory(device, buffer, bufferMemory, bufferSize);
 	}
 
-	VkBuffer Buffer::GetBuffer() const
+	VkBuffer& Buffer::GetBuffer()
 	{
 		return buffer;
 	}
 
-	VkDeviceMemory Buffer::GetBufferMemory() const
+	const VkBuffer& Buffer::GetBuffer() const
+	{
+		return buffer;
+	}
+
+	VkDeviceMemory& Buffer::GetBufferMemory()
+	{
+		return bufferMemory;
+	}
+
+	const VkDeviceMemory& Buffer::GetBufferMemory() const
 	{
 		return bufferMemory;
 	}

@@ -4,10 +4,10 @@
 
 namespace Sculptor::Core
 {
-	class RenderApi;
 	class SwapChainImageView;
-	class SwapChain;
 	class LogicalDevice;
+	class SwapChain;
+	class RenderApi;
 }
 
 namespace Sculptor::Core
@@ -30,20 +30,18 @@ namespace Sculptor::Core
 
 		void SetImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept;
 
-		void SetRenderApi(std::weak_ptr<RenderApi> renderApi) noexcept;
-
 		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
+
+		LOGICAL_DEVICE
 
 		SWAP_CHAIN
 
-		LOGICAL_DEVICE
+		RENDER_API
 
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
 		std::weak_ptr<SwapChainImageView> imageViews;
-
-		std::weak_ptr<RenderApi> renderApi;
 
 		FRIEND(CommandBuffer)
 	};

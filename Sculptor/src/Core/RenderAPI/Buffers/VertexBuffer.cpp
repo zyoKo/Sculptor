@@ -73,8 +73,12 @@ namespace Sculptor::Core
 
 		void* newData = nullptr;
 
-		vkMapMemory(device, vertexBuffer.bufferMemory, 0, bufferInfo.size, 0, &newData);
+		VK_CHECK(vkMapMemory(device, vertexBuffer.bufferMemory, 0, bufferInfo.size, 0, &newData),
+			"Failed to Map Memory in Vertex Buffer!")
 
+#ifdef DEBUG
+		void* result = 
+#endif
 		memcpy(newData, data, static_cast<size_t>(bufferInfo.size));
 	}
 

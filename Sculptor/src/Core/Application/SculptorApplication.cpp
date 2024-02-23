@@ -46,7 +46,7 @@ namespace Sculptor::Core
 			logicalDevice(std::make_shared<LogicalDevice>()),
 			swapChain(std::make_shared<SwapChain>(logicalDevice)),
 			swapChainImageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
-			renderApi(std::make_shared<RenderApi>(swapChain, logicalDevice)),
+			renderApi(std::make_shared<RenderApi>(logicalDevice, swapChain)),
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
 			frameBuffer(std::make_shared<FrameBuffer>(swapChainImageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
@@ -159,14 +159,9 @@ namespace Sculptor::Core
 
 		// Uniform Buffers
 		constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
-		constexpr BufferProperties uniformBufferProperties{
-			uniformBufferSize,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		};
 		for (const auto& buffer : uniformBuffers)
 		{
-			buffer->Create(uniformBufferProperties);
+			buffer->Create(uniformBufferSize);
 		}
 
 		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
@@ -310,12 +305,12 @@ namespace Sculptor::Core
 		presentInfo.pImageIndices = &imageIndex;
 		presentInfo.pResults = nullptr; // Optional
 
-		VK_CHECK(vkQueuePresentKHR(presentQueue, &presentInfo), "Failed to preset swap chain image.")
+		result = vkQueuePresentKHR(presentQueue, &presentInfo);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		{
 			RecreateSwapChain();
 		}
-		S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.")
+		//S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.")
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
