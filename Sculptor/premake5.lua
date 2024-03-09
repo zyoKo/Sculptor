@@ -24,6 +24,7 @@ project "Sculptor"
         vendordir .. "/spdlog/include",
         vendordir .. "/glm/include",
         vendordir .. "/stb/include",
+        vendordir .. "/glslang/include",
 
         -- Vulkan
         vulkanSDKdir .. "/include" 
@@ -52,6 +53,7 @@ project "Sculptor"
     {
         "GLFW",
         "Glad",
+        "glslang.lib",
         "vulkan-1.lib"
     }
 

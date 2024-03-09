@@ -5,7 +5,6 @@
 #include "Core/RenderAPI/Devices/PhysicalDevice.h"
 #include "Core/Windows/VulkanWindowSurface/VulkanWindowSurface.h"
 #include "Platform/Windows/WindowsWindow.h"
-#include "Utilities/Logger/Assert.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 
 namespace Sculptor::Core

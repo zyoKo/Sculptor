@@ -5,63 +5,44 @@
 #include "Core/Core.h"
 #include "Core/RenderAPI/Buffers/Buffer.h"
 #include "Utilities/Utilities.h"
-#include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
-#include "Core/Locators/CommandPoolLocator.h"
+#include "Core/RenderAPI/Pools/CommandPool.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Utilities/BufferUtility.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
-	void VulkanTexture::CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-		VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
+	VulkanTexture::VulkanTexture(std::weak_ptr<LogicalDevice> device, std::weak_ptr<CommandPool> cmdPool) noexcept
+		:	logicalDevice(std::move(device)),
+			commandPool(std::move(cmdPool)),
+			fileName("Default")
+	{ }
+
+	VulkanTexture::VulkanTexture(std::weak_ptr<LogicalDevice> device, std::weak_ptr<CommandPool> cmdPool, std::string filePath) noexcept
+		:	logicalDevice(std::move(device)),
+			commandPool(std::move(cmdPool)),
+			fileName("Default")
 	{
-		const VkImageCreateInfo imageInfo{
-			VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-			nullptr,
-			0,
-			VK_IMAGE_TYPE_2D,
-			format,
-			{
-				static_cast<uint32_t>(textureWidth),
-				static_cast<uint32_t>(textureHeight),
-				1
-			},
-			1,
-			1,
-			VK_SAMPLE_COUNT_1_BIT,
-			tiling,
-			usage,
-			VK_SHARING_MODE_EXCLUSIVE,
-			0,
-			nullptr,
-			VK_IMAGE_LAYOUT_UNDEFINED
-		};
+		fileName = Utilities::ExtractFileNameFromFilePath(filePath);
 
-		VK_CHECK(vkCreateImage(device, &imageInfo, nullptr, &textureImage), "Failed to create texture.")
-
-		VkMemoryRequirements memRequirements{};
-		vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
-
-		const VkMemoryAllocateInfo allocInfo{
-			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-			nullptr,
-			memRequirements.size,
-			BufferUtility::FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties)
-		};
-
-		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory), "Failed to create image.")
-
-		BindMemory(device, 0);
+		Create(filePath);
 	}
 
-	void VulkanTexture::AllocateBuffer(TextureBufferProperties&& textureBufferProperties)
+	void VulkanTexture::Create(const std::string& filePath)
 	{
-		LOGICAL_DEVICE_LOCATOR
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
 
-		int textureWidth{0}, textureHeight{0};
+		GetShared<PhysicalDevice> physicalDevicePtr { logicalDevicePtr->GetPhysicalDevice() };
+		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
-		stbi_uc* texture = Utilities::LoadTexture("./Assets/Textures/texture.jpg", textureBufferProperties.imageSize, &textureWidth, &textureHeight);
+		fileName = Utilities::ExtractFileNameFromFilePath(filePath);
+
+		int textureWidth{}, textureHeight{};
+
+		stbi_uc* texture = Utilities::LoadTexture(filePath, textureBufferProperties.imageSize, &textureWidth, &textureHeight);
 
 		Buffer stagingBuffer{};
 		stagingBuffer.Create(static_cast<BufferProperties>(textureBufferProperties));
@@ -73,14 +54,8 @@ namespace Sculptor::Core
 
 		Utilities::DestroyTexture(texture);
 
-		const auto physicalDevicePtr = logicalDevicePtr->GetPhysicalDevice().lock();
-		S_ASSERT(physicalDevicePtr == nullptr, "PhysicalDevice is null.")
-		const auto& physicalDevice = physicalDevicePtr->GetPrimaryDevice();
-
-		constexpr VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
-
-		CreateTexture(device, physicalDevice, textureWidth, textureHeight, 
-			imageFormat, 
+		InitializeTexture(device, physicalDevice, textureWidth, textureHeight, 
+			VK_FORMAT_R8G8B8A8_SRGB, 
 			VK_IMAGE_TILING_OPTIMAL, 
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -92,11 +67,18 @@ namespace Sculptor::Core
 		stagingBuffer.Destroy();
 	}
 
+	void VulkanTexture::SetCommandPool(std::weak_ptr<CommandPool> cmdPool) noexcept
+	{
+		commandPool = std::move(cmdPool);
+	}
+
 	void VulkanTexture::CopyBufferToImage(const VkBuffer buffer, uint32_t width, uint32_t height) const
 	{
-		COMMAND_POOL_LOCATOR
+		GetShared<CommandPool> commandPoolPtr{ commandPool };
+		const auto cmdPool = commandPoolPtr->Get();
 
-		LOGICAL_DEVICE_LOCATOR
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
 
 		const VkCommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommand(cmdPool, device);
 
@@ -119,11 +101,50 @@ namespace Sculptor::Core
 		CommandBuffer::EndSingleTimeCommand(commandBuffer);
 	}
 
+	void VulkanTexture::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+		VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
+	{
+		const auto imageInfo = CreateInfo<VkImageCreateInfo>({
+			.imageType = VK_IMAGE_TYPE_2D,
+			.format = format,
+			.extent = {
+				static_cast<uint32_t>(textureWidth),
+				static_cast<uint32_t>(textureHeight),
+				1
+			},
+			.mipLevels = 1,
+			.arrayLayers = 1,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.tiling = tiling,
+			.usage = usage,
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.queueFamilyIndexCount = 0,
+			.pQueueFamilyIndices = VK_NULL_HANDLE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+		});
+
+		VK_CHECK(vkCreateImage(device, &imageInfo, nullptr, &textureImage), "Failed to create texture.")
+
+		VkMemoryRequirements memRequirements{};
+		vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
+
+		const auto memoryAllocateInfo = CreateInfo<VkMemoryAllocateInfo>({
+			.allocationSize = memRequirements.size,
+			.memoryTypeIndex = BufferUtility::FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties)
+		});
+
+		VK_CHECK(vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &imageMemory), "Failed to create image.")
+
+		BindMemory(device, 0);
+	}
+
 	void VulkanTexture::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout) const
 	{
-		COMMAND_POOL_LOCATOR
+		GetShared<CommandPool> commandPoolPtr{ commandPool };
+		const auto cmdPool = commandPoolPtr->Get();
 
-		LOGICAL_DEVICE_LOCATOR
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
 
 		const VkCommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommand(cmdPool, device);
 

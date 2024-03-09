@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Structures/TextureBufferProperties.h"
-
 namespace Sculptor::Core
 {
 	class Texture2D
@@ -9,9 +7,9 @@ namespace Sculptor::Core
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void AllocateBuffer(TextureBufferProperties&& bufferProperties) = 0;
+		virtual void Create(const std::string& filePath) = 0;
 
-		virtual void CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
 			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) = 0;
 
 		const VkImage& GetTextureImage() const
@@ -37,10 +35,13 @@ namespace Sculptor::Core
 		}
 
 	protected:
-		VkImage textureImage{};
+		VkImage textureImage;
 
-		VkDeviceMemory imageMemory{};
+		VkDeviceMemory imageMemory;
 
-		Texture2D() = default;
+		Texture2D()
+			:	textureImage(VK_NULL_HANDLE),
+				imageMemory(VK_NULL_HANDLE)
+		{ }
 	};
 }

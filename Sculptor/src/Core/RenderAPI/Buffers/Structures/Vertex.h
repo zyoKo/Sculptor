@@ -14,9 +14,9 @@ namespace Sculptor::Core
 		{
 			// input rate has another parameter VK_VERTEX_INPUT_RATE_INSTANCE for instance rendering
 			const VkVertexInputBindingDescription bindingDescription{
-				.binding = bindingPoint,
-				.stride = stride,
-				.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+				.binding	= bindingPoint,
+				.stride		= stride,
+				.inputRate	= VK_VERTEX_INPUT_RATE_VERTEX
 			};
 
 			return bindingDescription;

@@ -11,7 +11,9 @@ namespace Sculptor::Core
 	class DescriptorPool
 	{
 	public:
-		DescriptorPool() = default;
+		DescriptorPool()
+			:	descriptorPool(VK_NULL_HANDLE)
+		{ }
 
 		~DescriptorPool() = default;
 
@@ -61,8 +63,6 @@ namespace Sculptor::Core
 			LOGICAL_DEVICE_LOCATOR
 
 			vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-
-			int i = 0;
 		}
 
 		const VkDescriptorPool& GetDescriptorPool() const
@@ -71,6 +71,6 @@ namespace Sculptor::Core
 		}
 
 	private:
-		VkDescriptorPool descriptorPool{};
+		VkDescriptorPool descriptorPool;
 	};
 }

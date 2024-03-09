@@ -34,6 +34,7 @@
 #include "Core/RenderAPI/Image/VulkanTexture.h"
 #include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -51,7 +52,7 @@ namespace Sculptor::Core
 			frameBuffer(std::make_shared<FrameBuffer>(swapChainImageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
-			texture(std::make_shared<VulkanTexture>()),
+			texture(std::make_shared<VulkanTexture>(logicalDevice, commandPool)),
 			textureImageView(std::make_shared<TextureImageView>(logicalDevice)),
 			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
 			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
@@ -137,12 +138,8 @@ namespace Sculptor::Core
 
 		commandPool->Create();
 
-		TextureBufferProperties textureBufferProperties{
-			.imageSize = 0,	// Calculated after texture data is read from the file
-			.usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			.propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		};
-		texture->AllocateBuffer(std::move(textureBufferProperties));
+		const std::string file = "./Assets/Textures/texture.jpg";
+		texture->Create(file);
 
 		textureImageView->Create(texture->GetTextureImage());
 
@@ -242,7 +239,7 @@ namespace Sculptor::Core
 
 	void SculptorApplication::DrawFrame()
 	{
-		graphicsPipeline->UpdateCurrentFrame(currentFrame);
+		graphicsPipeline->SetCurrentFrame(currentFrame);
 
 		inFlightFences[currentFrame].Wait();
 
@@ -273,20 +270,18 @@ namespace Sculptor::Core
 
 		commandBuffers[currentFrame]->Record(imageIndex);
 
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
 		const VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame].Get() };
-		constexpr VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[currentFrame]->GetBuffer();
-
 		const VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].Get() };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
+		constexpr VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		const auto submitInfo = CreateInfo<VkSubmitInfo>({
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = waitSemaphores,
+			.pWaitDstStageMask = waitStages,
+			.commandBufferCount = 1,
+			.pCommandBuffers = &commandBuffers[currentFrame]->GetBuffer(),
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = signalSemaphores
+		});
 
 		const auto& graphicsQueue = logicalDevice->GetQueueFamilies().GetGraphicsQueue();
 		const auto& presentQueue = logicalDevice->GetQueueFamilies().GetPresentQueue();
@@ -294,23 +289,22 @@ namespace Sculptor::Core
 		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get()),
 			"Failed to submit draw command buffer.")
 
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
 		const VkSwapchainKHR swapChains[] = { swapChain->Get() };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
-		presentInfo.pResults = nullptr; // Optional
+
+		const auto presentInfo = CreateInfo<VkPresentInfoKHR>({
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = signalSemaphores,
+			.swapchainCount = 1,
+			.pSwapchains = swapChains,
+			.pImageIndices = &imageIndex,
+			.pResults = VK_NULL_HANDLE // Optional
+		});
 
 		result = vkQueuePresentKHR(presentQueue, &presentInfo);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
 		{
 			RecreateSwapChain();
 		}
-		//S_ASSERT(result != VK_SUCCESS, "Failed to preset swap chain image.")
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}

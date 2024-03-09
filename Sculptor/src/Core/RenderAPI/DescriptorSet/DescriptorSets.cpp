@@ -113,7 +113,11 @@ namespace Sculptor::Core
 			descriptorWrites[1].pBufferInfo = nullptr;		// Optional
 			descriptorWrites[1].pTexelBufferView = nullptr;	// Optional
 
-			vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(device, 
+				static_cast<U32>(descriptorWrites.size()), 
+				descriptorWrites.data(), 
+				0, 
+				nullptr);
 		}
 	}
 }

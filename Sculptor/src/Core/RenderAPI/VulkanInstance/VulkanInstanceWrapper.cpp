@@ -17,10 +17,8 @@ namespace Sculptor::Core
 
 	void VulkanInstanceWrapper::CreateInstance(const std::weak_ptr<ValidationLayer>& weakValidationLayer)
 	{
-		const auto validationLayer = weakValidationLayer.lock();
-		S_ASSERT(validationLayer == nullptr, "Validation Layer reference is null.\n")
-
-		S_ASSERT(!validationLayer->RequestValidationLayer(), "Failed to request validation Layer!")
+		GetShared<ValidationLayer> validationLayerPtr{ weakValidationLayer };
+		S_ASSERT(!validationLayerPtr->RequestValidationLayer(), "Failed to request validation Layer!")
 
 		// Create Application Info
 		const auto applicationInfo = CreateInfo<VkApplicationInfo>({
@@ -43,12 +41,12 @@ namespace Sculptor::Core
 		});
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-		if (validationLayer && validationLayer->IsEnabled())
+		if (validationLayerPtr != nullptr && validationLayerPtr->IsEnabled())
 		{
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayer->GetValidationLayersArray().size());
-			createInfo.ppEnabledLayerNames = validationLayer->GetValidationLayersArray().data();
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerPtr->GetValidationLayersArray().size());
+			createInfo.ppEnabledLayerNames = validationLayerPtr->GetValidationLayersArray().data();
 
-			validationLayer->PopulateDebugMessengerCreateInfo(debugCreateInfo);
+			validationLayerPtr->PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = &debugCreateInfo;
 		}
 		else

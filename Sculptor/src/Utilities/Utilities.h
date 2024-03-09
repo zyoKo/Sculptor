@@ -14,5 +14,7 @@ namespace Sculptor
 		static stbi_uc* LoadTexture(const std::string& fileName, VkDeviceSize& imageSize, int* textureWidth, int* textureHeight);
 
 		static void DestroyTexture(stbi_uc* texture);
+
+		static std::string ExtractFileNameFromFilePath(std::string fileName);
 	};
 }

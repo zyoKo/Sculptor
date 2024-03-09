@@ -1,4 +1,5 @@
 #pragma once
+#include "Utilities/Macros.h"
 
 namespace Sculptor::Core
 {
@@ -16,11 +17,15 @@ namespace Sculptor::Core
 	class CommandBuffer
 	{
 	public:
-		CommandBuffer() = default;
+		CommandBuffer();
 
-		CommandBuffer(const std::weak_ptr<CommandPool>& commandPool, const std::weak_ptr<LogicalDevice>& device,
-			const std::weak_ptr<RenderApi>& renderApi, const std::weak_ptr<FrameBuffer>& buffer,
-			const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<GraphicsPipeline>& pipeline);
+		CommandBuffer(
+			std::weak_ptr<CommandPool>		commandPool, 
+			std::weak_ptr<LogicalDevice>	device,
+			std::weak_ptr<RenderApi>		renderApi, 
+			std::weak_ptr<FrameBuffer>		buffer,
+			std::weak_ptr<SwapChain>		swapChain, 
+			std::weak_ptr<GraphicsPipeline> pipeline) noexcept;
 
 		~CommandBuffer() = default;
 
@@ -37,32 +42,28 @@ namespace Sculptor::Core
 
 		static void EndSingleTimeCommand(const VkCommandBuffer& commandBuffer);
 
+		VkCommandBuffer& GetBuffer();
+
 		const VkCommandBuffer& GetBuffer() const;
 
-		void SetCommandPool(const std::weak_ptr<CommandPool>& commandPool);
+		void SetCommandPool(std::weak_ptr<CommandPool> commandPool) noexcept;
 
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+		void SetFrameBuffer(std::weak_ptr<FrameBuffer> buffer) noexcept;
 
-		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
+		void SetGraphicsPipeline(std::weak_ptr<GraphicsPipeline> pipeline) noexcept;
 
-		void SetFrameBuffer(const std::weak_ptr<FrameBuffer>& buffer);
+		LOGICAL_DEVICE
 
-		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
+		RENDER_API
 
-		void SetGraphicsPipeline(const std::weak_ptr<GraphicsPipeline>& pipeline);
+		SWAP_CHAIN
 
 	private:
 		VkCommandBuffer commandBuffer;
 
 		std::weak_ptr<CommandPool> commandPool;
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		std::weak_ptr<RenderApi> renderApi;
-
 		std::weak_ptr<FrameBuffer> frameBuffer;
-
-		std::weak_ptr<SwapChain> swapChain;
 
 		std::weak_ptr<GraphicsPipeline> graphicsPipeline;
 

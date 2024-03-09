@@ -13,7 +13,7 @@ namespace Sculptor::Core
 
 	void TextureImageView::Create(const VkImage image, VkFormat format /* = VK_FORMAT_R8G8B8A8_SRGB */)
 	{
-		textureImageView = CreateImageView(image, format);
+		textureImageView = CreateImageView(logicalDevice, image, format);
 	}
 
 	VkImageView TextureImageView::GetImageView() const

@@ -41,6 +41,11 @@ namespace Sculptor
 			return sharedPtr;
 		}
 
+		bool IsValid() noexcept
+		{
+			return !weakReference.expired();
+		}
+
 	private:
 		std::weak_ptr<T> weakReference;
 

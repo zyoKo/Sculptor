@@ -22,7 +22,7 @@ namespace Sculptor::Core
 
 		for (size_t i = 0; i < swapChainImages.size(); ++i)
 		{
-			swapChainImageViews[i] = CreateImageView(swapChainImages[i], swapChainImageFormat);
+			swapChainImageViews[i] = CreateImageView(logicalDevice, swapChainImages[i], swapChainImageFormat);
 		}
 	}
 

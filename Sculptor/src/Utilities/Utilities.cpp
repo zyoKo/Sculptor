@@ -56,4 +56,10 @@ namespace Sculptor
 	{
 		stbi_image_free(texture);
 	}
+
+	std::string Utilities::ExtractFileNameFromFilePath(std::string fileName)
+	{
+		// TODO: Complete this function
+		return {};
+	}
 }
