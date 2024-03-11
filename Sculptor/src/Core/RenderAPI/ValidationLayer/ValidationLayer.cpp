@@ -37,8 +37,7 @@ namespace Sculptor::Core
 
 	void ValidationLayer::SetupDebugMessenger(const std::weak_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper)
 	{
-		const auto vulkanInstance = vulkanInstanceWrapper.lock();
-		S_ASSERT(vulkanInstance == nullptr, "Failed to Setup Debug Messenger.\n");
+		GetShared<VulkanInstanceWrapper> vulkanInstance{ vulkanInstanceWrapper };
 
 		if (!enableValidationLayers)
 			return;
@@ -46,8 +45,8 @@ namespace Sculptor::Core
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		PopulateDebugMessengerCreateInfo(createInfo);
 
-		const VkResult debugResult = CreateDebugUtilsMessengerEXT(vulkanInstance->GetInstance(), &createInfo, nullptr, &debugMessenger);
-		S_ASSERT(debugResult != VK_SUCCESS, "Failed to set up debug messenger!")
+		VK_CHECK(CreateDebugUtilsMessengerEXT(vulkanInstance->GetInstance(), &createInfo, VK_NULL_HANDLE, &debugMessenger),
+			"Failed to set up debug messenger!")
 	}
 
 	void ValidationLayer::CleanUp(const std::shared_ptr<VulkanInstanceWrapper>& vulkanInstanceWrapper) const
@@ -123,7 +122,11 @@ namespace Sculptor::Core
 		switch (messageSeverity)
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			std::cerr << "Validation Layer(Verbose): " << pCallbackData->pMessage << std::endl;
+			break;
+
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			std::cerr << "Validation Layer(Info): " << pCallbackData->pMessage << std::endl;
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:

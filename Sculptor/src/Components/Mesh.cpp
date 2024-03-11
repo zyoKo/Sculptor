@@ -17,7 +17,7 @@ namespace Sculptor::Component
 
 		S_ASSERT(tinyobj::LoadObj(&tinyAttribute, &shapes, &materials, &warning, &error, filePath.c_str()) == false, "Failed to load model {0}", filePath)
 
-		//std::unordered_map<Core::Vertex, U32> uniqueVertices{};
+		std::unordered_map<Core::Vertex, U32> uniqueVertices{};
 
 		for (const auto& shape : shapes)
 		{
