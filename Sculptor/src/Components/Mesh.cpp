@@ -34,29 +34,19 @@ namespace Sculptor::Component
 
 					.texCoord = {
 						tinyAttribute.texcoords[2 * index.texcoord_index + 0],
-						tinyAttribute.texcoords[2 * index.texcoord_index + 1]
+						1.0f - tinyAttribute.texcoords[2 * index.texcoord_index + 1]
 					}
-
-					//.texCoord = {
-					//	tinyAttribute.texcoords[2 * index.texcoord_index + 0],
-					//	1.0f - tinyAttribute.texcoords[2 * index.texcoord_index + 1]
-					//}
 				};
 
-				vertices.push_back(vertex);
-				indices.push_back(static_cast<U32>(indices.size()));
-
-				//if (!uniqueVertices.contains(vertex)) 
-				//{
-                //    uniqueVertices[vertex] = static_cast<U32>(vertices.size());
-                //    vertices.push_back(vertex);
-                //}
-				//
-                //indices.push_back(uniqueVertices[vertex]);
+				if (!uniqueVertices.contains(vertex)) 
+				{
+                    uniqueVertices[vertex] = static_cast<U32>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+				
+                indices.push_back(uniqueVertices[vertex]);
 			}
 		}
-
-		int i = 0;
 	}
 
 	const std::vector<Core::Vertex>& Mesh::GetVertices() const

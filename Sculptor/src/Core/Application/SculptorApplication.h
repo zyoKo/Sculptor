@@ -106,7 +106,7 @@ namespace Sculptor::Core
 
 		std::shared_ptr<DescriptorSets> descriptorSets;
 
-		std::shared_ptr<DepthTesting> depthTexture;
+		std::shared_ptr<DepthTesting> depthTest;
 
 		std::shared_ptr<Component::Mesh> mesh;
 

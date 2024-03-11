@@ -199,7 +199,8 @@ namespace Sculptor::Core
 
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descSets[currentFrame], 0, nullptr);
 
-		vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
+		//vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(cmdBuffer, 11484, 1, 0, 0, 0);
 	}
 
 	void GraphicsPipeline::SetCurrentFrame(U32 newFrame) noexcept

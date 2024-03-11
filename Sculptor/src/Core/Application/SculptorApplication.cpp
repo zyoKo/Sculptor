@@ -62,7 +62,7 @@ namespace Sculptor::Core
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
 			descriptorSets(std::make_shared<DescriptorSets>()),
-			depthTexture(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
+			depthTest(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
 			mesh(std::make_shared<Component::Mesh>())
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
@@ -71,8 +71,8 @@ namespace Sculptor::Core
 		DescriptorPoolLocator::Provide(descriptorPool);
 
 		SupportUtility::SetLogicalDevice(logicalDevice);
-		depthTexture->SetCommandPool(commandPool);
-		depthTexture->SetLogicalDevice(logicalDevice);
+		depthTest->SetCommandPool(commandPool);
+		depthTest->SetLogicalDevice(logicalDevice);
 
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -144,9 +144,9 @@ namespace Sculptor::Core
 
 		commandPool->Create();
 
-		depthTexture->Create();
+		depthTest->Create();
 
-		frameBuffer->AddImageView(depthTexture->GetImageView());
+		frameBuffer->AddImageView(depthTest->GetImageView());
 
 		frameBuffer->Create();
 
@@ -166,7 +166,7 @@ namespace Sculptor::Core
 		// Index Buffer
 		//const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
 		//indexBuffer->Create(INDICES.data(), indexBufferSize);
-		const uint64_t indexBufferSize = sizeof(U32) * mesh->GetIndices().size();
+		const uint64_t indexBufferSize = sizeof(mesh->GetIndices()[0]) * mesh->GetIndices().size();
 		indexBuffer->Create(mesh->GetIndices().data(), indexBufferSize);
 
 		// Uniform Buffers
