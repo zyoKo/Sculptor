@@ -4,6 +4,7 @@
 
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/Data/Constants.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -40,23 +41,23 @@ namespace Sculptor::Core
 		constexpr float queuePriority = 1.0f;
 		for (const auto queueFamily : uniqueQueueFamilies)
 		{
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
+			const auto queueCreateInfo = CreateInfo<VkDeviceQueueCreateInfo>({
+				.queueFamilyIndex = queueFamily,
+				.queueCount = 1,
+				.pQueuePriorities = &queuePriority
+			});
 
 			// push_back the QueueInfo to the vector
 			queueCreateInfoList.push_back(queueCreateInfo);
 		}
 
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size());
-		createInfo.pQueueCreateInfos = queueCreateInfoList.data();
-		createInfo.pEnabledFeatures = &physicalDevice->GetDeviceFeatures();
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
-		createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
+		auto createInfo = CreateInfo<VkDeviceCreateInfo>({
+			.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size()),
+			.pQueueCreateInfos = queueCreateInfoList.data(),
+			.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size()),
+			.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data(),
+			.pEnabledFeatures = &physicalDevice->GetDeviceFeatures()
+		});
 
 		GetShared<ValidationLayer> validationLayerPtr { validationLayer };
 

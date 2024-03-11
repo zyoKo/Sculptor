@@ -14,10 +14,10 @@ namespace Sculptor::Core
 	public:
 		ResourceBuilder(ResourceBuilder&& resourceBuilder) noexcept;
 
-		ResourceBuilder(std::weak_ptr<LogicalDevice> logicalDevice,
-			std::string&& name,
-			std::vector<VkDescriptorSetLayoutBinding>&& descriptorLayoutBindings,
-			std::vector<VkWriteDescriptorSet>&& writeDescriptorSets) noexcept;
+		ResourceBuilder(const std::weak_ptr<LogicalDevice>& logicalDevice,
+		                std::string&& name,
+		                std::vector<VkDescriptorSetLayoutBinding>&& descriptorLayoutBindings,
+		                std::vector<VkWriteDescriptorSet>&& writeDescriptorSets);
 
 		ResourceBuilder(ResourceBuilder&) = delete;
 

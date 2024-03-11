@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
 	class LogicalDevice;
@@ -10,9 +12,9 @@ namespace Sculptor::Core
 	class CommandPool
 	{
 	public:
-		CommandPool() = default;
+		CommandPool();
 
-		CommandPool(const std::weak_ptr<LogicalDevice>& logicalDevice);
+		CommandPool(std::weak_ptr<LogicalDevice> device) noexcept;
 
 		~CommandPool() = default;
 
@@ -22,11 +24,11 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
+		LOGICAL_DEVICE
+
 	private:
-		VkCommandPool commandPool{};
+		VkCommandPool commandPool;
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		friend class CommandBuffer;
+		FRIEND(CommandBuffer)
 	};
 }

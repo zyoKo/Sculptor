@@ -2,6 +2,7 @@
 
 #include "TextureSampler.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
@@ -22,11 +23,7 @@ namespace Sculptor::Core
 		VkPhysicalDeviceProperties physicalDeviceProperties{};
 		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-		const VkSamplerCreateInfo samplerInfo{
-			.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0,
-
+		const auto samplerInfo = CreateInfo<VkSamplerCreateInfo>({
 			.magFilter = VK_FILTER_LINEAR,
 			.minFilter = VK_FILTER_LINEAR,
 			.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
@@ -53,7 +50,7 @@ namespace Sculptor::Core
 
 			// VK_FALSE: [0, 1) VK_TRUE: [0, texelWidth) and [0, texelHeight)
 			.unnormalizedCoordinates = VK_FALSE, 
-		};
+		});
 
 		VK_CHECK(vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler), "Failed to create texture sampler.")
 	}

@@ -26,8 +26,8 @@ namespace Sculptor::Core
 		void SetCommandPool(std::weak_ptr<CommandPool> cmdPool) noexcept;
 
 	protected:
-		void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) override;
+		void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
+							   VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) override;
 
 		void TransitionImageLayout(VkFormat format, VkImageLayout newLayout, VkImageLayout oldLayout = VK_IMAGE_LAYOUT_UNDEFINED) const;
 

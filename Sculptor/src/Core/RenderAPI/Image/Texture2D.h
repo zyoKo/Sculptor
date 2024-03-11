@@ -9,7 +9,7 @@ namespace Sculptor::Core
 
 		virtual void Create(const std::string& filePath);
 
-		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
 		                               VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
 		const VkImage& GetTextureImage() const;

@@ -7,9 +7,8 @@ namespace Sculptor::Core
 	void Texture2D::Create(const std::string& filePath)
 	{ }
 
-	void Texture2D::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth,
-		int textureHeight, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
-		VkMemoryPropertyFlags properties)
+	void Texture2D::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
+									  VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 	{ }
 
 	const VkImage& Texture2D::GetTextureImage() const
@@ -29,9 +28,9 @@ namespace Sculptor::Core
 
 	void Texture2D::Destroy(const VkDevice& device) const
 	{
-		vkDestroyImage(device, textureImage, nullptr);
+		vkDestroyImage(device, textureImage, VK_NULL_HANDLE);
 
-		vkFreeMemory(device, imageMemory, nullptr);
+		vkFreeMemory(device, imageMemory, VK_NULL_HANDLE);
 	}
 
 	/*

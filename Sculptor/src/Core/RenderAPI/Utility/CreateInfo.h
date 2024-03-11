@@ -12,7 +12,25 @@ namespace Sculptor::Core
 	T CreateInfo(T = {}, const void* pNextChain = VK_NULL_HANDLE);
 
 	template <>
-	[[nodiscard]] inline VkApplicationInfo CreateInfo(VkApplicationInfo info, const void* pNextChain /* = VK_NULL_HANDLE */)
+	[[nodiscard]] inline VkDeviceCreateInfo CreateInfo(VkDeviceCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkDeviceQueueCreateInfo CreateInfo(VkDeviceQueueCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkApplicationInfo CreateInfo(VkApplicationInfo info, const void* pNextChain)
 	{
 	    info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		info.pNext = pNextChain;
@@ -266,6 +284,42 @@ namespace Sculptor::Core
 	[[nodiscard]] inline VkFramebufferCreateInfo CreateInfo(VkFramebufferCreateInfo info, const void* pNextChain)
 	{
 		info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkDescriptorSetLayoutCreateInfo CreateInfo(VkDescriptorSetLayoutCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkDescriptorPoolCreateInfo CreateInfo(VkDescriptorPoolCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkSamplerCreateInfo CreateInfo(VkSamplerCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
+
+	template <>
+	[[nodiscard]] inline VkCommandPoolCreateInfo CreateInfo(VkCommandPoolCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		info.pNext = pNextChain;
 		info.flags = 0;
 		return info;

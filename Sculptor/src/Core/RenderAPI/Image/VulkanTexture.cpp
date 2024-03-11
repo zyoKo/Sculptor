@@ -102,15 +102,15 @@ namespace Sculptor::Core
 		CommandBuffer::EndSingleTimeCommand(commandBuffer);
 	}
 
-	void VulkanTexture::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-		VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
+	void VulkanTexture::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
+										  VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 	{
 		const auto imageInfo = CreateInfo<VkImageCreateInfo>({
 			.imageType = VK_IMAGE_TYPE_2D,
 			.format = format,
 			.extent = {
-				static_cast<uint32_t>(textureWidth),
-				static_cast<uint32_t>(textureHeight),
+				textureWidth,
+				textureHeight,
 				1
 			},
 			.mipLevels = 1,
