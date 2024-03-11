@@ -9,6 +9,7 @@
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
+#include "Core/RenderAPI/Utility/SupportUtility.h"
 #include "Utilities/BufferUtility.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -60,9 +61,9 @@ namespace Sculptor::Core
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		TransitionImageLayout(VK_FORMAT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		CopyBufferToImage(stagingBuffer.GetBuffer(), static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight));
-		TransitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		TransitionImageLayout(VK_FORMAT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		stagingBuffer.Destroy();
 	}
@@ -138,7 +139,7 @@ namespace Sculptor::Core
 		BindMemory(device, 0);
 	}
 
-	void VulkanTexture::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout) const
+	void VulkanTexture::TransitionImageLayout(VkFormat format, VkImageLayout newLayout, VkImageLayout oldLayout /* = VK_IMAGE_LAYOUT_UNDEFINED */) const
 	{
 		GetShared<CommandPool> commandPoolPtr{ commandPool };
 		const auto cmdPool = commandPoolPtr->Get();
@@ -170,6 +171,16 @@ namespace Sculptor::Core
 		VkPipelineStageFlags sourceStage{ VK_PIPELINE_STAGE_NONE };
 		VkPipelineStageFlags destinationStage{ VK_PIPELINE_STAGE_NONE };
 
+		if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			if (SupportUtility::HasStencilComponent(format))
+			{
+				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		}
+
 		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 		{
 			barrier.srcAccessMask = 0;
@@ -185,6 +196,14 @@ namespace Sculptor::Core
 
 			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask =	VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		}
 		else
 		{

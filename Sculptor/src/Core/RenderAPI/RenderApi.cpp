@@ -4,6 +4,7 @@
 
 #include "RenderApi.h"
 #include "Utility/CreateInfo.h"
+#include "Utility/SupportUtility.h"
 
 namespace Sculptor::Core
 {
@@ -24,49 +25,67 @@ namespace Sculptor::Core
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
-		const VkAttachmentDescription colorAttachment{
-			.format = swapChainPtr->swapChainImageFormat,
-			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // since we are not using stencil buffers
+		VkAttachmentDescription depthAttachment{
+			.format			= SupportUtility::FindDepthFormat(),
+			.samples		= VK_SAMPLE_COUNT_1_BIT,
+			.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp		= VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout	= VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		};
+
+		VkAttachmentReference depthAttachmentReference{
+			.attachment = 1,
+			.layout		= VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		};
+
+		const VkAttachmentDescription colorAttachment{
+			.format			= swapChainPtr->swapChainImageFormat,
+			.samples		= VK_SAMPLE_COUNT_1_BIT,
+			.loadOp			= VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp		= VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp	= VK_ATTACHMENT_LOAD_OP_DONT_CARE, // since we are not using stencil buffers
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout	= VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 		};
 
 		VkAttachmentReference colorAttachmentReference{
 			.attachment = 0,	// index of VkAttachmentDescription, since only 1 (above) then index is 0
-			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.layout		= VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		};
 
-		const VkSubpassDescription subPass{
-			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-			.inputAttachmentCount = 0,
-			.pInputAttachments = VK_NULL_HANDLE, // attachments that are read from a shader
-			.colorAttachmentCount = 1,
-			.pColorAttachments = &colorAttachmentReference,
-			.pResolveAttachments = VK_NULL_HANDLE, // attachments used for multi-sampling color attachments
-			.pDepthStencilAttachment = VK_NULL_HANDLE, // attachments for depth and stencil data
-			.pPreserveAttachments = VK_NULL_HANDLE, // attachments that are not used by this sub-pass, but for which data must be preserved
+		const VkSubpassDescription subPassDescription{
+			.pipelineBindPoint		 = VK_PIPELINE_BIND_POINT_GRAPHICS,
+			.inputAttachmentCount	 = 0,
+			.pInputAttachments		 = VK_NULL_HANDLE, // attachments that are read from a shader
+			.colorAttachmentCount	 = 1,
+			.pColorAttachments		 = &colorAttachmentReference,
+			.pResolveAttachments	 = VK_NULL_HANDLE, // attachments used for multi-sampling color attachments
+			.pDepthStencilAttachment = &depthAttachmentReference, // attachments for depth and stencil data
+			.pPreserveAttachments	 = VK_NULL_HANDLE, // attachments that are not used by this sub-pass, but for which data must be preserved
 		};
 
-		const VkSubpassDependency dependency{
-			.srcSubpass = VK_SUBPASS_EXTERNAL,
-			.dstSubpass = 0,
-			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.srcAccessMask = 0,
-			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		constexpr VkSubpassDependency dependency{
+			.srcSubpass		= VK_SUBPASS_EXTERNAL,
+			.dstSubpass		= 0,
+			.srcStageMask	= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+			.dstStageMask	= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+			.srcAccessMask	= 0,
+			.dstAccessMask	= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 		};
+
+		std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
 		const auto renderPassInfo = CreateInfo<VkRenderPassCreateInfo>({
-			.attachmentCount = 1,
-			.pAttachments = &colorAttachment,
-			.subpassCount = 1,
-			.pSubpasses = &subPass,
-			.dependencyCount = 1,
-			.pDependencies = &dependency
+			.attachmentCount	= static_cast<U32>(attachments.size()),
+			.pAttachments		= attachments.data(),
+			.subpassCount		= 1,
+			.pSubpasses			= &subPassDescription,
+			.dependencyCount	= 1,
+			.pDependencies		= &dependency
 		});
 
 		VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass), "Failed to create Graphics Pipeline.")

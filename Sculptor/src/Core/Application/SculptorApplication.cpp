@@ -32,9 +32,10 @@
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
 #include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/VulkanTexture.h"
-#include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
+#include "Core/RenderAPI/Image/DepthTexture.h"
+#include "Core/RenderAPI/Utility/SupportUtility.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -59,12 +60,17 @@ namespace Sculptor::Core
 			indexBuffer(std::make_shared<IndexBuffer>(logicalDevice)),
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
-			descriptorSets(std::make_shared<DescriptorSets>())
+			descriptorSets(std::make_shared<DescriptorSets>()),
+			depthTexture(std::make_shared<DepthTexture>(logicalDevice, swapChain))
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
 		SwapChainLocator::Provide(swapChain);
 		DescriptorPoolLocator::Provide(descriptorPool);
+
+		SupportUtility::SetLogicalDevice(logicalDevice);
+		depthTexture->SetCommandPool(commandPool);
+		depthTexture->SetLogicalDevice(logicalDevice);
 
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -134,9 +140,13 @@ namespace Sculptor::Core
 
 		graphicsPipeline->Create();
 
-		frameBuffer->Create();
-
 		commandPool->Create();
+
+		depthTexture->Create();
+
+		frameBuffer->AddImageView(depthTexture->GetImageView());
+
+		frameBuffer->Create();
 
 		const std::string file = "./Assets/Textures/texture.jpg";
 		texture->Create(file);

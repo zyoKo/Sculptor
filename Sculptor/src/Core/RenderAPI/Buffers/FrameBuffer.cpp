@@ -8,15 +8,16 @@
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
 	FrameBuffer::FrameBuffer(std::weak_ptr<SwapChainImageView> imageViews, std::weak_ptr<RenderApi> renderApi,
 		std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> logicalDevice) noexcept
-		:	swapChain(std::move(swapChain)),
-			logicalDevice(std::move(logicalDevice)),
-			imageViews(std::move(imageViews)),
-			renderApi(std::move(renderApi))
+		:	logicalDevice(std::move(logicalDevice)),
+			swapChain(std::move(swapChain)),
+			renderApi(std::move(renderApi)),
+			imageViews(std::move(imageViews))
 	{ }
 
 	void FrameBuffer::Create()
@@ -37,22 +38,24 @@ namespace Sculptor::Core
 
 		for (size_t i = 0; i < swapChainImageViews.size(); ++i)
 		{
-			const VkImageView attachments[] = {
-				swapChainImageViews[i]
-			};
+			std::vector<VkImageView> attachments = { swapChainImageViews[i] };
+
+			for (const auto& otherImageView : otherImageViews)
+			{
+				attachments.emplace_back(otherImageView);
+			}
 
 			// Need to make sure the renderPass is compatible with frameBuffer
 			// that is, they use same number and type of attachments
 			// TODO: Find a way to make sure renderPass attachment number is same as frameBuffer attachment number here
-			VkFramebufferCreateInfo frameBufferInfo{
-				.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			const auto frameBufferInfo = CreateInfo<VkFramebufferCreateInfo>({
 				.renderPass = renderPass,
-				.attachmentCount = 1,
-				.pAttachments = attachments,
+				.attachmentCount = static_cast<U32>(attachments.size()),
+				.pAttachments = attachments.data(),
 				.width = swapChainExtent.width,
 				.height = swapChainExtent.height,
 				.layers = 1
-			};
+			});
 
 			VK_CHECK(vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFrameBuffers[i]), "Failed to create framebuffer.")
 		}
@@ -69,7 +72,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	void FrameBuffer::SetImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept
+	void FrameBuffer::SetSwapChainImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept
 	{
 		this->imageViews = std::move(imageViews);
 	}
@@ -77,5 +80,15 @@ namespace Sculptor::Core
 	const std::vector<VkFramebuffer>& FrameBuffer::GetSwapChainFrameBuffers() const
 	{
 		return swapChainFrameBuffers;
+	}
+
+	void FrameBuffer::AddImageView(VkImageView newImageView)
+	{
+		otherImageViews.emplace_back(newImageView);
+	}
+
+	void FrameBuffer::SetOtherImageViews(const std::vector<VkImageView>& imageViews)
+	{
+		otherImageViews = imageViews;
 	}
 }

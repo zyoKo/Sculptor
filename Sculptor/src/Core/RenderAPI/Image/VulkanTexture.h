@@ -25,6 +25,14 @@ namespace Sculptor::Core
 
 		void SetCommandPool(std::weak_ptr<CommandPool> cmdPool) noexcept;
 
+	protected:
+		void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
+			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) override;
+
+		void TransitionImageLayout(VkFormat format, VkImageLayout newLayout, VkImageLayout oldLayout = VK_IMAGE_LAYOUT_UNDEFINED) const;
+
+		void CopyBufferToImage(const VkBuffer buffer, uint32_t width, uint32_t height) const;
+
 	private:
 		TextureBufferProperties textureBufferProperties{
 			.imageSize = 0,	// Calculated after texture data is read from the file
@@ -37,12 +45,5 @@ namespace Sculptor::Core
 		std::weak_ptr<CommandPool> commandPool;
 
 		std::string fileName;
-
-		void CopyBufferToImage(const VkBuffer buffer, uint32_t width, uint32_t height) const;
-
-		void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) override;
-
-		void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout) const;
 	};
 }

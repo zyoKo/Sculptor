@@ -7,7 +7,7 @@
 
 namespace Sculptor::Core
 {
-	VkImageView ImageView::CreateImageView(std::weak_ptr<LogicalDevice> logicalDevice, VkImage image, VkFormat format)
+	VkImageView ImageView::CreateImageView(std::weak_ptr<LogicalDevice> logicalDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags /* = VK_IMAGE_ASPECT_COLOR_BIT */)
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ std::move(logicalDevice) };
 		const auto& device = logicalDevicePtr->Get();
@@ -17,7 +17,7 @@ namespace Sculptor::Core
 			.viewType = VK_IMAGE_VIEW_TYPE_2D,
 			.format = format,
 			.subresourceRange = {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.aspectMask = aspectFlags,
 				.baseMipLevel = 0,
 				.levelCount = 1,
 				.baseArrayLayer = 0,

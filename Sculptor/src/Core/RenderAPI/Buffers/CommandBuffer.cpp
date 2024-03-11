@@ -160,7 +160,9 @@ namespace Sculptor::Core
 		// The first bracket are for initializing the VkColorValue structure
 		// Middle bracket are for initializing the VkClearColorValue structure
 		// Third bracket to fill in the values
-		constexpr VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+		std::array<VkClearValue, 2> clearValue{};
+		clearValue[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
+		clearValue[1].depthStencil = { 1.0f, 0 };
 
 		const auto renderPassInfo = CreateInfo<VkRenderPassBeginInfo>({
 			.renderPass = renderPass,
@@ -169,8 +171,8 @@ namespace Sculptor::Core
 				.offset = { 0, 0 },
 				.extent = swapChainExtent
 			},
-			.clearValueCount = 1,
-			.pClearValues = &clearColor
+			.clearValueCount = static_cast<U32>(clearValue.size()),
+			.pClearValues = clearValue.data()
 		});
 
 		// VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS: The render pass commands will be executed from secondary command buffers.

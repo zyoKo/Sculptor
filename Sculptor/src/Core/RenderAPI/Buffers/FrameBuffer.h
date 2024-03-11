@@ -28,9 +28,13 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
-		void SetImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept;
+		void SetSwapChainImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept;
 
 		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
+
+		void AddImageView(VkImageView newImageView);
+
+		void SetOtherImageViews(const std::vector<VkImageView>& imageViews);
 
 		LOGICAL_DEVICE
 
@@ -42,6 +46,8 @@ namespace Sculptor::Core
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
 		std::weak_ptr<SwapChainImageView> imageViews;
+
+		std::vector<VkImageView> otherImageViews;
 
 		FRIEND(CommandBuffer)
 	};

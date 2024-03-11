@@ -87,7 +87,17 @@ namespace Sculptor::Core
 		const auto multiSampling = CreateInfo<VkPipelineMultisampleStateCreateInfo>();
 
 		// Depth and Stencil (later)
-		const auto depthStencil = CreateInfo<VkPipelineDepthStencilStateCreateInfo>();
+		const auto depthStencil = CreateInfo<VkPipelineDepthStencilStateCreateInfo>({
+			.depthTestEnable = VK_TRUE,
+			.depthWriteEnable = VK_TRUE,
+			.depthCompareOp = VK_COMPARE_OP_LESS,
+			.depthBoundsTestEnable = VK_FALSE,
+			.stencilTestEnable = VK_FALSE,
+			.front = {},
+			.back = {},
+			.minDepthBounds = 0.0f,
+			.maxDepthBounds = 1.0f
+		});
 
 		constexpr VkPipelineColorBlendAttachmentState colorBlendAttachment{
 			.blendEnable = VK_FALSE,

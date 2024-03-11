@@ -7,10 +7,12 @@ namespace Sculptor::Core
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void Create(const std::string& filePath) = 0;
+		virtual void Create(const std::string& filePath)
+		{ }
 
 		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) = 0;
+			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
+		{ }
 
 		const VkImage& GetTextureImage() const
 		{

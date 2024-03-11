@@ -6,7 +6,7 @@ namespace Sculptor::Core
 {
 	struct Vertex
 	{
-		glm::vec2 pos;
+		glm::vec3 pos;
 		glm::vec3 color;
 		glm::vec2 texCoord;
 
@@ -27,7 +27,7 @@ namespace Sculptor::Core
 			std::array<VkVertexInputAttributeDescription, 3> attributeDescription{};
 			attributeDescription[0].binding		= 0;
 			attributeDescription[0].location	= 0;
-			attributeDescription[0].format		= VK_FORMAT_R32G32_SFLOAT;
+			attributeDescription[0].format		= VK_FORMAT_R32G32B32_SFLOAT;
 			attributeDescription[0].offset		= offsetof(Vertex, pos);
 		
 			attributeDescription[1].binding		= 0;
