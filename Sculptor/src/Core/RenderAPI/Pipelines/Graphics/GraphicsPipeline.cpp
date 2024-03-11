@@ -3,9 +3,9 @@
 #include "GraphicsPipeline.h"
 
 #include "Core/Core.h"
-#include "Core/RenderAPI/Data/Constants.h"
-#include "Core/RenderAPI/Structures/Scissor.h"
-#include "Core/RenderAPI/Structures/Viewport.h"
+#include "Core/Data/Constants.h"
+#include "Structures/Scissor.h"
+#include "Structures/Viewport.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Buffers/Structures/Vertex.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"

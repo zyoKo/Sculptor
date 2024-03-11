@@ -45,7 +45,7 @@ namespace Sculptor::Core
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
-		std::weak_ptr<SwapChainImageView> imageViews;
+		std::weak_ptr<SwapChainImageView> swapChainImageViews;
 
 		std::vector<VkImageView> otherImageViews;
 

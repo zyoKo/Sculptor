@@ -2,7 +2,7 @@
 
 #include "VulkanMemoryAllocator.h"
 
-#include "Core/RenderAPI/Data/Constants.h"
+#include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Utilities/Logger/Assert.h"
 

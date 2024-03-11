@@ -7,43 +7,24 @@ namespace Sculptor::Core
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void Create(const std::string& filePath)
-		{ }
+		virtual void Create(const std::string& filePath);
 
 		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
-		{ }
+		                               VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
-		const VkImage& GetTextureImage() const
-		{
-			return textureImage;
-		}
+		const VkImage& GetTextureImage() const;
 
-		const VkDeviceMemory& GetImageMemory() const
-		{
-			return imageMemory;
-		}
+		const VkDeviceMemory& GetImageMemory() const;
 
-		void BindMemory(const VkDevice& device, VkDeviceSize memoryOffset) const
-		{
-			vkBindImageMemory(device, textureImage, imageMemory, memoryOffset);
-		}
+		void BindMemory(const VkDevice& device, VkDeviceSize memoryOffset) const;
 
-		void Destroy(const VkDevice& device) const
-		{
-			vkDestroyImage(device, textureImage, nullptr);
-
-			vkFreeMemory(device, imageMemory, nullptr);
-		}
+		void Destroy(const VkDevice& device) const;
 
 	protected:
 		VkImage textureImage;
 
 		VkDeviceMemory imageMemory;
 
-		Texture2D()
-			:	textureImage(VK_NULL_HANDLE),
-				imageMemory(VK_NULL_HANDLE)
-		{ }
+		Texture2D();
 	};
 }

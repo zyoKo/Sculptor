@@ -30,7 +30,7 @@ namespace Sculptor::Core
 	class VulkanTexture;
 	class TextureImageView;
 	class TextureSampler;
-	class DepthTexture;
+	class DepthTesting;
 }
 
 namespace Sculptor::Core
@@ -101,7 +101,7 @@ namespace Sculptor::Core
 
 		std::shared_ptr<DescriptorSets> descriptorSets;
 
-		std::shared_ptr<DepthTexture> depthTexture;
+		std::shared_ptr<DepthTesting> depthTexture;
 
 		void InitializeWindow() const;
 

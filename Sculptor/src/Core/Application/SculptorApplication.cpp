@@ -26,7 +26,6 @@
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Data/Constants.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
-#include "Core/RenderAPI/Data/Constants.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
@@ -34,8 +33,9 @@
 #include "Core/RenderAPI/Image/VulkanTexture.h"
 #include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
-#include "Core/RenderAPI/Image/DepthTexture.h"
+#include "Core/RenderAPI/Features/DepthTesting.h"
 #include "Core/RenderAPI/Utility/SupportUtility.h"
+#include "Core/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
@@ -61,7 +61,7 @@ namespace Sculptor::Core
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
 			descriptorSets(std::make_shared<DescriptorSets>()),
-			depthTexture(std::make_shared<DepthTexture>(logicalDevice, swapChain))
+			depthTexture(std::make_shared<DepthTesting>(logicalDevice, swapChain))
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);

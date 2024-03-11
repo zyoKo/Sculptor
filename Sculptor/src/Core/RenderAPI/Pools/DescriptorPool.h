@@ -3,7 +3,7 @@
 #include "Core/Core.h"
 #include "Utilities/Macros.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
-#include "Core/RenderAPI/Data/Constants.h"
+#include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 
 namespace Sculptor::Core

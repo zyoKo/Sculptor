@@ -17,12 +17,12 @@ namespace Sculptor::Core
 		:	logicalDevice(std::move(logicalDevice)),
 			swapChain(std::move(swapChain)),
 			renderApi(std::move(renderApi)),
-			imageViews(std::move(imageViews))
+			swapChainImageViews(std::move(imageViews))
 	{ }
 
 	void FrameBuffer::Create()
 	{
-		GetShared<SwapChainImageView> imageViewPtr{ imageViews };
+		GetShared<SwapChainImageView> imageViewPtr{ swapChainImageViews };
 		const std::vector<VkImageView>& swapChainImageViews = imageViewPtr->swapChainImageViews;
 
 		GetShared<RenderApi> renderApiPtr{ renderApi };
@@ -74,7 +74,7 @@ namespace Sculptor::Core
 
 	void FrameBuffer::SetSwapChainImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept
 	{
-		this->imageViews = std::move(imageViews);
+		this->swapChainImageViews = std::move(imageViews);
 	}
 
 	const std::vector<VkFramebuffer>& FrameBuffer::GetSwapChainFrameBuffers() const
