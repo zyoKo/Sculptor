@@ -35,6 +35,7 @@
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Core/RenderAPI/Features/DepthTesting.h"
 #include "Core/RenderAPI/Utility/SupportUtility.h"
+#include "Components/Mesh.h"
 #include "Core/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -61,7 +62,8 @@ namespace Sculptor::Core
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
 			descriptorSets(std::make_shared<DescriptorSets>()),
-			depthTexture(std::make_shared<DepthTesting>(logicalDevice, swapChain))
+			depthTexture(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
+			mesh(std::make_shared<Component::Mesh>())
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
@@ -148,7 +150,7 @@ namespace Sculptor::Core
 
 		frameBuffer->Create();
 
-		const std::string file = "./Assets/Textures/texture.jpg";
+		const std::string file = "./Assets/Models/VikingRoom/Textures/viking-room.png";
 		texture->Create(file);
 
 		textureImageView->Create(texture->GetTextureImage());
@@ -156,18 +158,22 @@ namespace Sculptor::Core
 		textureSampler->Create();
 
 		// Vertex Buffer
-		const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
-		vertexBuffer->Create(VERTICES.data(), bufferSize);
+		//const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
+		//vertexBuffer->Create(VERTICES.data(), bufferSize);
+		const uint64_t bufferSize = sizeof(Vertex) * mesh->GetVertices().size();
+		vertexBuffer->Create(mesh->GetVertices().data(), bufferSize);
 
 		// Index Buffer
-		const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
-		const std::vector<uint16_t> indexBufferData = INDICES;
-		indexBuffer->Create(indexBufferData.data(), indexBufferSize);
+		//const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
+		//indexBuffer->Create(INDICES.data(), indexBufferSize);
+		const uint64_t indexBufferSize = sizeof(U32) * mesh->GetIndices().size();
+		indexBuffer->Create(mesh->GetIndices().data(), indexBufferSize);
 
 		// Uniform Buffers
-		constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
 		for (const auto& buffer : uniformBuffers)
 		{
+			constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
+
 			buffer->Create(uniformBufferSize);
 		}
 

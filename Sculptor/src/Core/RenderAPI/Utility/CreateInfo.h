@@ -324,4 +324,13 @@ namespace Sculptor::Core
 		info.flags = 0;
 		return info;
 	}
+
+	template <>
+	[[nodiscard]] inline VkBufferCreateInfo CreateInfo(VkBufferCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		info.pNext = pNextChain;
+		info.flags = 0;
+		return info;
+	}
 }

@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <assert.h>
+#include <unordered_map>
 
 // Included with "vma/vk_mem_alloc.h"
 // #include <windows.h>

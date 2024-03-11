@@ -1,19 +1,24 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "Core/RenderAPI/Buffers/Structures/Vertex.h"
+#include "Data/Constants.h"
 
 namespace Sculptor::Component
 {
 	class Mesh
 	{
 	public:
-		Mesh() = default;
+		Mesh(const std::string& filePath = std::string(VIKING_ROOM));
 
 		~Mesh() = default;
 
-	private:
-		std::vector<glm::vec2> vertices;
+		const std::vector<Core::Vertex>& GetVertices() const;
 
-		std::vector<glm::vec3> colors;
+		const std::vector<U32>& GetIndices() const;
+
+	private:
+		std::vector<Core::Vertex> vertices;
+
+		std::vector<U32> indices;
 	};
 }

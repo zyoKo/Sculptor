@@ -8,6 +8,11 @@ namespace Sculptor::Windows
 	class VulkanWindowSurface;
 }
 
+namespace Sculptor::Component
+{
+	class Mesh;
+}
+
 namespace Sculptor::Core
 {
 	class VertexBuffer;
@@ -102,6 +107,8 @@ namespace Sculptor::Core
 		std::shared_ptr<DescriptorSets> descriptorSets;
 
 		std::shared_ptr<DepthTesting> depthTexture;
+
+		std::shared_ptr<Component::Mesh> mesh;
 
 		void InitializeWindow() const;
 

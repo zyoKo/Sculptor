@@ -25,6 +25,7 @@ project "Sculptor"
         vendordir .. "/glm/include",
         vendordir .. "/stb/include",
         vendordir .. "/glslang/include",
+        vendordir .. "/tiny-object-loader/include",
 
         -- Vulkan
         vulkanSDKdir .. "/include" 

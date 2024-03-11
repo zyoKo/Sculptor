@@ -39,11 +39,11 @@ namespace Sculptor
 			return shaderModule;
 	}
 
-	stbi_uc* Utilities::LoadTexture(const std::string& fileName, VkDeviceSize& imageSize, int* textureWidth, int* textureHeight)
+	stbi_uc* Utilities::LoadTexture(const std::string& filePath, VkDeviceSize& imageSize, int* textureWidth, int* textureHeight)
 	{
 		int textureChannel;
 
-		stbi_uc* pixels = stbi_load(fileName.c_str(), textureWidth, textureHeight, &textureChannel, STBI_rgb_alpha);
+		stbi_uc* pixels = stbi_load(filePath.c_str(), textureWidth, textureHeight, &textureChannel, STBI_rgb_alpha);
 
 		S_ASSERT(pixels == nullptr, "Failed to load texture image.")
 

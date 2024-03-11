@@ -16,6 +16,8 @@ namespace Sculptor::Core
 
 	void VertexBuffer::Create(const void* bufferData, uint64_t bufferSize)
 	{
+		std::cout << "Creating VertexBuffer!\n";
+
 		vertexBufferProperties.bufferSize = bufferSize;
 		vertexBuffer.Create(vertexBufferProperties);
 		
