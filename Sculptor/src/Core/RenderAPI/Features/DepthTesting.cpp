@@ -35,7 +35,7 @@ namespace Sculptor::Core
 
 		depthImageView = CreateImageView(logicalDevice, textureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-		TransitionImageLayout(depthFormat, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+		TransitionImageLayout(depthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	}
 
 	VkImageView DepthTesting::GetImageView() const
@@ -51,5 +51,10 @@ namespace Sculptor::Core
 		VulkanTexture::Destroy(device);
 
 		vkDestroyImageView(device, depthImageView, VK_NULL_HANDLE);
+	}
+
+	void DepthTesting::CleanUp() const
+	{
+		Destroy();
 	}
 }

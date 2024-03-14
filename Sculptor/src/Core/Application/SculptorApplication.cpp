@@ -227,6 +227,8 @@ namespace Sculptor::Core
 
 		renderApi->CleanUp();
 
+		depthTest->CleanUp();
+
 		textureSampler->Destroy();
 
 		textureImageView->Destroy();
@@ -327,6 +329,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUpSwapChain() const
 	{
+		depthTest->CleanUp();
+
 		frameBuffer->CleanUp();
 
 		swapChainImageViews->Destroy();
@@ -349,6 +353,8 @@ namespace Sculptor::Core
 		CleanUpSwapChain();
 
 		swapChain->Create(windowSurface);
+
+		depthTest->Create();
 
 		swapChainImageViews->Create();
 

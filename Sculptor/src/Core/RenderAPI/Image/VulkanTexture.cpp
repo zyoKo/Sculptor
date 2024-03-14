@@ -207,7 +207,7 @@ namespace Sculptor::Core
 		}
 		else
 		{
-			S_ASSERT(false, "Unsupported Layout Transition.")
+			S_ASSERT(true, "Unsupported Layout Transition.")
 		}
 
 		vkCmdPipelineBarrier(
