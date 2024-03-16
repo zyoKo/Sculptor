@@ -18,13 +18,13 @@ namespace Sculptor::Core
 
 		void BindMemory(const VkDevice& device, VkDeviceSize memoryOffset) const;
 
-		void Destroy(const VkDevice& device) const;
-
 	protected:
 		VkImage textureImage;
 
 		VkDeviceMemory imageMemory;
 
 		Texture2D();
+
+		void Destroy(const VkDevice& device) const;
 	};
 }

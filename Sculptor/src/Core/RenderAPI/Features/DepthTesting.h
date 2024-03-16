@@ -20,7 +20,7 @@ namespace Sculptor::Core
 
 		SWAP_CHAIN
 
-		void CleanUp() const;
+		void CleanUp() const override;
 
 	protected:
 		void Destroy() const override;

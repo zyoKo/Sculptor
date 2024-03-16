@@ -15,9 +15,11 @@ namespace Sculptor::Core
 	class VertexBuffer
 	{
 	public:
-		~VertexBuffer() = default;
+		VertexBuffer() = default;
 
 		VertexBuffer(std::weak_ptr<LogicalDevice> device);
+
+		~VertexBuffer() = default;
 
 		void Create(const void* bufferData, uint64_t bufferSize);
 

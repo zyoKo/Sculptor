@@ -50,40 +50,42 @@ namespace Sculptor::Core
 			poolSize.emplace_back(layoutBinding.descriptorType, MAX_FRAMES_IN_FLIGHT);
 		}
 
-		// STEP-2: Create Descriptor Pool ///
 		const auto poolInfo = CreateInfo<VkDescriptorPoolCreateInfo>({
-			.maxSets = MAX_FRAMES_IN_FLIGHT,
-			.poolSizeCount = static_cast<U32>(poolSize.size()),
-			.pPoolSizes = poolSize.data()
+			.maxSets		= MAX_FRAMES_IN_FLIGHT,
+			.poolSizeCount	= static_cast<U32>(poolSize.size()),
+			.pPoolSizes		= poolSize.data()
 		});
 
-		// STEP-3: Create Descriptor Pool ///
 		VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor Pool.")
+		/////////////////////////////////////
 
+		// STEP-2: Create Descriptor Pool Layout ///
 		const auto descriptorSetLayoutCreateInfo = CreateInfo<VkDescriptorSetLayoutCreateInfo>({
-			.bindingCount = static_cast<U32>(layoutBindings.size()),
-			.pBindings = layoutBindings.data()
+			.bindingCount	= static_cast<U32>(layoutBindings.size()),
+			.pBindings		= layoutBindings.data()
 		});
 
 		VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout), "Failed to create Descriptor Set Layout!")
+		////////////////////////////////////////////
 
+		// STEP-3: Allocate Descriptor Sets //
 		const std::vector<VkDescriptorSetLayout> descriptorSetLayouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 
 		const auto descriptorSetAllocateInfo = CreateInfo<VkDescriptorSetAllocateInfo>({
-			.descriptorPool = descriptorPool,
+			.descriptorPool		= descriptorPool,
 			.descriptorSetCount = static_cast<U32>(descriptorSetLayouts.size()),
-			.pSetLayouts = descriptorSetLayouts.data()
+			.pSetLayouts		= descriptorSetLayouts.data()
 		});
 
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-		VK_CHECK(vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()), 
-			"Failed to create descriptor sets.")
+		VK_CHECK(vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()), "Failed to create descriptor sets.")
+		//////////////////////////////////////
 
 		for(size_t i = 0; i < descriptorWrites.size(); ++i)
 		{
-			descriptorWrites[i].dstBinding = static_cast<U32>(i);
-			descriptorWrites[i].dstSet = descriptorSets[i];
+			descriptorWrites[i].dstBinding  = static_cast<U32>(i);
+			descriptorWrites[i].dstSet		= descriptorSets[i];
 		}
 
 		for (size_t i = 0; i < descriptorWrites.size(); ++i)

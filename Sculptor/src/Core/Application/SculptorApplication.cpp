@@ -15,27 +15,22 @@
 #include "Platform/Windows/WindowsWindow.h"
 #include "Core/RenderAPI/ValidationLayer/ValidationLayer.h"
 #include "Platform/Windows/WindowData/WindowProperties.h"
-#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageViews.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Pipelines/Graphics/GraphicsPipeline.h"
 #include "Core/RenderAPI/Buffers/FrameBuffer.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
-#include "Core/RenderAPI/Buffers/VertexBuffer.h"
-#include "Core/RenderAPI/Buffers/IndexBuffer.h"
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
-#include "Core/RenderAPI/Buffers/Data/Constants.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
 #include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
-#include "Core/RenderAPI/Image/TextureImageView.h"
 #include "Core/RenderAPI/Image/VulkanTexture.h"
-#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Core/RenderAPI/Features/DepthTesting.h"
 #include "Core/RenderAPI/Utility/SupportUtility.h"
-#include "Components/Mesh.h"
+#include "Components/Types/Mesh.h"
 #include "Core/Data/Constants.h"
 #include "Utilities/Logger/Assert.h"
 
@@ -48,22 +43,18 @@ namespace Sculptor::Core
 			windowSurface(std::make_shared<Windows::VulkanWindowSurface>()),
 			logicalDevice(std::make_shared<LogicalDevice>()),
 			swapChain(std::make_shared<SwapChain>(logicalDevice)),
-			swapChainImageViews(std::make_shared<SwapChainImageView>(logicalDevice, swapChain)),
+			swapChainImageViews(std::make_shared<SwapChainImageViews>(logicalDevice, swapChain)),
 			renderApi(std::make_shared<RenderApi>(logicalDevice, swapChain)),
 			graphicsPipeline(std::make_shared<GraphicsPipeline>(renderApi, swapChain, logicalDevice)),
 			frameBuffer(std::make_shared<FrameBuffer>(swapChainImageViews, renderApi, swapChain, logicalDevice)),
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>(logicalDevice, commandPool)),
-			textureImageView(std::make_shared<TextureImageView>(logicalDevice)),
-			textureSampler(std::make_shared<TextureSampler>(logicalDevice)),
-			vertexBuffer(std::make_shared<VertexBuffer>(logicalDevice)),
-			indexBuffer(std::make_shared<IndexBuffer>(logicalDevice)),
 			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
 			descriptorPool(std::make_shared<DescriptorPool>()),
 			descriptorSets(std::make_shared<DescriptorSets>()),
 			depthTest(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
-			mesh(std::make_shared<Component::Mesh>())
+			mesh(std::make_shared<Component::Mesh>(logicalDevice))
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
@@ -88,8 +79,8 @@ namespace Sculptor::Core
 			inFlightFences[i].SetLogicalDevice(logicalDevice);
 		}
 
-		graphicsPipeline->SetVertexBuffer(vertexBuffer);
-		graphicsPipeline->SetIndexBuffer(indexBuffer);
+		graphicsPipeline->SetVertexBuffer(mesh->GetVertexBuffer());
+		graphicsPipeline->SetIndexBuffer(mesh->GetIndexBuffer());
 		graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
 		graphicsPipeline->SetDescriptorSets(descriptorSets);
 
@@ -150,24 +141,11 @@ namespace Sculptor::Core
 
 		frameBuffer->Create();
 
-		const std::string file = "./Assets/Models/VikingRoom/Textures/viking-room.png";
-		texture->Create(file);
+		texture->Create();
 
-		textureImageView->Create(texture->GetTextureImage());
+		frameBuffer->CreateTextureSampler();
 
-		textureSampler->Create();
-
-		// Vertex Buffer
-		//const uint64_t bufferSize = sizeof(VERTICES[0]) * VERTICES.size();
-		//vertexBuffer->Create(VERTICES.data(), bufferSize);
-		const uint64_t bufferSize = sizeof(Vertex) * mesh->GetVertices().size();
-		vertexBuffer->Create(mesh->GetVertices().data(), bufferSize);
-
-		// Index Buffer
-		//const uint64_t indexBufferSize = sizeof(INDICES[0]) * INDICES.size();
-		//indexBuffer->Create(INDICES.data(), indexBufferSize);
-		const uint64_t indexBufferSize = sizeof(mesh->GetIndices()[0]) * mesh->GetIndices().size();
-		indexBuffer->Create(mesh->GetIndices().data(), indexBufferSize);
+		mesh->CreateBuffers();
 
 		// Uniform Buffers
 		for (const auto& buffer : uniformBuffers)
@@ -180,8 +158,7 @@ namespace Sculptor::Core
 		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
 
 		// TODO: Fix this and make this more manageable
-		std::vector<std::tuple<TextureImageView, TextureSampler>> textureDataList;
-		textureDataList.emplace_back(*textureImageView, *textureSampler);
+		const std::tuple<VkImageView, VkSampler> textureDataList{ texture->GetTextureImageView(), frameBuffer->GetTextureSampler() };
 		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
 
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -227,17 +204,11 @@ namespace Sculptor::Core
 
 		renderApi->CleanUp();
 
-		depthTest->CleanUp();
+		texture->CleanUp();
 
-		textureSampler->Destroy();
+		frameBuffer->DestroyTextureSampler();
 
-		textureImageView->Destroy();
-
-		texture->Destroy(logicalDevice->Get());
-
-		vertexBuffer->Destroy();
-
-		indexBuffer->Destroy();
+		mesh->CleanUp();
 
 		for (const auto& buffer : uniformBuffers)
 		{
@@ -288,7 +259,7 @@ namespace Sculptor::Core
 
 		commandBuffers[currentFrame]->Record(imageIndex);
 
-		const VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame].Get() };
+		const VkSemaphore waitSemaphores[]   = { imageAvailableSemaphores[currentFrame].Get() };
 		const VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].Get() };
 		constexpr VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		const auto submitInfo = CreateInfo<VkSubmitInfo>({
@@ -354,9 +325,9 @@ namespace Sculptor::Core
 
 		swapChain->Create(windowSurface);
 
-		depthTest->Create();
-
 		swapChainImageViews->Create();
+
+		depthTest->Create();
 
 		frameBuffer->Create();
 	}

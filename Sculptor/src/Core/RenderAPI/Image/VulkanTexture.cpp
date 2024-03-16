@@ -2,6 +2,7 @@
 
 #include "VulkanTexture.h"
 
+#include "ImageView.h"
 #include "Core/Core.h"
 #include "Core/RenderAPI/Buffers/Buffer.h"
 #include "Utilities/Utilities.h"
@@ -15,23 +16,29 @@
 
 namespace Sculptor::Core
 {
+	VulkanTexture::VulkanTexture()
+		:	textureImageView(VK_NULL_HANDLE)
+	{ }
+
 	VulkanTexture::VulkanTexture(std::weak_ptr<LogicalDevice> device, std::weak_ptr<CommandPool> cmdPool) noexcept
 		:	logicalDevice(std::move(device)),
 			commandPool(std::move(cmdPool)),
-			fileName("Default")
+			fileName("Default"),
+			textureImageView(VK_NULL_HANDLE)
 	{ }
 
 	VulkanTexture::VulkanTexture(std::weak_ptr<LogicalDevice> device, std::weak_ptr<CommandPool> cmdPool, std::string filePath) noexcept
 		:	logicalDevice(std::move(device)),
 			commandPool(std::move(cmdPool)),
-			fileName("Default")
+			fileName("Default"),
+			textureImageView(VK_NULL_HANDLE)
 	{
 		fileName = Utilities::ExtractFileNameFromFilePath(filePath);
 
 		Create(filePath);
 	}
 
-	void VulkanTexture::Create(const std::string& filePath)
+	void VulkanTexture::Create(const std::string& filePath /* = DEFAULT_TEXTURE */)
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto device = logicalDevicePtr->Get();
@@ -66,11 +73,28 @@ namespace Sculptor::Core
 		TransitionImageLayout(VK_FORMAT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		stagingBuffer.Destroy();
+
+		CreateTextureImageView(/* = VK_FORMAT_R8G8B8A8_SRGB */);
 	}
 
 	void VulkanTexture::SetCommandPool(std::weak_ptr<CommandPool> cmdPool) noexcept
 	{
 		commandPool = std::move(cmdPool);
+	}
+
+	VkImageView VulkanTexture::GetTextureImageView() const
+	{
+		return textureImageView;
+	}
+
+	void VulkanTexture::CleanUp() const
+	{
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
+
+		Destroy(device);
+
+		vkDestroyImageView(device, textureImageView, nullptr);
 	}
 
 	void VulkanTexture::CopyBufferToImage(const VkBuffer buffer, uint32_t width, uint32_t height) const
@@ -102,8 +126,13 @@ namespace Sculptor::Core
 		CommandBuffer::EndSingleTimeCommand(commandBuffer);
 	}
 
+	void VulkanTexture::CreateTextureImageView(VkFormat format /* = VK_FORMAT_R8G8B8A8_SRGB */)
+	{
+		textureImageView = ImageView::CreateImageView(logicalDevice, textureImage, format);
+	}
+
 	void VulkanTexture::InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
-										  VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
+	                                      VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
 	{
 		const auto imageInfo = CreateInfo<VkImageCreateInfo>({
 			.imageType = VK_IMAGE_TYPE_2D,

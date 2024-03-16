@@ -1,18 +1,18 @@
 #include <SculptorPch.h>
 
-#include "SwapChainImageView.h"
+#include "SwapChainImageViews.h"
 
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 
 namespace Sculptor::Core
 {
-	SwapChainImageView::SwapChainImageView(std::weak_ptr<LogicalDevice> device, std::weak_ptr<SwapChain> swapChain) noexcept
+	SwapChainImageViews::SwapChainImageViews(std::weak_ptr<LogicalDevice> device, std::weak_ptr<SwapChain> swapChain) noexcept
 		:	logicalDevice(std::move(device)),
 			swapChain(std::move(swapChain))
 	{ }
 
-	void SwapChainImageView::Create()
+	void SwapChainImageViews::Create()
 	{
 		GetShared<SwapChain> swapChainPtr{ swapChain };
 		const auto& swapChainImages = swapChainPtr->swapChainImages;
@@ -26,7 +26,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	void SwapChainImageView::Destroy() const
+	void SwapChainImageViews::Destroy() const
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
@@ -37,7 +37,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	const std::vector<VkImageView>& SwapChainImageView::GetSwapChainImageViews() const
+	const std::vector<VkImageView>& SwapChainImageViews::GetSwapChainImageViews() const
 	{
 		return swapChainImageViews;
 	}

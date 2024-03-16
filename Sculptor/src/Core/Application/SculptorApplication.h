@@ -15,8 +15,7 @@ namespace Sculptor::Component
 
 namespace Sculptor::Core
 {
-	class VertexBuffer;
-	class SwapChainImageView;
+	class SwapChainImageViews;
 	class WindowsWindow;
 	class VulkanInstanceWrapper;
 	class ValidationLayer;
@@ -27,13 +26,11 @@ namespace Sculptor::Core
 	class FrameBuffer;
 	class CommandPool;
 	class CommandBuffer;
-	class IndexBuffer;
 	class UniformBuffer;
 	class DescriptorSetLayout;
 	class DescriptorPool;
 	class DescriptorSets;
 	class VulkanTexture;
-	class TextureImageView;
 	class TextureSampler;
 	class DepthTesting;
 }
@@ -70,7 +67,7 @@ namespace Sculptor::Core
 
 		std::shared_ptr<SwapChain> swapChain;
 
-		std::shared_ptr<SwapChainImageView> swapChainImageViews;
+		std::shared_ptr<SwapChainImageViews> swapChainImageViews;
 
 		std::shared_ptr<RenderApi> renderApi;
 
@@ -82,6 +79,7 @@ namespace Sculptor::Core
 
 		std::vector<std::shared_ptr<CommandBuffer>> commandBuffers;
 
+		// Sync Primitives
 		std::vector<VulkanSemaphoreWrapper> imageAvailableSemaphores;
 		std::vector<VulkanSemaphoreWrapper> renderFinishedSemaphores;
 		std::vector<VulkanFenceWrapper> inFlightFences;
@@ -89,14 +87,6 @@ namespace Sculptor::Core
 		uint32_t currentFrame;
 
 		std::shared_ptr<VulkanTexture> texture;
-
-		std::shared_ptr<TextureImageView> textureImageView;
-
-		std::shared_ptr<TextureSampler> textureSampler;
-
-		std::shared_ptr<VertexBuffer> vertexBuffer;
-
-		std::shared_ptr<IndexBuffer> indexBuffer;
 
 		std::vector<std::shared_ptr<UniformBuffer>> uniformBuffers;
 

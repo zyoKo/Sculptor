@@ -1,5 +1,4 @@
 #pragma once
-#include "Utilities/Macros.h"
 
 namespace Sculptor::Core
 {
@@ -11,17 +10,8 @@ namespace Sculptor::Core
 	class TextureSampler
 	{
 	public:
-		TextureSampler(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept;
+		static VkSampler Create(std::weak_ptr<LogicalDevice> logicalDevice);
 
-		void Create();
-
-		void Destroy() const;
-
-		VkSampler GetTextureSampler() const;
-
-		LOGICAL_DEVICE
-
-	private:
-		VkSampler textureSampler;
+		static void Destroy(std::weak_ptr<LogicalDevice> logicalDevice, VkSampler textureSampler);
 	};
 }

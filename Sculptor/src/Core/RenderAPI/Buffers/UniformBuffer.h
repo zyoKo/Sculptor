@@ -17,10 +17,7 @@ namespace Sculptor::Core
 
 		void Destroy() const;
 
-		explicit operator VkBuffer() const
-		{
-			return uniformBuffer.GetBuffer();
-		}
+		explicit operator VkBuffer() const;
 
 	private:
 		Buffer uniformBuffer;

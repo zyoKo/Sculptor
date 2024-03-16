@@ -4,25 +4,35 @@
 
 #include "FrameBuffer.h"
 
-#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageViews.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
-	FrameBuffer::FrameBuffer(std::weak_ptr<SwapChainImageView> imageViews, std::weak_ptr<RenderApi> renderApi,
+	FrameBuffer::FrameBuffer(std::weak_ptr<SwapChainImageViews> imageViews, std::weak_ptr<RenderApi> renderApi,
 		std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> logicalDevice) noexcept
 		:	logicalDevice(std::move(logicalDevice)),
 			swapChain(std::move(swapChain)),
 			renderApi(std::move(renderApi)),
-			swapChainImageViews(std::move(imageViews))
+			swapChainImageViews(std::move(imageViews)),
+			textureSampler(VK_NULL_HANDLE)
 	{ }
+
+	FrameBuffer::~FrameBuffer()
+	{
+		if (textureSampler != VK_NULL_HANDLE)
+		{
+			DestroyTextureSampler();
+		}
+	}
 
 	void FrameBuffer::Create()
 	{
-		GetShared<SwapChainImageView> imageViewPtr{ swapChainImageViews };
+		GetShared<SwapChainImageViews> imageViewPtr{ swapChainImageViews };
 		const std::vector<VkImageView>& swapChainImageViews = imageViewPtr->swapChainImageViews;
 
 		GetShared<RenderApi> renderApiPtr{ renderApi };
@@ -61,6 +71,17 @@ namespace Sculptor::Core
 		}
 	}
 
+	void FrameBuffer::CreateTextureSampler()
+	{
+		textureSampler = TextureSampler::Create(logicalDevice);
+	}
+
+	void FrameBuffer::DestroyTextureSampler()
+	{
+		TextureSampler::Destroy(logicalDevice, textureSampler);
+		textureSampler = VK_NULL_HANDLE;
+	}
+
 	void FrameBuffer::CleanUp() const
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
@@ -72,7 +93,7 @@ namespace Sculptor::Core
 		}
 	}
 
-	void FrameBuffer::SetSwapChainImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept
+	void FrameBuffer::SetSwapChainImageViews(std::weak_ptr<SwapChainImageViews> imageViews) noexcept
 	{
 		this->swapChainImageViews = std::move(imageViews);
 	}
@@ -90,5 +111,10 @@ namespace Sculptor::Core
 	void FrameBuffer::SetOtherImageViews(const std::vector<VkImageView>& imageViews)
 	{
 		otherImageViews = imageViews;
+	}
+
+	VkSampler FrameBuffer::GetTextureSampler() const
+	{
+		return textureSampler;
 	}
 }

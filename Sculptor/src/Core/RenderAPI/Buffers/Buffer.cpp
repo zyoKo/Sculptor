@@ -81,4 +81,9 @@ namespace Sculptor::Core
 	{
 		return bufferMemory;
 	}
+
+	Buffer::operator VkBuffer() const
+	{
+		return buffer;
+	}
 }

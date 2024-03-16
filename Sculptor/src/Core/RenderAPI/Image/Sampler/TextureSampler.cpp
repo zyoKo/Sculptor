@@ -1,19 +1,16 @@
 #include <SculptorPch.h>
 
+#include <utility>
+
 #include "TextureSampler.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
-	TextureSampler::TextureSampler(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept
-		:	logicalDevice(std::move(logicalDevicePtr)),
-			textureSampler(nullptr)
-	{ }
-
-	void TextureSampler::Create()
+	VkSampler TextureSampler::Create(std::weak_ptr<LogicalDevice> logicalDevice)
 	{
-		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		GetShared<LogicalDevice> logicalDevicePtr{ std::move(logicalDevice) };
 		const auto& device = logicalDevicePtr->Get();
 
 		const auto weakPhysicalDevice = logicalDevicePtr->GetPhysicalDevice();
@@ -52,19 +49,18 @@ namespace Sculptor::Core
 			.unnormalizedCoordinates = VK_FALSE, 
 		});
 
+		VkSampler textureSampler;
+
 		VK_CHECK(vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler), "Failed to create texture sampler.")
+
+		return textureSampler;
 	}
 
-	void TextureSampler::Destroy() const
+	void TextureSampler::Destroy(std::weak_ptr<LogicalDevice> logicalDevice, VkSampler textureSampler)
 	{
-		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		GetShared<LogicalDevice> logicalDevicePtr{ std::move(logicalDevice) };
 		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroySampler(device, textureSampler, nullptr);
-	}
-
-	VkSampler TextureSampler::GetTextureSampler() const
-	{
-		return textureSampler;
 	}
 }

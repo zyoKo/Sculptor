@@ -8,7 +8,6 @@
 #include "Core/Locators/SwapChainLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Structures/UniformBufferObject.h"
-#include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
@@ -29,6 +28,9 @@ namespace Sculptor::Core
 
 	void UniformBuffer::Update() const
 	{
+		GetShared<SwapChain> swapChainPtr{ SwapChainLocator::GetSwapChain() };
+		const auto& swapChainExtent = swapChainPtr->GetSwapChainExtent();
+
 		//static auto startTime = std::chrono::high_resolution_clock::now();
 
 		//const auto currentTime = std::chrono::high_resolution_clock::now();
@@ -47,10 +49,6 @@ namespace Sculptor::Core
 			glm::vec3(2.0f, 2.0f, 2.0f), 
 			glm::vec3(0.0f, 0.0f, 0.0f), 
 			glm::vec3(0.0f, 0.0f, 1.0f));
-
-		const auto swapChainPtr = SwapChainLocator::GetSwapChain().lock();
-		S_ASSERT(!swapChainPtr, "Swap Chain reference is null.\n")
-		const auto& swapChainExtent = swapChainPtr->GetSwapChainExtent();
 
 		ubo.projection = glm::perspective(
 			glm::radians(45.0f), 
@@ -71,5 +69,10 @@ namespace Sculptor::Core
 	void UniformBuffer::Destroy() const
 	{
 		uniformBuffer.Destroy();
+	}
+
+	UniformBuffer::operator VkBuffer() const
+	{
+		return uniformBuffer.GetBuffer();
 	}
 }

@@ -124,6 +124,7 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
+		info.flags = 0;
 		return info;
 	}
 
@@ -205,8 +206,6 @@ namespace Sculptor::Core
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
 		info.flags = 0;
-		info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		info.primitiveRestartEnable = VK_FALSE;
 		return info;
 	}
 

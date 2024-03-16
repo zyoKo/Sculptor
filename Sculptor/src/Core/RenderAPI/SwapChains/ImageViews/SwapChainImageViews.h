@@ -11,10 +11,10 @@ namespace Sculptor::Core
 
 namespace Sculptor::Core
 {
-	class SwapChainImageView : public ImageView
+	class SwapChainImageViews : public ImageView
 	{
 	public:
-		SwapChainImageView(std::weak_ptr<LogicalDevice> device, std::weak_ptr<SwapChain> swapChain) noexcept;
+		SwapChainImageViews(std::weak_ptr<LogicalDevice> device, std::weak_ptr<SwapChain> swapChain) noexcept;
 
 		void Create();
 

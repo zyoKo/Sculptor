@@ -11,13 +11,12 @@
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
 #include "Core/RenderAPI/Image/TextureImageView.h"
-#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
 
 namespace Sculptor::Core
 {
 	void DescriptorSets::Allocate(const std::vector<std::weak_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
 			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
+			const std::tuple<VkImageView, VkSampler>& textureDataList)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -37,7 +36,7 @@ namespace Sculptor::Core
 
 	void DescriptorSets::Allocate(const std::weak_ptr<DescriptorSetLayout>& weakDescriptorSetLayout,
 			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
+			const std::tuple<VkImageView, VkSampler>& textureDataList)
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -58,7 +57,7 @@ namespace Sculptor::Core
 	void DescriptorSets::AllocateAndUpdateDescriptorSets(
 		const std::vector<VkDescriptorSetLayout>& layouts,
 		const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-		const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList)
+		const std::tuple<VkImageView, VkSampler>& textureDataList)
 	{
 		GetShared<LogicalDevice> logicalDevicePtr { LogicalDeviceLocator::GetLogicalDevice() };
 		const auto& device = logicalDevicePtr->Get();
@@ -89,8 +88,8 @@ namespace Sculptor::Core
 			// Image Info
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = std::get<0>(textureDataList[0]).GetImageView();
-			imageInfo.sampler = std::get<1>(textureDataList[0]).GetTextureSampler();
+			imageInfo.imageView = std::get<0>(textureDataList);
+			imageInfo.sampler = std::get<1>(textureDataList);
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

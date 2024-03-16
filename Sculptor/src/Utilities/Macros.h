@@ -31,9 +31,9 @@
 // Logical Device ///////////////////////////////////////////////////////////
 #define LOGICAL_DEVICE \
 	private: \
-		std::weak_ptr<LogicalDevice> logicalDevice; \
+		std::weak_ptr<Sculptor::Core::LogicalDevice> logicalDevice; \
 	public: \
-		inline void SetLogicalDevice(std::weak_ptr<LogicalDevice> device) noexcept \
+		inline void SetLogicalDevice(std::weak_ptr<Sculptor::Core::LogicalDevice> device) noexcept \
 		{ \
 			this->logicalDevice = std::move(device); \
 		}

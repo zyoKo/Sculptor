@@ -4,7 +4,7 @@
 
 namespace Sculptor::Core
 {
-	class SwapChainImageView;
+	class SwapChainImageViews;
 	class LogicalDevice;
 	class SwapChain;
 	class RenderApi;
@@ -17,24 +17,30 @@ namespace Sculptor::Core
 	public:
 		FrameBuffer() = default;
 
-		FrameBuffer(std::weak_ptr<SwapChainImageView> imageViews,
+		FrameBuffer(std::weak_ptr<SwapChainImageViews> imageViews,
 					std::weak_ptr<RenderApi> renderApi,
 					std::weak_ptr<SwapChain> swapChain,
 					std::weak_ptr<LogicalDevice> logicalDevice) noexcept;
 
-		~FrameBuffer() = default;
+		~FrameBuffer();
 
 		void Create();
 
+		void CreateTextureSampler();
+
+		void DestroyTextureSampler();
+
 		void CleanUp() const;
 
-		void SetSwapChainImageViews(std::weak_ptr<SwapChainImageView> imageViews) noexcept;
+		void SetSwapChainImageViews(std::weak_ptr<SwapChainImageViews> imageViews) noexcept;
 
 		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
 
 		void AddImageView(VkImageView newImageView);
 
 		void SetOtherImageViews(const std::vector<VkImageView>& imageViews);
+
+		VkSampler GetTextureSampler() const;
 
 		LOGICAL_DEVICE
 
@@ -45,9 +51,11 @@ namespace Sculptor::Core
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
-		std::weak_ptr<SwapChainImageView> swapChainImageViews;
+		std::weak_ptr<SwapChainImageViews> swapChainImageViews;
 
 		std::vector<VkImageView> otherImageViews;
+
+		VkSampler textureSampler;
 
 		FRIEND(CommandBuffer)
 	};

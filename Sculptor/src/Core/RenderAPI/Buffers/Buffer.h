@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Core/RenderAPI/Interfaces/IBaseBuffer.h"
 #include "Structures/BufferProperties.h"
 #include "Utilities/Macros.h"
 
@@ -32,10 +31,7 @@ namespace Sculptor::Core
 
 		const VkDeviceMemory& GetBufferMemory() const;
 
-		explicit operator VkBuffer() const
-		{
-			return buffer;
-		}
+		explicit operator VkBuffer() const;
 
 		LOGICAL_DEVICE
 
@@ -44,10 +40,10 @@ namespace Sculptor::Core
 
 		VkDeviceMemory bufferMemory;
 
-		friend class IndexBuffer;
+		FRIEND(IndexBuffer)
 
-		friend class VertexBuffer;
+		FRIEND(VertexBuffer)
 
-		friend class UniformBuffer;
+		FRIEND(UniformBuffer)
 	};
 }
