@@ -3,7 +3,7 @@
 #include "SculptorApplication.h"
 
 #include "Core/Locators/CommandPoolLocator.h"
-#include "Core/Locators/DescriptorPoolLocator.h"
+//#include "Core/Locators/DescriptorPoolLocator.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/Locators/SwapChainLocator.h"
 #include "Platform/Windows/WindowData/WindowConstants.h"
@@ -23,16 +23,18 @@
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
-#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
+//#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
-#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+//#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
 #include "Core/RenderAPI/Image/VulkanTexture.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Core/RenderAPI/Features/DepthTesting.h"
 #include "Core/RenderAPI/Utility/SupportUtility.h"
 #include "Components/Types/Mesh.h"
 #include "Core/Data/Constants.h"
+#include "Core/RenderAPI/DescriptorSet/DescriptorBuilder.h"
 #include "Utilities/Logger/Assert.h"
+#include "Core/RenderAPI/DescriptorSet/ResourceBuilder.h"
 
 namespace Sculptor::Core
 {
@@ -50,16 +52,16 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>(logicalDevice, commandPool)),
-			descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
-			descriptorPool(std::make_shared<DescriptorPool>()),
-			descriptorSets(std::make_shared<DescriptorSets>()),
+			//descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
+			//descriptorPool(std::make_shared<DescriptorPool>()),
+			//descriptorSets(std::make_shared<DescriptorSets>()),
 			depthTest(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
 			mesh(std::make_shared<Component::Mesh>(logicalDevice))
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
 		SwapChainLocator::Provide(swapChain);
-		DescriptorPoolLocator::Provide(descriptorPool);
+		//DescriptorPoolLocator::Provide(descriptorPool);
 
 		SupportUtility::SetLogicalDevice(logicalDevice);
 		depthTest->SetCommandPool(commandPool);
@@ -81,13 +83,13 @@ namespace Sculptor::Core
 
 		graphicsPipeline->SetVertexBuffer(mesh->GetVertexBuffer());
 		graphicsPipeline->SetIndexBuffer(mesh->GetIndexBuffer());
-		graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
-		graphicsPipeline->SetDescriptorSets(descriptorSets);
+		//graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
+		//graphicsPipeline->SetDescriptorSets(descriptorSets);
 
 		uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
-			uniformBuffers.emplace_back(std::make_shared<UniformBuffer>());
+			uniformBuffers.emplace_back(std::make_shared<UniformBuffer>(logicalDevice));
 		}
 
 		Utils::ExtensionManager::Initialize(validationLayer);
@@ -129,11 +131,39 @@ namespace Sculptor::Core
 
 		renderApi->Create();
 
-		descriptorSetLayout->Create();
+		commandPool->Create();
+
+		//descriptorSetLayout->Create();
+
+		frameBuffer->CreateTextureSampler();
+
+		texture->Create();
+
+		// Uniform Buffers
+		std::vector<VkBuffer> currentUniformBuffers;
+		currentUniformBuffers.reserve(uniformBuffers.size());
+		for (const auto& buffer : uniformBuffers)
+		{
+			constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
+
+			currentUniformBuffers.emplace_back(buffer->Create(uniformBufferSize));
+		}
+
+		// Creating Resources for the GPU
+		{
+			DescriptorBuilder descriptorBuilder{ logicalDevice };
+
+			U32 nextBinding = 0;
+			descriptorBuilder.AddUniformBuffer(currentUniformBuffers, nextBinding++, sizeof(UniformBufferObject));
+			descriptorBuilder.AddImageSampler(frameBuffer->GetTextureSampler(), nextBinding++, texture->GetTextureImageView());
+
+			resourceBuilder = std::make_shared<ResourceBuilder>(descriptorBuilder.Build("Test"));
+		}
+
+		graphicsPipeline->descriptorSetLayoutTest = resourceBuilder->GetDescriptorSetLayout();
+		graphicsPipeline->descriptorSetsTest	  = resourceBuilder->GetDescriptorSets();
 
 		graphicsPipeline->Create();
-
-		commandPool->Create();
 
 		depthTest->Create();
 
@@ -141,25 +171,13 @@ namespace Sculptor::Core
 
 		frameBuffer->Create();
 
-		texture->Create();
-
-		frameBuffer->CreateTextureSampler();
-
 		mesh->CreateBuffers();
 
-		// Uniform Buffers
-		for (const auto& buffer : uniformBuffers)
-		{
-			constexpr uint64_t uniformBufferSize = sizeof(UniformBufferObject);
-
-			buffer->Create(uniformBufferSize);
-		}
-
-		descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
+		//descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
 
 		// TODO: Fix this and make this more manageable
-		const std::tuple<VkImageView, VkSampler> textureDataList{ texture->GetTextureImageView(), frameBuffer->GetTextureSampler() };
-		descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
+		//const std::tuple<VkImageView, VkSampler> textureDataList{ texture->GetTextureImageView(), frameBuffer->GetTextureSampler() };
+		//descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
 
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
@@ -198,9 +216,11 @@ namespace Sculptor::Core
 
 		graphicsPipeline->CleanUp();
 
-		descriptorPool->CleanUp();
+		//descriptorPool->CleanUp();
+		//
+		//descriptorSetLayout->CleanUp();
 
-		descriptorSetLayout->CleanUp();
+		resourceBuilder->CleanUp();
 
 		renderApi->CleanUp();
 

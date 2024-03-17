@@ -4,12 +4,17 @@
 
 namespace Sculptor::Core
 {
+	class LogicalDevice;
+};
+
+namespace Sculptor::Core
+{
 	class UniformBuffer
 	{
 	public:
-		UniformBuffer();
+		UniformBuffer(std::weak_ptr<LogicalDevice> device) noexcept;
 
-		void Create(U64 bufferSize);
+		[[nodiscard]] VkBuffer Create(U64 bufferSize);
 
 		void Update() const;
 
@@ -18,6 +23,8 @@ namespace Sculptor::Core
 		void Destroy() const;
 
 		explicit operator VkBuffer() const;
+
+		LOGICAL_DEVICE
 
 	private:
 		Buffer uniformBuffer;

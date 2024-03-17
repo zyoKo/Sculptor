@@ -49,7 +49,7 @@ namespace Sculptor::Core
 			.pPoolSizes		= poolSize.data()
 		});
 
-		VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor Pool.")
+		VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, VK_NULL_HANDLE, &descriptorPool), "Failed to create descriptor Pool.")
 		/////////////////////////////////////
 
 		// STEP-2: Create Descriptor Pool Layout ///
@@ -58,7 +58,7 @@ namespace Sculptor::Core
 			.pBindings		= layoutBindings.data()
 		});
 
-		VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout), "Failed to create Descriptor Set Layout!")
+		VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, VK_NULL_HANDLE, &descriptorSetLayout), "Failed to create Descriptor Set Layout!")
 		////////////////////////////////////////////
 
 		// STEP-3: Allocate Descriptor Sets //
@@ -75,19 +75,33 @@ namespace Sculptor::Core
 		VK_CHECK(vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()), "Failed to create descriptor sets.")
 		//////////////////////////////////////
 
-		for(size_t i = 0; i < descriptorWrites.size(); ++i)
+		for(size_t i = 0, j = 0; i < descriptorWrites.size(); i += 2, ++j)
 		{
-			descriptorWrites[i].dstBinding  = static_cast<U32>(i);
-			descriptorWrites[i].dstSet		= descriptorSets[i];
+			descriptorWrites[i].dstBinding		= static_cast<U32>(j);
+			descriptorWrites[i + 1].dstBinding  = static_cast<U32>(j);
+			descriptorWrites[i].dstSet			= descriptorSets[j];
+			descriptorWrites[i + 1].dstSet		= descriptorSets[j];
 		}
 
-		for (size_t i = 0; i < descriptorWrites.size(); ++i)
+		for (size_t i = 1, j = descriptorWrites.size() / 2; i < descriptorWrites.size() / 2; ++i, ++j)
 		{
-			vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
+			std::swap(descriptorWrites[i], descriptorWrites[j]);
 		}
+
+		//for (size_t i = 0; i < descriptorWrites.size() / 2; ++i)
+		//{
+		//	vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size() / MAX_FRAMES_IN_FLIGHT), &descriptorWrites[i * 2], 0, VK_NULL_HANDLE);
+		//}
+
+		vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
+
+		//for (size_t i = 0; i < descriptorWrites.size(); ++i)
+		//{
+		//	vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
+		//}
 	}
 
-	VkDescriptorSetLayout& ResourceBuilder::GetDescriptorSetLayout()
+	VkDescriptorSetLayout ResourceBuilder::GetDescriptorSetLayout() const
 	{
 		return descriptorSetLayout;
 	}
@@ -97,7 +111,7 @@ namespace Sculptor::Core
 		return descriptorSets;
 	}
 
-	ResourceBuilder::~ResourceBuilder()
+	void ResourceBuilder::CleanUp() const
 	{
 		LOGICAL_DEVICE_LOCATOR
 
@@ -111,9 +125,9 @@ namespace Sculptor::Core
 
 	void ResourceBuilder::ValidateLayoutBindingsAndWriteDescriptors() const
 	{
-		for (std::size_t i = 0; i < layoutBindings.size(); ++i) 
+		for (std::size_t i = 0, j = 0; i < layoutBindings.size(); ++i, j += MAX_FRAMES_IN_FLIGHT) 
 		{
-			S_ASSERT(layoutBindings[i].descriptorType != descriptorWrites[i].descriptorType, "VkDescriptorType mismatch in descriptor set layout binding and write descriptor set!")
+			S_ASSERT(layoutBindings[i].descriptorType != descriptorWrites[j].descriptorType, "VkDescriptorType mismatch in descriptor set layout binding and write descriptor set!")
 		}
 	}
 }

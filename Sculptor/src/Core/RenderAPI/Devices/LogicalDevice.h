@@ -24,7 +24,7 @@ namespace Sculptor::Core
 
 		void SetAnisotropyFeatures(bool value) const;
 
-		const VkDevice& Get() const;
+		VkDevice Get() const;
 
 		const QueueFamilies& GetQueueFamilies() const;
 

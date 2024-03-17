@@ -9,7 +9,7 @@ namespace Sculptor::Core
 	public:
 		DescriptorBuilder(std::weak_ptr<LogicalDevice>&& logicalDevice) noexcept;
 
-		DescriptorBuilder& AddUniformBuffer(VkBuffer uniformBuffer, U32 binding, VkDeviceSize bufferRange,
+		DescriptorBuilder& AddUniformBuffer(const std::vector<VkBuffer>& uniformBuffer, U32 binding, VkDeviceSize bufferRange,
 											VkShaderStageFlags stageFlag = VK_SHADER_STAGE_VERTEX_BIT,
 											VkDeviceSize offset = 0);
 

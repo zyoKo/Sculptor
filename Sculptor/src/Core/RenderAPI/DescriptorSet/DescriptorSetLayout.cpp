@@ -21,7 +21,7 @@ namespace Sculptor::Core
 		constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 			.binding			= 0,
 			.descriptorType		= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.descriptorCount	=  1,
+			.descriptorCount	= 1,
 			.stageFlags			= VK_SHADER_STAGE_VERTEX_BIT,	// which shader stage UBO is in
 			.pImmutableSamplers = nullptr	// Optional: Used for image sampling related descriptors
 		};

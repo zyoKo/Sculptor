@@ -96,7 +96,7 @@ namespace Sculptor::Core
 		physicalDevice->SetAnisotropyFeatures(value);
 	}
 
-	const VkDevice& LogicalDevice::Get() const
+	VkDevice LogicalDevice::Get() const
 	{
 		return logicalDevice;
 	}

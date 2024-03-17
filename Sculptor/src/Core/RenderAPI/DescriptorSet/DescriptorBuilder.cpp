@@ -9,6 +9,7 @@
 
 #include "DescriptorBuilder.h"
 
+#include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 
 namespace Sculptor::Core
@@ -26,7 +27,7 @@ namespace Sculptor::Core
 	* \param stageFlag		: 
 	* \return return reference to this class
 	*/
-	DescriptorBuilder& DescriptorBuilder::AddUniformBuffer(VkBuffer uniformBuffer, U32 binding, VkDeviceSize bufferRange, 
+	DescriptorBuilder& DescriptorBuilder::AddUniformBuffer(const std::vector<VkBuffer>& uniformBuffer, U32 binding, VkDeviceSize bufferRange, 
 														   VkShaderStageFlags stageFlag /* = VK_SHADER_STAGE_VERTEX_BIT */, 
 														   VkDeviceSize offset /* = 0 */)
 	{
@@ -38,24 +39,33 @@ namespace Sculptor::Core
 			.pImmutableSamplers = VK_NULL_HANDLE
 		});
 
-		bufferInfos.push_back({
-			.buffer		= uniformBuffer,
-			.offset		= offset,
-			.range		= bufferRange
-		});
+		const auto currentSize = bufferInfos.size();
+		const auto newSize = currentSize + uniformBuffer.size();
 
-		descriptorWrites.push_back({
-			.sType				= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext				= VK_NULL_HANDLE,
-			.dstSet				= VK_NULL_HANDLE,
-			.dstBinding			= 0,	// To be set later in the Resource Builder
-			.dstArrayElement	= 0,
-			.descriptorCount	= 1,	// TODO: Manage array later
-			.descriptorType		= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo			= VK_NULL_HANDLE,
-			.pBufferInfo		= &bufferInfos.back(),
-			.pTexelBufferView	= VK_NULL_HANDLE
-		});
+		bufferInfos.reserve(newSize);
+		descriptorWrites.reserve(newSize);
+
+		for (const auto uBuffer : uniformBuffer)
+		{
+			bufferInfos.emplace_back(VkDescriptorBufferInfo{
+				.buffer		= uBuffer,
+				.offset		= offset,
+				.range		= bufferRange
+			});
+
+			descriptorWrites.emplace_back(VkWriteDescriptorSet{
+				.sType				= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.pNext				= VK_NULL_HANDLE,
+				.dstSet				= VK_NULL_HANDLE,
+				.dstBinding			= 0,	// To be set later in the Resource Builder
+				.dstArrayElement	= 0,
+				.descriptorCount	= 1,	// TODO: Manage array later
+				.descriptorType		= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+				.pImageInfo			= VK_NULL_HANDLE,
+				.pBufferInfo		= &bufferInfos.back(),
+				.pTexelBufferView	= VK_NULL_HANDLE
+			});
+		}
 
 		return *this;
 	}
@@ -81,24 +91,33 @@ namespace Sculptor::Core
 			.pImmutableSamplers = VK_NULL_HANDLE
 		});
 
-		imageInfos.push_back({
-			.sampler		= imageSampler,
-			.imageView		= imageView,
-			.imageLayout	= imageLayout
-		});
+		const auto currentSize = imageInfos.size();
+		const auto newSize = currentSize + MAX_FRAMES_IN_FLIGHT;
 
-		descriptorWrites.push_back({
-			.sType				= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext				= VK_NULL_HANDLE,
-			.dstSet				= VK_NULL_HANDLE,
-			.dstBinding			= 0,	// To be set later in the Resource Builder
-			.dstArrayElement	= 0,
-			.descriptorCount	= 1,	// TODO: Manage array later
-			.descriptorType		= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo			= &imageInfos.back(),
-			.pBufferInfo		= VK_NULL_HANDLE,
-			.pTexelBufferView	= VK_NULL_HANDLE
-		});
+		imageInfos.reserve(newSize);
+		descriptorWrites.reserve(newSize);
+
+		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			imageInfos.emplace_back(VkDescriptorImageInfo{
+				.sampler = imageSampler,
+				.imageView = imageView,
+				.imageLayout = imageLayout
+			});
+
+			descriptorWrites.emplace_back(VkWriteDescriptorSet{
+				.sType				= VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.pNext				= VK_NULL_HANDLE,
+				.dstSet				= VK_NULL_HANDLE,
+				.dstBinding			= 0,	// To be set later in the Resource Builder
+				.dstArrayElement	= 0,
+				.descriptorCount	= 1,	// TODO: Manage array later
+				.descriptorType		= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.pImageInfo			= &imageInfos.back(),
+				.pBufferInfo		= VK_NULL_HANDLE,
+				.pTexelBufferView	= VK_NULL_HANDLE
+			});
+		}
 
 		return *this;
 	}
