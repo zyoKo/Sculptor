@@ -35,13 +35,6 @@ namespace Sculptor::Core
 
 		ValidateLayoutBindingsAndWriteDescriptors();
 
-		/*!
-		 * Brief: Following are the steps to create descriptor Pool.
-		 * Step-1. Create PoolSizes and store descriptor types.
-		 * Step-2. Create PoolInfo to store Pool Size data.
-		 * Step-3. Allocate Data for Descriptor Pool.
-		*/
-
 		// STEP-1: Create Descriptor Pool ///
 		std::vector<VkDescriptorPoolSize> poolSize;
 		poolSize.reserve(layoutBindings.size());
@@ -90,7 +83,7 @@ namespace Sculptor::Core
 
 		for (size_t i = 0; i < descriptorWrites.size(); ++i)
 		{
-			vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
 		}
 	}
 

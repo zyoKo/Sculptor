@@ -5,6 +5,7 @@
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
@@ -46,14 +47,11 @@ namespace Sculptor::Core
 			poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			poolSizes[1].descriptorCount = descriptorCount;
 
-			const VkDescriptorPoolCreateInfo poolInfo{
-				.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-				.pNext = nullptr,
-				.flags = 0,
-				.maxSets = descriptorCount,
-				.poolSizeCount = static_cast<U32>(poolSizes.size()),
-				.pPoolSizes = poolSizes.data()
-			};
+			const auto poolInfo = CreateInfo<VkDescriptorPoolCreateInfo>({
+				.maxSets		= descriptorCount,
+				.poolSizeCount	= static_cast<U32>(poolSizes.size()),
+				.pPoolSizes		= poolSizes.data()
+			});
 
 			VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool.")
 		}
