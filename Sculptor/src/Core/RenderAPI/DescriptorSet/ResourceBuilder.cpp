@@ -31,7 +31,7 @@ namespace Sculptor::Core
 			layoutBindings(std::move(descriptorLayoutBindings))
 	{
 		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
-		const auto& device = logicalDevicePtr->Get();
+		const auto device = logicalDevicePtr->Get();
 
 		ValidateLayoutBindingsAndWriteDescriptors();
 
@@ -75,30 +75,21 @@ namespace Sculptor::Core
 		VK_CHECK(vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()), "Failed to create descriptor sets.")
 		//////////////////////////////////////
 
-		for(size_t i = 0, j = 0; i < descriptorWrites.size(); i += 2, ++j)
+		/*
+		 * TODO: Explain here
+		 * Since for one layoutBinding there are multiple descriptor writes as you can see in DescriptorBuilder.h/.cpp
+		 */
+		int i = 0, j = 0, counter = 1;
+		for (auto& descWrite : descriptorWrites)
 		{
-			descriptorWrites[i].dstBinding		= static_cast<U32>(j);
-			descriptorWrites[i + 1].dstBinding  = static_cast<U32>(j);
-			descriptorWrites[i].dstSet			= descriptorSets[j];
-			descriptorWrites[i + 1].dstSet		= descriptorSets[j];
+			descWrite.dstBinding	= layoutBindings[i].binding;
+			descWrite.dstSet		= descriptorSets[j++];
+		
+			if (counter % (descriptorWrites.size() / layoutBindings.size()) == 0) { j = 0; ++i; }
+			++counter;
 		}
-
-		for (size_t i = 1, j = descriptorWrites.size() / 2; i < descriptorWrites.size() / 2; ++i, ++j)
-		{
-			std::swap(descriptorWrites[i], descriptorWrites[j]);
-		}
-
-		//for (size_t i = 0; i < descriptorWrites.size() / 2; ++i)
-		//{
-		//	vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size() / MAX_FRAMES_IN_FLIGHT), &descriptorWrites[i * 2], 0, VK_NULL_HANDLE);
-		//}
 
 		vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
-
-		//for (size_t i = 0; i < descriptorWrites.size(); ++i)
-		//{
-		//	vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
-		//}
 	}
 
 	VkDescriptorSetLayout ResourceBuilder::GetDescriptorSetLayout() const
