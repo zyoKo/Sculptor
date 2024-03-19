@@ -21,11 +21,13 @@ namespace Sculptor::Core
 
 		ResourceBuilder(ResourceBuilder&) = delete;
 
-		VkDescriptorSetLayout& GetDescriptorSetLayout();
+		~ResourceBuilder() = default;
+
+		VkDescriptorSetLayout GetDescriptorSetLayout() const;
 
 		const std::vector<VkDescriptorSet>& GetDescriptorSets() const;
 
-		~ResourceBuilder();
+		void CleanUp() const;
 
 		LOGICAL_DEVICE
 

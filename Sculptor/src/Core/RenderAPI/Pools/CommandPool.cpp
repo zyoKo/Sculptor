@@ -11,7 +11,8 @@ namespace Sculptor::Core
 	{ }
 
 	CommandPool::CommandPool(std::weak_ptr<LogicalDevice> device) noexcept
-		:	logicalDevice(std::move(device))
+		:	logicalDevice(std::move(device)),
+			commandPool(VK_NULL_HANDLE)
 	{ }
 
 	void CommandPool::Create()
@@ -38,7 +39,7 @@ namespace Sculptor::Core
 		VK_CHECK(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool), "Failed to create command pool.")
 	}
 
-	const VkCommandPool& CommandPool::Get() const
+	VkCommandPool CommandPool::Get() const
 	{
 		return commandPool;
 	}

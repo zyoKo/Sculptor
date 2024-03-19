@@ -27,12 +27,13 @@ namespace Sculptor::Core
 	class CommandPool;
 	class CommandBuffer;
 	class UniformBuffer;
-	class DescriptorSetLayout;
-	class DescriptorPool;
-	class DescriptorSets;
+	//class DescriptorSetLayout;
+	//class DescriptorPool;
+	//class DescriptorSets;
 	class VulkanTexture;
 	class TextureSampler;
 	class DepthTesting;
+	class ResourceBuilder;
 }
 
 namespace Sculptor::Core
@@ -90,11 +91,13 @@ namespace Sculptor::Core
 
 		std::vector<std::shared_ptr<UniformBuffer>> uniformBuffers;
 
-		std::shared_ptr<DescriptorSetLayout> descriptorSetLayout;
+		//std::shared_ptr<DescriptorSetLayout> descriptorSetLayout;
+		//
+		//std::shared_ptr<DescriptorPool> descriptorPool;
+		//
+		//std::shared_ptr<DescriptorSets> descriptorSets;
 
-		std::shared_ptr<DescriptorPool> descriptorPool;
-
-		std::shared_ptr<DescriptorSets> descriptorSets;
+		std::shared_ptr<ResourceBuilder> resourceBuilder;
 
 		std::shared_ptr<DepthTesting> depthTest;
 

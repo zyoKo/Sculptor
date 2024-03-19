@@ -62,22 +62,12 @@ namespace Sculptor::Core
 		vkBindBufferMemory(device, buffer, bufferMemory, bufferSize);
 	}
 
-	VkBuffer& Buffer::GetBuffer()
+	VkBuffer Buffer::GetBuffer() const
 	{
 		return buffer;
 	}
 
-	const VkBuffer& Buffer::GetBuffer() const
-	{
-		return buffer;
-	}
-
-	VkDeviceMemory& Buffer::GetBufferMemory()
-	{
-		return bufferMemory;
-	}
-
-	const VkDeviceMemory& Buffer::GetBufferMemory() const
+	VkDeviceMemory Buffer::GetBufferMemory() const
 	{
 		return bufferMemory;
 	}

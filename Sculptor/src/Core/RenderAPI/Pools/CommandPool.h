@@ -20,7 +20,7 @@ namespace Sculptor::Core
 
 		void Create();
 
-		const VkCommandPool& Get() const;
+		VkCommandPool Get() const;
 
 		void CleanUp() const;
 

@@ -22,8 +22,7 @@ namespace Sculptor::Core
 	public:
 		GraphicsPipeline();
 
-		GraphicsPipeline(std::weak_ptr<RenderApi> renderApi, std::weak_ptr<SwapChain> swapChain,
-			std::weak_ptr<LogicalDevice> device) noexcept;
+		GraphicsPipeline(std::weak_ptr<RenderApi> renderApi, std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> device) noexcept;
 
 		void Create();
 
@@ -39,9 +38,13 @@ namespace Sculptor::Core
 
 		void SetIndexBuffer(std::weak_ptr<IndexBuffer> buffer) noexcept;
 
-		void SetDescriptorSetLayout(std::weak_ptr<DescriptorSetLayout> descriptorSetLayout) noexcept;
+		//void SetDescriptorSetLayout(std::weak_ptr<DescriptorSetLayout> descriptorSetLayout) noexcept;
 
-		void SetDescriptorSets(std::weak_ptr<DescriptorSets> descriptorSets) noexcept;
+		//void SetDescriptorSets(std::weak_ptr<DescriptorSets> descriptorSets) noexcept;
+
+		std::vector<VkDescriptorSet> descriptorSetsTest;
+
+		VkDescriptorSetLayout descriptorSetLayoutTest;
 
 		LOGICAL_DEVICE
 
@@ -60,9 +63,9 @@ namespace Sculptor::Core
 
 		std::weak_ptr<IndexBuffer> indexBuffer;
 
-		std::weak_ptr<DescriptorSetLayout> descriptorSetLayout;
+		//std::weak_ptr<DescriptorSetLayout> descriptorSetLayout;
 
-		std::weak_ptr<DescriptorSets> descriptorSets;
+		//std::weak_ptr<DescriptorSets> descriptorSets;
 
 		uint32_t currentFrame;
 	};
