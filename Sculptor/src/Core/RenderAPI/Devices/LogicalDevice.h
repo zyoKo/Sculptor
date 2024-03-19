@@ -17,10 +17,7 @@ namespace Sculptor::Core
 
 		~LogicalDevice() = default;
 
-		void Create(
-			const std::weak_ptr<VulkanInstanceWrapper>& instance,
-			const std::weak_ptr<ValidationLayer>& validationLayer,
-			const std::weak_ptr<Windows::VulkanWindowSurface>& surface);
+		void Create(std::weak_ptr<VulkanInstanceWrapper> instance, std::weak_ptr<ValidationLayer> validationLayer, std::weak_ptr<Windows::VulkanWindowSurface> surface);
 
 		void SetAnisotropyFeatures(bool value) const;
 

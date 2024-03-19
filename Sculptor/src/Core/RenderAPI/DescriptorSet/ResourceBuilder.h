@@ -23,6 +23,8 @@ namespace Sculptor::Core
 
 		~ResourceBuilder() = default;
 
+		VkDescriptorPool GetDescriptorPool() const;
+
 		VkDescriptorSetLayout GetDescriptorSetLayout() const;
 
 		const std::vector<VkDescriptorSet>& GetDescriptorSets() const;

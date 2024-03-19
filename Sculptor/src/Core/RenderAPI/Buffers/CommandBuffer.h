@@ -34,13 +34,13 @@ namespace Sculptor::Core
 		// imageIndex: index of current swap-chain image
 		void Record(uint32_t imageIndex) const;
 
+		void EndRecord() const;
+
 		void Reset() const;
 
-		void End() const;
+		static VkCommandBuffer BeginSingleTimeCommand(VkCommandPool commandPool, VkDevice device);
 
-		static VkCommandBuffer BeginSingleTimeCommand(const VkCommandPool& commandPool, const VkDevice& device);
-
-		static void EndSingleTimeCommand(const VkCommandBuffer& commandBuffer);
+		static void EndSingleTimeCommand(VkCommandBuffer commandBuffer);
 
 		VkCommandBuffer& GetBuffer();
 
@@ -71,5 +71,7 @@ namespace Sculptor::Core
 		void StartRenderPass(uint32_t imageIndex) const;
 
 		void EndRenderPass() const;
+
+		void End() const;
 	};
 }

@@ -40,11 +40,21 @@ namespace Sculptor::Core
 		poolSize.reserve(layoutBindings.size());
 		for (const auto& layoutBinding : layoutBindings)
 		{
-			poolSize.emplace_back(layoutBinding.descriptorType, MAX_FRAMES_IN_FLIGHT);
+			/*
+			 * The problem here is 2 in this r-value "MAX_FRAMES_IN_FLIGHT * 2" which is controlling how much memory in pool is allocated for ImGui Window
+			 * TODO: Find a way to fix it.
+			 */
+			static bool doOnce = false;
+			if (!doOnce && layoutBinding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+			{
+				poolSize.emplace_back(layoutBinding.descriptorType, MAX_FRAMES_IN_FLIGHT * 2);
+
+				doOnce = true;
+			}
 		}
 
 		const auto poolInfo = CreateInfo<VkDescriptorPoolCreateInfo>({
-			.maxSets		= MAX_FRAMES_IN_FLIGHT,
+			.maxSets		= MAX_FRAMES_IN_FLIGHT * 2,	// TODO: Same here how to abstract this 2 away which is required by ImGui?
 			.poolSizeCount	= static_cast<U32>(poolSize.size()),
 			.pPoolSizes		= poolSize.data()
 		});
@@ -90,6 +100,11 @@ namespace Sculptor::Core
 		}
 
 		vkUpdateDescriptorSets(device, static_cast<U32>(descriptorWrites.size()), descriptorWrites.data(), 0, VK_NULL_HANDLE);
+	}
+
+	VkDescriptorPool ResourceBuilder::GetDescriptorPool() const
+	{
+		return descriptorPool;
 	}
 
 	VkDescriptorSetLayout ResourceBuilder::GetDescriptorSetLayout() const

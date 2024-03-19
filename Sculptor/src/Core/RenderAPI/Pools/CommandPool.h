@@ -12,7 +12,7 @@ namespace Sculptor::Core
 	class CommandPool
 	{
 	public:
-		CommandPool();
+		CommandPool() noexcept;
 
 		CommandPool(std::weak_ptr<LogicalDevice> device) noexcept;
 

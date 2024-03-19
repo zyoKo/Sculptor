@@ -16,7 +16,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -25,7 +24,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -90,7 +88,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		info.pInheritanceInfo = VK_NULL_HANDLE;
 		return info;
 	}
@@ -124,7 +121,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -154,7 +150,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		info.depthClampEnable = VK_FALSE; 
 		info.rasterizerDiscardEnable = VK_FALSE;
 		info.depthBiasEnable = VK_FALSE;
@@ -169,7 +164,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 		info.sampleShadingEnable = VK_FALSE;
 		info.minSampleShading = 1.0f;			// Optional
@@ -205,7 +199,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -214,7 +207,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -234,7 +226,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		info.logicOpEnable = VK_FALSE;
 		info.logicOp = VK_LOGIC_OP_COPY;
 		info.blendConstants[0] = 0.0f;
@@ -249,7 +240,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -258,7 +248,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -275,7 +264,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -284,7 +272,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -293,7 +280,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -302,7 +288,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -311,7 +296,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -320,7 +304,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 
@@ -329,7 +312,6 @@ namespace Sculptor::Core
 	{
 		info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		info.pNext = pNextChain;
-		info.flags = 0;
 		return info;
 	}
 }

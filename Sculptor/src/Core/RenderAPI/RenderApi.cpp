@@ -99,6 +99,11 @@ namespace Sculptor::Core
 		vkDestroyRenderPass(device, renderPass, nullptr);
 	}
 
+	VkRenderPass RenderApi::GetRenderPass() const
+	{
+		return renderPass;
+	}
+
 	bool RenderApi::IsDeviceSuitable(const LogicalDevice& device,
 	                                 const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface)
 	{
