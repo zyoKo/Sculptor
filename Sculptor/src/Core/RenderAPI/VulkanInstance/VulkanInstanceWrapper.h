@@ -24,8 +24,6 @@ namespace Sculptor::Core
 
 		VkInstance& GetInstance();
 
-		const VkInstance& GetInstance() const;
-
 	private:
 		VkInstance vulkanInstance;
 	};

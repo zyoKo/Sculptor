@@ -7,7 +7,7 @@
 
 namespace Sculptor::Core
 {
-	WindowsWindow::WindowsWindow()
+	WindowsWindow::WindowsWindow() noexcept
 		:	window(nullptr),
 			frameBufferResized(false)
 	{ }

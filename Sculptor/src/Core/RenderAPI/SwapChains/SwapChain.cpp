@@ -59,15 +59,15 @@ namespace Sculptor::Core
 		// Need to specify how to handle swap chain images that will be used across multiple queue families
 		// Render to graphics queue family then transfer the image to presentation queue
 		const auto indices = logicalDevicePtr->GetQueueFamilies().GetQueueFamilyIndices();
-		const std::array<uint32_t, 2> queueFamilyIndices = {
-			indices.graphicsFamily.value(),
-			indices.presetFamily.value()
+		const std::array<U32, 2> queueFamilyIndices = {
+			indices.GetGraphicsFamily().value(),
+			indices.GetPresetFamily().value()
 		};
 
 		// VK_SHARING_MODE_CONCURRENT: Images can be used across multiple queue families without explicit ownership transfers
 		// VK_SHARING_MODE_EXCLUSIVE: An image is owned by one queue family at a time and ownership must be explicitly transferred
 		// before using it in another queue family. This option offers the best performance.
-		if (indices.graphicsFamily != indices.presetFamily)
+		if (indices.GetGraphicsFamily().value() != indices.GetPresetFamily().value())
 		{
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;

@@ -6,7 +6,7 @@
 
 namespace Sculptor::Core
 {
-	CommandPool::CommandPool()
+	CommandPool::CommandPool() noexcept
 		:	commandPool(VK_NULL_HANDLE)
 	{ }
 
@@ -29,12 +29,15 @@ namespace Sculptor::Core
 			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT // allow command buffers to rerecorded individually (without the flag they all have to be reset together
 		});	
 
-		if (!queueFamilyIndices.graphicsFamily.has_value())
+		if (!queueFamilyIndices.GetGraphicsFamily())
 		{
 			std::cerr << "Queue families are not initialized. Failed to create CommandPool." << std::endl;
 			return;
 		}
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+		else
+		{
+			poolInfo.queueFamilyIndex = queueFamilyIndices.GetGraphicsFamily().value();
+		}
 
 		VK_CHECK(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool), "Failed to create command pool.")
 	}

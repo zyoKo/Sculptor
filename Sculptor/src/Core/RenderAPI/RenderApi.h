@@ -19,6 +19,8 @@ namespace Sculptor::Core
 
 		void CleanUp() const;
 
+		VkRenderPass GetRenderPass() const;
+
 		static bool IsDeviceSuitable(const LogicalDevice& device, const std::weak_ptr<Windows::VulkanWindowSurface>& vulkanWindowSurface);
 
 		SWAP_CHAIN

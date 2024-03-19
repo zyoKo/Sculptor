@@ -15,6 +15,7 @@ namespace Sculptor::Component
 
 namespace Sculptor::Core
 {
+	class EngineTools;
 	class SwapChainImageViews;
 	class WindowsWindow;
 	class VulkanInstanceWrapper;
@@ -102,6 +103,8 @@ namespace Sculptor::Core
 		std::shared_ptr<DepthTesting> depthTest;
 
 		std::shared_ptr<Component::Mesh> mesh;
+
+		std::shared_ptr<EngineTools> engineTools;
 
 		void InitializeWindow() const;
 

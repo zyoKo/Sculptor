@@ -37,6 +37,7 @@ workspace "Sculptor"
     group "Dependencies"
         include "Sculptor/vendor/GLFW"
         include "Sculptor/vendor/glad"
+        include "Sculptor/vendor/imgui"
     group ""
 
     group "Core"

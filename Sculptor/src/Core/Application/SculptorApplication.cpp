@@ -35,6 +35,7 @@
 #include "Core/RenderAPI/DescriptorSet/DescriptorBuilder.h"
 #include "Utilities/Logger/Assert.h"
 #include "Core/RenderAPI/DescriptorSet/ResourceBuilder.h"
+#include "Core/Tools/EngineTools.h"
 
 namespace Sculptor::Core
 {
@@ -56,7 +57,8 @@ namespace Sculptor::Core
 			//descriptorPool(std::make_shared<DescriptorPool>()),
 			//descriptorSets(std::make_shared<DescriptorSets>()),
 			depthTest(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
-			mesh(std::make_shared<Component::Mesh>(logicalDevice))
+			mesh(std::make_shared<Component::Mesh>(logicalDevice)),
+			engineTools(std::make_shared<EngineTools>(logicalDevice))
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
@@ -133,8 +135,6 @@ namespace Sculptor::Core
 
 		commandPool->Create();
 
-		//descriptorSetLayout->Create();
-
 		frameBuffer->CreateTextureSampler();
 
 		texture->Create();
@@ -173,12 +173,6 @@ namespace Sculptor::Core
 
 		mesh->CreateBuffers();
 
-		//descriptorPool->Create(MAX_FRAMES_IN_FLIGHT);
-
-		// TODO: Fix this and make this more manageable
-		//const std::tuple<VkImageView, VkSampler> textureDataList{ texture->GetTextureImageView(), frameBuffer->GetTextureSampler() };
-		//descriptorSets->Allocate(descriptorSetLayout, uniformBuffers, textureDataList);
-
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 		{
 			commandBuffers[i]->Create();
@@ -191,6 +185,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::MainLoop()
 	{
+		engineTools->Initialize(window->GetGLFWWindow(), vulkanInstanceWrapper->GetInstance(), resourceBuilder->GetDescriptorPool(), renderApi->GetRenderPass());
+
 		while (!window->WindowShouldClose())
 		{
 			window->PollEvents();
@@ -203,6 +199,8 @@ namespace Sculptor::Core
 
 	void SculptorApplication::CleanUp() const
 	{
+		engineTools->CleanUp();
+
 		CleanUpSwapChain();
 
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -275,9 +273,13 @@ namespace Sculptor::Core
 		// Only reset the fence if we are submitting work
 		inFlightFences[currentFrame].Reset();
 
-		commandBuffers[currentFrame]->Reset();
-
+		/*--Can Pull more commands while recording--*/
 		commandBuffers[currentFrame]->Record(imageIndex);
+
+		engineTools->RenderWindow(commandBuffers[currentFrame]->GetBuffer());
+
+		commandBuffers[currentFrame]->EndRecord();
+		/*------------------------------------------*/
 
 		const VkSemaphore waitSemaphores[]   = { imageAvailableSemaphores[currentFrame].Get() };
 		const VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame].Get() };

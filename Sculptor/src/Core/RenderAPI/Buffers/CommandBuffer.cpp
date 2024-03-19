@@ -5,6 +5,7 @@
 #include "CommandBuffer.h"
 
 #include "Core/Core.h"
+#include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Pools/CommandPool.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/RenderApi.h"
@@ -58,12 +59,30 @@ namespace Sculptor::Core
 	{
 		GetShared<GraphicsPipeline> graphicsPipelinePtr{ graphicsPipeline };
 
-		const auto commandBufferBeginInfo = CreateInfo<VkCommandBufferBeginInfo>();
+		const auto commandBufferBeginInfo = CreateInfo<VkCommandBufferBeginInfo>({
+			.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+		});
+
+		// Reset only if VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT is not set else,
+		// we don't need to do it cause it handled from the internal calls from the API
+		if ((commandBufferBeginInfo.flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) != VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)
+		{
+			Reset();
+		}
+
 		VK_CHECK(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo), "Failed to begin recording command buffer!")
 
 		StartRenderPass(imageIndex);
+
 		graphicsPipelinePtr->BindGraphicsPipeline(*this);
+
 		graphicsPipelinePtr->Draw(*this);
+
+		// Call EndRecord Here in the hierarchy
+	}
+
+	void CommandBuffer::EndRecord() const
+	{
 		EndRenderPass();
 
 		End();
@@ -71,6 +90,8 @@ namespace Sculptor::Core
 
 	void CommandBuffer::Reset() const
 	{
+		// Call this if the flag for creating command buffer is not set to VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+
 		VK_CHECK(vkResetCommandBuffer(commandBuffer, 0), "Failed to reset command buffer.")
 	}
 
@@ -79,7 +100,7 @@ namespace Sculptor::Core
 		VK_CHECK(vkEndCommandBuffer(commandBuffer), "Faield to record command buffer.")
 	}
 
-	VkCommandBuffer CommandBuffer::BeginSingleTimeCommand(const VkCommandPool& commandPool, const VkDevice& device)
+	VkCommandBuffer CommandBuffer::BeginSingleTimeCommand(VkCommandPool commandPool, VkDevice device)
 	{
 		VkCommandBuffer cmdBuffer{ VK_NULL_HANDLE };
 		const auto commandBufferAllocateInfo = CreateInfo<VkCommandBufferAllocateInfo>({
@@ -97,7 +118,7 @@ namespace Sculptor::Core
 		return cmdBuffer;
 	}
 
-	void CommandBuffer::EndSingleTimeCommand(const VkCommandBuffer& commandBuffer)
+	void CommandBuffer::EndSingleTimeCommand(VkCommandBuffer commandBuffer)
 	{
 		VK_CHECK(vkEndCommandBuffer(commandBuffer), "Failed to end single use command buffer.")
 
@@ -161,8 +182,8 @@ namespace Sculptor::Core
 		// Middle bracket are for initializing the VkClearColorValue structure
 		// Third bracket to fill in the values
 		std::array<VkClearValue, 2> clearValue{};
-		clearValue[0].color = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
-		clearValue[1].depthStencil = { 1.0f, 0 };
+		clearValue[0].color = { DEFAULT_CLEAR_COLOR };
+		clearValue[1].depthStencil = { DEFAULT_DEPTH_VALUE, DEFAULT_STENCIL_VALUE };
 
 		const auto renderPassInfo = CreateInfo<VkRenderPassBeginInfo>({
 			.renderPass = renderPass,

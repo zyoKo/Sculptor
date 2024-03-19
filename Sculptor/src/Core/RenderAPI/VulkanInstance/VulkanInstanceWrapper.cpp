@@ -68,9 +68,4 @@ namespace Sculptor::Core
 	{
 		return vulkanInstance;
 	}
-
-	const VkInstance& VulkanInstanceWrapper::GetInstance() const
-	{
-		return vulkanInstance;
-	}
 }

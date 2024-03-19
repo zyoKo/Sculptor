@@ -26,9 +26,10 @@ project "Sculptor"
         vendordir .. "/stb/include",
         vendordir .. "/glslang/include",
         vendordir .. "/tiny-object-loader/include",
+        vendordir .. "/imgui/include",
 
         -- Vulkan
-        vulkanSDKdir .. "/include" 
+        vulkanSDKdir .. "/Include" 
     }
 
     defines
@@ -54,6 +55,7 @@ project "Sculptor"
     {
         "GLFW",
         "Glad",
+        "ImGui",
         "glslang.lib",
         "vulkan-1.lib"
     }

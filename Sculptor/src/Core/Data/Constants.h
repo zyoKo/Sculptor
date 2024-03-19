@@ -41,4 +41,11 @@ namespace Sculptor::Core
 	static constexpr float DEFAULT_LINE_WIDTH_FOR_RASTERIZER{ 1.0f };
 
 	static constexpr unsigned MAX_FRAMES_IN_FLIGHT{ 2 };
+
+	// Render Constants
+	static constexpr VkClearColorValue DEFAULT_CLEAR_COLOR{ 0.0f, 0.0f, 0.0f, 1.0f };
+
+	static constexpr float DEFAULT_DEPTH_VALUE{ 1.0f };
+
+	static constexpr U32 DEFAULT_STENCIL_VALUE{ 0 };
 }

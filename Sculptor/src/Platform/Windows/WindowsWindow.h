@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
 #include "WindowData/WindowProperties.h"
 
@@ -9,11 +9,15 @@ namespace Sculptor::Core
 	class WindowsWindow
 	{
 	public:
-		WindowsWindow();
+		WindowsWindow() noexcept;
 
-		WindowsWindow(const WindowsWindow&) = delete;
+		explicit WindowsWindow(WindowsWindow&) = delete;
 
-		WindowsWindow& operator=(const WindowsWindow&) = delete;
+		explicit WindowsWindow(WindowsWindow&&) = delete;
+
+		WindowsWindow& operator=(WindowsWindow&) = delete;
+
+		WindowsWindow& operator=(WindowsWindow&&) = delete;
 
 		~WindowsWindow() = default;
 

@@ -4,13 +4,42 @@ namespace Sculptor::Core
 {
 	struct QueueFamilyIndices
 	{
-		std::optional<uint32_t> graphicsFamily;
+	private:
+		U32 graphicsFamily{ std::numeric_limits<U32>::max() };
+		
+		U32 presetFamily{ std::numeric_limits<U32>::max() };
 
-		std::optional<uint32_t> presetFamily;
+		friend class QueueFamilies;
 
+	public:
 		bool IsComplete() const
 		{
-			return graphicsFamily.has_value() && presetFamily.has_value();
+			if (GetGraphicsFamily() && GetPresetFamily())
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		std::optional<U32> GetGraphicsFamily() const
+		{
+			if (graphicsFamily == std::numeric_limits<U32>::max())
+			{
+				return std::nullopt;
+			}
+
+			return graphicsFamily;
+		}
+
+		std::optional<U32> GetPresetFamily() const
+		{
+			if (presetFamily == std::numeric_limits<U32>::max())
+			{
+				return std::nullopt;
+			}
+
+			return presetFamily;
 		}
 	};
 }
