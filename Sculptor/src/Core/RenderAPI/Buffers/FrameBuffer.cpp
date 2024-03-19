@@ -1,90 +1,90 @@
 #include <SculptorPch.h>
 
+#include <utility>
+
 #include "FrameBuffer.h"
 
-#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageView.h"
+#include "Core/RenderAPI/SwapChains/ImageViews/SwapChainImageViews.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Utilities/Logger/Assert.h"
+#include "Core/RenderAPI/Image/Sampler/TextureSampler.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
-	FrameBuffer::FrameBuffer(const std::weak_ptr<SwapChainImageView>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
-		const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice)
-		:	imageViews(imageViews),
-			renderApi(renderApi),
-			swapChain(swapChain),
-			logicalDevice(logicalDevice)
+	FrameBuffer::FrameBuffer(std::weak_ptr<SwapChainImageViews> imageViews, std::weak_ptr<RenderApi> renderApi,
+		std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> logicalDevice) noexcept
+		:	logicalDevice(std::move(logicalDevice)),
+			swapChain(std::move(swapChain)),
+			renderApi(std::move(renderApi)),
+			swapChainImageViews(std::move(imageViews)),
+			textureSampler(VK_NULL_HANDLE)
 	{ }
+
+	FrameBuffer::~FrameBuffer()
+	{
+		if (textureSampler != VK_NULL_HANDLE)
+		{
+			DestroyTextureSampler();
+		}
+	}
 
 	void FrameBuffer::Create()
 	{
-		const auto imageViewPtr = imageViews.lock();
-		if (!imageViewPtr)
-		{
-			std::cerr << "Swap-chain reference is null." << std::endl;
-			return;
-		}
+		GetShared<SwapChainImageViews> imageViewPtr{ swapChainImageViews };
 		const std::vector<VkImageView>& swapChainImageViews = imageViewPtr->swapChainImageViews;
 
-		const auto renderApiPtr = renderApi.lock();
-		if (!renderApiPtr)
-		{
-			std::cerr << "RenderApi reference is null." << std::endl;
-			return;
-		}
+		GetShared<RenderApi> renderApiPtr{ renderApi };
 		const auto& renderPass = renderApiPtr->renderPass;
 
-		const auto swapChainPtr = swapChain.lock();
-		if (!swapChainPtr)
-		{
-			std::cerr << "RenderApi reference is null." << std::endl;
-			return;
-		}
+		GetShared<SwapChain> swapChainPtr{ swapChain };
 		const auto& swapChainExtent = swapChainPtr->swapChainExtent;
 
-		const auto logicalDevicePtr = logicalDevice.lock();
-		if (!logicalDevicePtr)
-		{
-			std::cerr << "Logical device reference is null." << std::endl;
-			return;
-		}
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
 		swapChainFrameBuffers.resize(swapChainImageViews.size());
 
 		for (size_t i = 0; i < swapChainImageViews.size(); ++i)
 		{
-			const VkImageView attachments[] = {
-				swapChainImageViews[i]
-			};
+			std::vector<VkImageView> attachments = { swapChainImageViews[i] };
+
+			for (const auto& otherImageView : otherImageViews)
+			{
+				attachments.emplace_back(otherImageView);
+			}
 
 			// Need to make sure the renderPass is compatible with frameBuffer
 			// that is, they use same number and type of attachments
 			// TODO: Find a way to make sure renderPass attachment number is same as frameBuffer attachment number here
-			VkFramebufferCreateInfo frameBufferInfo{};
-			frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			frameBufferInfo.renderPass = renderPass;
-			frameBufferInfo.attachmentCount = 1;
-			frameBufferInfo.pAttachments = attachments;
-			frameBufferInfo.width = swapChainExtent.width;
-			frameBufferInfo.height = swapChainExtent.height;
-			frameBufferInfo.layers = 1;
+			const auto frameBufferInfo = CreateInfo<VkFramebufferCreateInfo>({
+				.renderPass = renderPass,
+				.attachmentCount = static_cast<U32>(attachments.size()),
+				.pAttachments = attachments.data(),
+				.width = swapChainExtent.width,
+				.height = swapChainExtent.height,
+				.layers = 1
+			});
 
-			const auto result = vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFrameBuffers[i]);
-			S_ASSERT(result != VK_SUCCESS, "Failed to create framebuffer.");
+			VK_CHECK(vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFrameBuffers[i]), "Failed to create framebuffer.")
 		}
+	}
+
+	void FrameBuffer::CreateTextureSampler()
+	{
+		textureSampler = TextureSampler::Create(logicalDevice);
+	}
+
+	void FrameBuffer::DestroyTextureSampler()
+	{
+		TextureSampler::Destroy(logicalDevice, textureSampler);
+		textureSampler = VK_NULL_HANDLE;
 	}
 
 	void FrameBuffer::CleanUp() const
 	{
-		const auto logicalDevicePtr = logicalDevice.lock();
-		if (!logicalDevicePtr)
-		{
-			std::cerr << "Logical device reference is null." << std::endl;
-			return;
-		}
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
 		for (const auto& frameBuffer : swapChainFrameBuffers)
@@ -93,28 +93,28 @@ namespace Sculptor::Core
 		}
 	}
 
-	void FrameBuffer::SetImageViews(const std::weak_ptr<SwapChainImageView>& imageViews)
+	void FrameBuffer::SetSwapChainImageViews(std::weak_ptr<SwapChainImageViews> imageViews) noexcept
 	{
-		this->imageViews = imageViews;
-	}
-
-	void FrameBuffer::SetRenderApi(const std::weak_ptr<RenderApi>& renderApi)
-	{
-		this->renderApi = renderApi;
-	}
-
-	void FrameBuffer::SetSwapChain(const std::weak_ptr<SwapChain>& swapChain)
-	{
-		this->swapChain = swapChain;
-	}
-
-	void FrameBuffer::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& logicalDevice)
-	{
-		this->logicalDevice = logicalDevice;
+		this->swapChainImageViews = std::move(imageViews);
 	}
 
 	const std::vector<VkFramebuffer>& FrameBuffer::GetSwapChainFrameBuffers() const
 	{
 		return swapChainFrameBuffers;
+	}
+
+	void FrameBuffer::AddImageView(VkImageView newImageView)
+	{
+		otherImageViews.emplace_back(newImageView);
+	}
+
+	void FrameBuffer::SetOtherImageViews(const std::vector<VkImageView>& imageViews)
+	{
+		otherImageViews = imageViews;
+	}
+
+	VkSampler FrameBuffer::GetTextureSampler() const
+	{
+		return textureSampler;
 	}
 }

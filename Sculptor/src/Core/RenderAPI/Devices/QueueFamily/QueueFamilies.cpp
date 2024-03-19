@@ -7,10 +7,9 @@
 namespace Sculptor::Core
 {
 	QueueFamilies::QueueFamilies()
-		:	graphicsQueue(nullptr),
-			presentQueue(nullptr)
-	{
-	}
+		:	graphicsQueue(VK_NULL_HANDLE),
+			presentQueue(VK_NULL_HANDLE)
+	{ }
 
 	void QueueFamilies::InstantiateAndFindQueueFamilies(std::weak_ptr<PhysicalDevice> weakPhysicalDevice,
 		std::weak_ptr<Windows::VulkanWindowSurface> weakWindowSurface)

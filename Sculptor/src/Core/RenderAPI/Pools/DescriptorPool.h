@@ -3,15 +3,18 @@
 #include "Core/Core.h"
 #include "Utilities/Macros.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
-#include "Core/RenderAPI/Data/Constants.h"
+#include "Core/Data/Constants.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
 	class DescriptorPool
 	{
 	public:
-		DescriptorPool() = default;
+		DescriptorPool()
+			:	descriptorPool(VK_NULL_HANDLE)
+		{ }
 
 		~DescriptorPool() = default;
 
@@ -44,11 +47,11 @@ namespace Sculptor::Core
 			poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			poolSizes[1].descriptorCount = descriptorCount;
 
-			VkDescriptorPoolCreateInfo poolInfo{};
-			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			poolInfo.poolSizeCount = static_cast<U32>(poolSizes.size());
-			poolInfo.pPoolSizes = poolSizes.data();
-			poolInfo.maxSets = descriptorCount;
+			const auto poolInfo = CreateInfo<VkDescriptorPoolCreateInfo>({
+				.maxSets		= descriptorCount,
+				.poolSizeCount	= static_cast<U32>(poolSizes.size()),
+				.pPoolSizes		= poolSizes.data()
+			});
 
 			VK_CHECK(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool.")
 		}
@@ -58,8 +61,6 @@ namespace Sculptor::Core
 			LOGICAL_DEVICE_LOCATOR
 
 			vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-
-			int i = 0;
 		}
 
 		const VkDescriptorPool& GetDescriptorPool() const
@@ -68,6 +69,6 @@ namespace Sculptor::Core
 		}
 
 	private:
-		VkDescriptorPool descriptorPool{};
+		VkDescriptorPool descriptorPool;
 	};
 }

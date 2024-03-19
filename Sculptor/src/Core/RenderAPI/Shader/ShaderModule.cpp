@@ -2,24 +2,19 @@
 
 #include "ShaderModule.h"
 
-#include "Core/Core.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Utilities/Macros.h"
 #include "Utilities/Utilities.h"
-#include "Utilities/Logger/Assert.h"
-#include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
-	ShaderModule::ShaderModule(const std::weak_ptr<LogicalDevice>& device)
-		:	logicalDevice(device)
+	ShaderModule::ShaderModule(std::weak_ptr<LogicalDevice> device) noexcept
+		:	logicalDevice(std::move(device))
 	{ }
 
 	void ShaderModule::DestroyShaderModules() const
 	{
-		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
-
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
 		vkDestroyShaderModule(device, fragmentShaderModule, nullptr);
@@ -28,31 +23,27 @@ namespace Sculptor::Core
 
 	void ShaderModule::CreateShaderStages()
 	{
-		LOGICAL_DEVICE_LOCATOR
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto& device = logicalDevicePtr->Get();
 
-		const auto vertexShaderCode = Utilities::ReadFile("./Assets/Shaders/vert.spv");
+		const auto vertexShaderCode   = Utilities::ReadFile("./Assets/Shaders/vert.spv");
 		const auto fragmentShaderCode = Utilities::ReadFile("./Assets/Shaders/frag.spv");
 
 		vertexShaderModule	 = Utilities::CreateShaderModule(vertexShaderCode, device);
 		fragmentShaderModule = Utilities::CreateShaderModule(fragmentShaderCode, device);
 
-		VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
-		vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertexShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertexShaderStageInfo.module = vertexShaderModule;
-		vertexShaderStageInfo.pName = "main";
+		const auto vertexShaderStageInfo = CreateInfo<VkPipelineShaderStageCreateInfo>({
+			.stage = VK_SHADER_STAGE_VERTEX_BIT,
+			.module = vertexShaderModule,
+			.pName = "main"
+		});
 
-		VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
-		fragmentShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragmentShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragmentShaderStageInfo.module = fragmentShaderModule;
-		fragmentShaderStageInfo.pName = "main";
+		const auto fragmentShaderStageInfo = CreateInfo<VkPipelineShaderStageCreateInfo>({
+			.stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.module = fragmentShaderModule,
+			.pName = "main"
+		});
 
 		shaderStages = { vertexShaderStageInfo, fragmentShaderStageInfo };
-	}
-
-	void ShaderModule::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
-	{
-		this->logicalDevice = device;
 	}
 }

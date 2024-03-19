@@ -6,14 +6,14 @@
 
 namespace Sculptor::Core
 {
-	TextureImageView::TextureImageView(std::weak_ptr<LogicalDevice> logicalDevicePtr) noexcept
-		:	logicalDevice(std::move(logicalDevicePtr)),
+	TextureImageView::TextureImageView(std::weak_ptr<LogicalDevice> device) noexcept
+		:	logicalDevice(std::move(device)),
 			textureImageView(nullptr)
 	{ }
 
 	void TextureImageView::Create(const VkImage image, VkFormat format /* = VK_FORMAT_R8G8B8A8_SRGB */)
 	{
-		textureImageView = CreateImageView(image, format);
+		textureImageView = CreateImageView(logicalDevice, image, format);
 	}
 
 	VkImageView TextureImageView::GetImageView() const

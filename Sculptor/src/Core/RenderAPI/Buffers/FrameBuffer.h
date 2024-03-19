@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
-	class RenderApi;
-	class SwapChainImageView;
-	class SwapChain;
+	class SwapChainImageViews;
 	class LogicalDevice;
+	class SwapChain;
+	class RenderApi;
 }
 
 namespace Sculptor::Core
@@ -15,36 +17,46 @@ namespace Sculptor::Core
 	public:
 		FrameBuffer() = default;
 
-		FrameBuffer(const std::weak_ptr<SwapChainImageView>& imageViews, const std::weak_ptr<RenderApi>& renderApi,
-			const std::weak_ptr<SwapChain>& swapChain, const std::weak_ptr<LogicalDevice>& logicalDevice);
+		FrameBuffer(std::weak_ptr<SwapChainImageViews> imageViews,
+					std::weak_ptr<RenderApi> renderApi,
+					std::weak_ptr<SwapChain> swapChain,
+					std::weak_ptr<LogicalDevice> logicalDevice) noexcept;
 
-		~FrameBuffer() = default;
+		~FrameBuffer();
 
 		void Create();
 
+		void CreateTextureSampler();
+
+		void DestroyTextureSampler();
+
 		void CleanUp() const;
 
-		void SetImageViews(const std::weak_ptr<SwapChainImageView>& imageViews);
-
-		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
-
-		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
-
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& logicalDevice);
+		void SetSwapChainImageViews(std::weak_ptr<SwapChainImageViews> imageViews) noexcept;
 
 		const std::vector<VkFramebuffer>& GetSwapChainFrameBuffers() const;
+
+		void AddImageView(VkImageView newImageView);
+
+		void SetOtherImageViews(const std::vector<VkImageView>& imageViews);
+
+		VkSampler GetTextureSampler() const;
+
+		LOGICAL_DEVICE
+
+		SWAP_CHAIN
+
+		RENDER_API
 
 	private:
 		std::vector<VkFramebuffer> swapChainFrameBuffers;
 
-		std::weak_ptr<SwapChainImageView> imageViews;
+		std::weak_ptr<SwapChainImageViews> swapChainImageViews;
 
-		std::weak_ptr<RenderApi> renderApi;
+		std::vector<VkImageView> otherImageViews;
 
-		std::weak_ptr<SwapChain> swapChain;
+		VkSampler textureSampler;
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		friend class CommandBuffer;
+		FRIEND(CommandBuffer)
 	};
 }

@@ -47,7 +47,7 @@ namespace Sculptor::Core
 
 		FRIEND(RenderApi)
 
-		FRIEND(SwapChainImageView)
+		FRIEND(SwapChainImageViews)
 
 		FRIEND(GraphicsPipeline)
 

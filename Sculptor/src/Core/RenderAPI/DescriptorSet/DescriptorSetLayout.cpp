@@ -6,35 +6,42 @@
 #include "Utilities/Macros.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
+	DescriptorSetLayout::DescriptorSetLayout()
+		:	descriptorSetLayout(VK_NULL_HANDLE)
+	{ }
+
 	void DescriptorSetLayout::Create()
 	{
-		VkDescriptorSetLayoutBinding uboLayoutBinding{};
-		uboLayoutBinding.binding = 0;
-		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;	// which shader stage UBO is in
-		uboLayoutBinding.pImmutableSamplers = nullptr;	// Optional: Used for image sampling related descriptors
-
-		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = static_cast<U32>(bindings.size());
-		layoutInfo.pBindings = bindings.data();
-
 		LOGICAL_DEVICE_LOCATOR
 
-		VK_CHECK(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout), "Failed to create descriptor set layout")
+		constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
+			.binding			= 0,
+			.descriptorType		= VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount	= 1,
+			.stageFlags			= VK_SHADER_STAGE_VERTEX_BIT,	// which shader stage UBO is in
+			.pImmutableSamplers = nullptr	// Optional: Used for image sampling related descriptors
+		};
+
+		constexpr VkDescriptorSetLayoutBinding samplerLayoutBinding{
+			.binding			= 1,
+			.descriptorType		= VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount	= 1,
+			.stageFlags			= VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = nullptr
+		};
+
+		constexpr std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+
+		const auto descriptorSetLayoutInfo = CreateInfo<VkDescriptorSetLayoutCreateInfo>({
+			.bindingCount	= static_cast<U32>(bindings.size()),
+			.pBindings		= bindings.data()
+		});
+
+		VK_CHECK(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout), "Failed to create descriptor set layout")
 	}
 
 	void DescriptorSetLayout::CleanUp() const
@@ -44,8 +51,13 @@ namespace Sculptor::Core
 		vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 	}
 
-	const VkDescriptorSetLayout& DescriptorSetLayout::GetDescriptorSetLayout() const
+	VkDescriptorSetLayout DescriptorSetLayout::GetDescriptorSetLayout() const
 	{
 		return descriptorSetLayout;
+	}
+
+	const VkDescriptorSetLayout* DescriptorSetLayout::GetDescriptorSetLayoutPointer() const
+	{
+		return &descriptorSetLayout;
 	}
 }

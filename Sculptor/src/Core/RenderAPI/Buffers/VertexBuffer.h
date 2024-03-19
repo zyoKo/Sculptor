@@ -17,26 +17,28 @@ namespace Sculptor::Core
 	public:
 		VertexBuffer() = default;
 
-		VertexBuffer(const std::weak_ptr<LogicalDevice>& device);
-
-		VertexBuffer(const BufferProperties& bufferProperties);
+		VertexBuffer(std::weak_ptr<LogicalDevice> device);
 
 		~VertexBuffer() = default;
 
-		void Create(const BufferProperties& bufferProperties);
+		void Create(const void* bufferData, uint64_t bufferSize);
 
-		//void Create(uint64_t bufferSize);
+		void BindBufferMemory(VkDeviceSize bufferSize) const;
 
-		void BindBufferMemory() const;
+		void BindBuffer(VkCommandBuffer cmdBuffer) const;
 
-		void Bind(const VkCommandBuffer& cmdBuffer) const;
-
-		void CleanUp() const;
+		void Destroy() const;
 
 		LOGICAL_DEVICE
 
 	private:
 		Buffer vertexBuffer;
+
+		inline static BufferProperties vertexBufferProperties{
+			0,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+		};
 
 		void AllocateMemory(const VkMemoryRequirements& memoryRequirements);
 

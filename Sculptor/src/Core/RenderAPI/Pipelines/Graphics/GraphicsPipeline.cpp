@@ -3,252 +3,175 @@
 #include "GraphicsPipeline.h"
 
 #include "Core/Core.h"
-#include "Core/RenderAPI/Data/Constants.h"
-#include "Core/RenderAPI/Structures/Scissor.h"
-#include "Core/RenderAPI/Structures/Viewport.h"
+#include "Core/Data/Constants.h"
+#include "Structures/Scissor.h"
+#include "Structures/Viewport.h"
 #include "Core/RenderAPI/RenderApi.h"
 #include "Core/RenderAPI/Buffers/Structures/Vertex.h"
 #include "Core/RenderAPI/SwapChains/SwapChain.h"
-#include "Utilities/Logger/Assert.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/RenderAPI/Shader/ShaderModule.h"
 #include "Core/RenderAPI/Buffers/VertexBuffer.h"
 #include "Core/RenderAPI/Buffers/IndexBuffer.h"
-#include "Core/RenderAPI/Buffers/Data/Constants.h"
-#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
-#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+//#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
+//#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
 	GraphicsPipeline::GraphicsPipeline()
-		:	currentFrame(0)
+		:	descriptorSetLayoutTest(VK_NULL_HANDLE),
+			pipelineLayout(VK_NULL_HANDLE),
+			graphicsPipeline(VK_NULL_HANDLE),
+			currentFrame(0)
 	{ }
 
-	GraphicsPipeline::GraphicsPipeline(const std::weak_ptr<RenderApi>& renderApi, 
-	                                   const std::weak_ptr<SwapChain>& swapChain, 
-	                                   const std::weak_ptr<LogicalDevice>& device)
-		:	renderApi(renderApi),
-			swapChain(swapChain),
-			logicalDevice(device),
+	GraphicsPipeline::GraphicsPipeline(std::weak_ptr<RenderApi> renderApi, std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> device) noexcept
+		:	descriptorSetLayoutTest(VK_NULL_HANDLE),
+			logicalDevice(std::move(device)),
+			swapChain(std::move(swapChain)),
+			renderApi(std::move(renderApi)),
+			pipelineLayout(VK_NULL_HANDLE),
+			graphicsPipeline(VK_NULL_HANDLE),
+			shaderModule(std::make_shared<ShaderModule>(logicalDevice)),
 			currentFrame(0)
-	{
-		shaderModule = std::make_shared<ShaderModule>(device);
-	}
+	{ }
 
 	void GraphicsPipeline::Create()
 	{
-		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.");
-
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
+
+		GetShared<RenderApi> renderApiPtr{ renderApi };
+		const auto renderPass = renderApiPtr->renderPass;
+
+		GetShared<SwapChain> swapChainPtr { swapChain };
+		const Viewport viewPort(swapChainPtr->swapChainExtent);
+		const Scissor scissor(swapChainPtr->swapChainExtent);
 
 		shaderModule->CreateShaderStages();
 
 		auto bindingDesc = Vertex::GetBindingDescription(0, sizeof(Vertex));
 		auto attributeDesc = Vertex::GetAttributeDescription();
 
-		VkPipelineVertexInputStateCreateInfo vertexInput{};
-		vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInput.vertexBindingDescriptionCount = 1;
-		vertexInput.pVertexBindingDescriptions = &bindingDesc;
-		vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
-		vertexInput.pVertexAttributeDescriptions = attributeDesc.data();
+		const auto vertexInput = CreateInfo<VkPipelineVertexInputStateCreateInfo>({
+			.vertexBindingDescriptionCount	 = 1,
+			.pVertexBindingDescriptions		 = &bindingDesc,
+			.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size()),
+			.pVertexAttributeDescriptions	 = attributeDesc.data()
+		});
 
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		const auto inputAssembly = CreateInfo<VkPipelineInputAssemblyStateCreateInfo>({
+			.topology				= VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+			.primitiveRestartEnable = VK_FALSE
+		});
 
-		// Following are the possible topologies:
-		// - VK_PRIMITIVE_TOPOLOGY_POINT_LIST
-		// - VK_PRIMITIVE_TOPOLOGY_LINE_LIST
-		// - VK_PRIMITIVE_TOPOLOGY_LINE_STRIP // only when primitiveRestartEnable flag is set to VK_TRUE
-		// - VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST // probably used below
-		// - VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		const auto dynamicStateInfo = CreateInfo<VkPipelineDynamicStateCreateInfo>({
+			.dynamicStateCount	= static_cast<uint32_t>(DYNAMIC_STATES.size()),
+			.pDynamicStates		= DYNAMIC_STATES.data()
+		});
 
-		// with VK_TRUE here we could break up lines and triangles into _STRIP topology
-		// topology modes uses special index of '0xFFFF' or '0xFFFFFFFF'.
-		inputAssembly.primitiveRestartEnable = VK_FALSE;
+		const auto viewportState = CreateInfo<VkPipelineViewportStateCreateInfo>({
+			.viewportCount	= 1,
+			.pViewports		= &viewPort.vkViewPort,
+			.scissorCount	= 1,
+			.pScissors		= &scissor.scissor
+		});
 
-		VkPipelineDynamicStateCreateInfo dynamicState{};
-		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicState.dynamicStateCount = static_cast<uint32_t>(DYNAMIC_STATES.size());
-		dynamicState.pDynamicStates = DYNAMIC_STATES.data();
-
-		const auto swapChainPtr = swapChain.lock();
-		if (!swapChainPtr)
-		{
-			std::cerr << "SwapChain is null while creating graphics pipeline!" << std::endl;
-			return;
-		}
-
-		const Viewport viewPort(swapChainPtr->swapChainExtent);
-		const Scissor scissor(swapChainPtr->swapChainExtent);
-
-		// Info: Using multiple viewport can only be possible if the GPU supports it
-		//       This needs to be enabled while creating LogicalDevice creation process
-		VkPipelineViewportStateCreateInfo viewportState{};
-		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = 1;
-		viewportState.pViewports = &viewPort.vkViewPort;
-		viewportState.scissorCount = 1;
-		viewportState.pScissors = &scissor.scissor;
-
-		VkPipelineRasterizationStateCreateInfo rasterizer{};
-		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-
-		// VK_TRUE then fragments that are beyond the near and far planes are clamped and discarded beyond this range
-		rasterizer.depthClampEnable = VK_FALSE;
-
-		// Types of polygonModes:
-		// - VK_POLYGON_MODE_POINT
-		// - VK_POLYGON_MODE_LINE
-		// ...
-		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-
-		// if set to VK_TRUE then geometry never passes through rasterization phase,
-		// basically disables any output the frame-buffer
-		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-
-		// 
-		rasterizer.lineWidth = DEFAULT_LINE_WIDTH_FOR_RASTERIZER;
-
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-
-		rasterizer.depthBiasEnable = VK_FALSE;
-		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-		rasterizer.depthBiasClamp = 0.0f; // Optional
-		rasterizer.depthBiasSlopeFactor = 0.0f;	// Optional
+		const auto rasterizer = CreateInfo<VkPipelineRasterizationStateCreateInfo>({
+			.polygonMode = VK_POLYGON_MODE_FILL,
+			.cullMode	 = VK_CULL_MODE_BACK_BIT,
+			.frontFace	 = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+			.lineWidth	 = DEFAULT_LINE_WIDTH_FOR_RASTERIZER
+		});
 
 		// Multi-Sampling phase (later)
-		VkPipelineMultisampleStateCreateInfo multiSampling{};
-		multiSampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multiSampling.sampleShadingEnable = VK_FALSE;
-		multiSampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-		multiSampling.minSampleShading = 1.0f; // Optional
-		multiSampling.pSampleMask = nullptr; // Optional
-		multiSampling.alphaToCoverageEnable = VK_FALSE; // Optional
-		multiSampling.alphaToOneEnable = VK_FALSE; // Optional
+		const auto multiSampling = CreateInfo<VkPipelineMultisampleStateCreateInfo>();
 
 		// Depth and Stencil (later)
-		//VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo{};
-		//depthStencilStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		const auto depthStencil = CreateInfo<VkPipelineDepthStencilStateCreateInfo>({
+			.depthTestEnable		= VK_TRUE,
+			.depthWriteEnable		= VK_TRUE,
+			.depthCompareOp			= VK_COMPARE_OP_LESS,
+			.depthBoundsTestEnable	= VK_FALSE,
+			.stencilTestEnable		= VK_FALSE,
+			.front					= {},
+			.back					= {},
+			.minDepthBounds			= 0.0f,
+			.maxDepthBounds			= 1.0f
+		});
 
-		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = 
-			VK_COLOR_COMPONENT_R_BIT | 
-			VK_COLOR_COMPONENT_G_BIT | 
-			VK_COLOR_COMPONENT_B_BIT | 
-			VK_COLOR_COMPONENT_A_BIT;
+		constexpr VkPipelineColorBlendAttachmentState colorBlendAttachment{
+			.blendEnable			= VK_FALSE,
+			.srcColorBlendFactor	= VK_BLEND_FACTOR_ONE,
+			.dstColorBlendFactor	= VK_BLEND_FACTOR_ZERO,
+			.colorBlendOp			= VK_BLEND_OP_ADD,
+			.srcAlphaBlendFactor	= VK_BLEND_FACTOR_ONE,
+			.dstAlphaBlendFactor	= VK_BLEND_FACTOR_ZERO,
+			.alphaBlendOp			= VK_BLEND_OP_ADD,
+			.colorWriteMask			= VK_COLOR_COMPONENT_R_BIT | 
+									  VK_COLOR_COMPONENT_G_BIT | 
+									  VK_COLOR_COMPONENT_B_BIT | 
+									  VK_COLOR_COMPONENT_A_BIT
+		};
 
-		// since it's VK_FALSE no blending is done
-		// else the following pseudo code happens
-		// if (blendEnable)
-		// {
-		//		finalColor.rgb = (srcColorBlendFactor * newColor.rgb) <colorBlendOp> (dstColorBlendFactor * oldColor.rgb);
-		//		finalColor.a = (srcAlphaBlendFactor * newColor.a) <alphaBlendOp> (dstAlphaBlendFactor * oldColor.a);
-	    // }
-	    // else
-	    // {
-		//		finalColor = newColor;
-		// }
-		//
-		// finalColor = finalColor & colorWriteMask;
-		colorBlendAttachment.blendEnable = VK_FALSE;
-
-		// Optional
-		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-		// alpha blending can be achieved as this
-		// colorBlendAttachment.blendEnable = VK_TRUE;
-		// colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		// colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		// colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		// colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		// colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		// colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-		// this operation can also be achieved using VkBlendFactor or VkBlendOp enumerations in the specification
-
-		VkPipelineColorBlendStateCreateInfo colorBlending{};
-		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlending.logicOpEnable = VK_FALSE;
-		colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
-		colorBlending.attachmentCount = 1;
-		colorBlending.pAttachments = &colorBlendAttachment;
-
-		// Optional
-		colorBlending.blendConstants[0] = 0.0f;
-		colorBlending.blendConstants[1] = 0.0f;
-		colorBlending.blendConstants[2] = 0.0f;
-		colorBlending.blendConstants[3] = 0.0f;
+		const auto colorBlending = CreateInfo<VkPipelineColorBlendStateCreateInfo>({
+			.attachmentCount = 1,
+			.pAttachments	 = &colorBlendAttachment
+		});
 
 		// Finally Creating Pipeline Layout
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		//GetShared<DescriptorSetLayout> descriptorSetLayoutPtr{ descriptorSetLayout };
+		//uint32_t setLayoutCount = 0;
+		//const VkDescriptorSetLayout* newDescriptorSet{ VK_NULL_HANDLE };
+		//if (descriptorSetLayoutPtr.IsValid())
+		//{
+		//	setLayoutCount = 1;
+		//	newDescriptorSet = descriptorSetLayoutPtr->GetDescriptorSetLayoutPointer();
+		//}
 
-		const auto descriptorSetPtr = descriptorSetLayout.lock();
-		if (!descriptorSetPtr)
-		{
-			pipelineLayoutInfo.setLayoutCount = 0;
-			pipelineLayoutInfo.pSetLayouts = nullptr;
-		}
-		else
-		{
-			pipelineLayoutInfo.setLayoutCount = 1;
-			pipelineLayoutInfo.pSetLayouts = &descriptorSetPtr->GetDescriptorSetLayout();
-		}
+		U32 setLayoutCount = (descriptorSetLayoutTest == VK_NULL_HANDLE) ? 0 : 1;
+		const VkDescriptorSetLayout newDescriptorSet{ descriptorSetLayoutTest };
 
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+		const auto pipelineLayoutInfo = CreateInfo<VkPipelineLayoutCreateInfo>({
+			.setLayoutCount			= setLayoutCount,
+			.pSetLayouts			= &newDescriptorSet,
+			.pushConstantRangeCount = 0,
+			.pPushConstantRanges	= VK_NULL_HANDLE
+		});
 
-		VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout), "Failed to create Pipeline Layout!")
+		VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, VK_NULL_HANDLE, &pipelineLayout), "Failed to create Pipeline Layout!")
 
-		VkGraphicsPipelineCreateInfo graphicsPipelineInfo{};
-		graphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		graphicsPipelineInfo.stageCount = 2;
-		graphicsPipelineInfo.pStages = shaderModule->shaderStages.data();
-		graphicsPipelineInfo.pVertexInputState = &vertexInput;
-		graphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
-		graphicsPipelineInfo.pViewportState = &viewportState;
-		graphicsPipelineInfo.pRasterizationState = &rasterizer;
-		graphicsPipelineInfo.pMultisampleState = &multiSampling;
-		graphicsPipelineInfo.pDepthStencilState = nullptr; // Optional (later)
-		graphicsPipelineInfo.pColorBlendState = &colorBlending;
-		graphicsPipelineInfo.pDynamicState = &dynamicState;
-		graphicsPipelineInfo.layout = pipelineLayout;
+		const auto graphicsPipelineInfo = CreateInfo<VkGraphicsPipelineCreateInfo>({
+			.stageCount				= 2,
+			.pStages				= shaderModule->shaderStages.data(),
+			.pVertexInputState		= &vertexInput,
+			.pInputAssemblyState	= &inputAssembly,
+			.pViewportState			= &viewportState,
+			.pRasterizationState	= &rasterizer,
+			.pMultisampleState		= &multiSampling,
+			.pDepthStencilState		= &depthStencil, // Optional (later)
+			.pColorBlendState		= &colorBlending,
+			.pDynamicState			= &dynamicStateInfo,
+			.layout					= pipelineLayout,
+			.renderPass				= renderPass,
+			.subpass				= 0,
+			.basePipelineHandle		= VK_NULL_HANDLE, // Optional
+			.basePipelineIndex		= -1 // Optional
+		});
 
-		const auto renderApiPtr = renderApi.lock();
-		if (!renderApiPtr)
-		{
-			std::cerr << "Initialize and Set Render Api before creating graphics pipeline.\n";
-			return;
-		}
-
-		graphicsPipelineInfo.renderPass = renderApiPtr->renderPass;
-		graphicsPipelineInfo.subpass = 0;
-		graphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-		graphicsPipelineInfo.basePipelineIndex = -1; // Optional
-
-		VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, nullptr, &graphicsPipeline), "Failed to create graphics pipeline.")
+		VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, VK_NULL_HANDLE, &graphicsPipeline), "Failed to create graphics pipeline.")
 
 		shaderModule->DestroyShaderModules();
 	}
 
 	void GraphicsPipeline::CleanUp() const
 	{
-		const auto& logicalDevicePtr = logicalDevice.lock();
-		S_ASSERT(!logicalDevicePtr, "Failed to create shader module.")
-
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
 		const auto& device = logicalDevicePtr->Get();
 
-		vkDestroyPipeline(device, graphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+		vkDestroyPipeline(device, graphicsPipeline, VK_NULL_HANDLE);
+		vkDestroyPipelineLayout(device, pipelineLayout, VK_NULL_HANDLE);
 	}
 
 	void GraphicsPipeline::BindGraphicsPipeline(const CommandBuffer& commandBuffer) const
@@ -256,17 +179,21 @@ namespace Sculptor::Core
 		vkCmdBindPipeline(commandBuffer.GetBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 	}
 
-	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize /* = 0 */) const
+	void GraphicsPipeline::Draw(const CommandBuffer& commandBuffer) const
 	{
-		const auto swapChainPtr = swapChain.lock();
-		if (!swapChainPtr)
-		{
-			std::cerr << "Failed to execute draw command as swap chain reference is null.\n";
-			return;
-		}
+		const auto& cmdBuffer = commandBuffer.GetBuffer();
+
+		GetShared<VertexBuffer> vertexBufferPtr{ vertexBuffer };
+		vertexBufferPtr->BindBuffer(cmdBuffer);
+
+		GetShared<IndexBuffer> indexBufferPtr{ indexBuffer };
+		indexBufferPtr->BindBuffer(cmdBuffer);
+
+		GetShared<SwapChain> swapChainPtr{ swapChain };
 		const auto& swapChainExtent = swapChainPtr->swapChainExtent;
 
-		const auto& cmdBuffer = commandBuffer.GetBuffer();
+		//GetShared<DescriptorSets> descriptorSetPtr{ descriptorSets };
+		//const auto& descSets = descriptorSetPtr->GetDescriptorSets();
 
 		const Viewport viewPort{ swapChainExtent };
 		vkCmdSetViewport(cmdBuffer, 0, 1, &viewPort.vkViewPort);
@@ -274,73 +201,33 @@ namespace Sculptor::Core
 		const Scissor scissor{ swapChainExtent };
 		vkCmdSetScissor(cmdBuffer, 0, 1, &scissor.scissor);
 
-		const auto vertexBufferPtr = vertexBuffer.lock();
-		if (!vertexBufferPtr)
-		{
-			int i = 0;
-		}
-		vertexBufferPtr->Bind(cmdBuffer);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetsTest[currentFrame], 0, nullptr);
 
-		const auto indexBufferPtr = indexBuffer.lock();
-		if (!indexBufferPtr)
-		{
-			int i = 0;
-		}
-		indexBufferPtr->BindBuffer(cmdBuffer);
-
-		const auto descriptorSetPtr = descriptorSets.lock();
-		S_ASSERT(!descriptorSetPtr, "Descriptor Set is null.")
-		const auto& descSets = descriptorSetPtr->GetDescriptorSets();
-
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descSets[currentFrame], 0, nullptr);
-
-		//if (bufferSize != 0)
-		//{
-		//	vkCmdDraw(cmdBuffer, bufferSize, 1, 0, 0);
-		//}
-		//else
-		{
-			vkCmdDrawIndexed(cmdBuffer, static_cast<uint32_t>(INDICES.size()), 1, 0, 0, 0);
-		}
+		vkCmdDrawIndexed(cmdBuffer, 36, 1, 0, 0, 0);
 	}
 
-	void GraphicsPipeline::UpdateCurrentFrame(uint32_t newFrame)
+	void GraphicsPipeline::SetCurrentFrame(U32 newFrame) noexcept
 	{
 		currentFrame = newFrame;
 	}
 
-	void GraphicsPipeline::SetRenderApi(const std::weak_ptr<RenderApi>& renderApi)
+	void GraphicsPipeline::SetVertexBuffer(std::weak_ptr<VertexBuffer> buffer) noexcept
 	{
-		this->renderApi = renderApi;
+		this->vertexBuffer = std::move(buffer);
 	}
 
-	void GraphicsPipeline::SetSwapChain(const std::weak_ptr<SwapChain>& swapChain)
+	void GraphicsPipeline::SetIndexBuffer(std::weak_ptr<IndexBuffer> buffer) noexcept
 	{
-		this->swapChain = swapChain;
+		this->indexBuffer = std::move(buffer);
 	}
 
-	void GraphicsPipeline::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
-	{
-		this->logicalDevice = device;
-	}
-
-	void GraphicsPipeline::SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer)
-	{
-		this->vertexBuffer = buffer;
-	}
-
-	void GraphicsPipeline::SetIndexBuffer(const std::weak_ptr<IndexBuffer>& buffer)
-	{
-		this->indexBuffer = buffer;
-	}
-
-	void GraphicsPipeline::SetDescriptorSetLayout(const std::weak_ptr<DescriptorSetLayout>& descriptorSetLayout)
-	{
-		this->descriptorSetLayout = descriptorSetLayout;
-	}
-
-	void GraphicsPipeline::SetDescriptorSets(const std::weak_ptr<DescriptorSets>& descriptorSets)
-	{
-		this->descriptorSets = descriptorSets;
-	}
+	//void GraphicsPipeline::SetDescriptorSetLayout(std::weak_ptr<DescriptorSetLayout> descriptorSetLayout) noexcept
+	//{
+	//	this->descriptorSetLayout = std::move(descriptorSetLayout);
+	//}
+	//
+	//void GraphicsPipeline::SetDescriptorSets(std::weak_ptr<DescriptorSets> descriptorSets) noexcept
+	//{
+	//	this->descriptorSets = std::move(descriptorSets);
+	//}
 }

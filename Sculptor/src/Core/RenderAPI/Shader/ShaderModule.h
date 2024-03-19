@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utilities/Macros.h"
+
 namespace Sculptor::Core
 {
 	class RenderApi;
@@ -13,7 +15,7 @@ namespace Sculptor::Core
 	public:
 		ShaderModule() = default;
 
-		ShaderModule(const std::weak_ptr<LogicalDevice>& device);
+		ShaderModule(std::weak_ptr<LogicalDevice> device) noexcept;
 
 		~ShaderModule() = default;
 
@@ -21,7 +23,7 @@ namespace Sculptor::Core
 
 		void CreateShaderStages();
 
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+		LOGICAL_DEVICE
 
 	private:
 		VkShaderModule vertexShaderModule{};
@@ -30,10 +32,6 @@ namespace Sculptor::Core
 
 		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{};
 
-		std::weak_ptr<LogicalDevice> logicalDevice;
-
-		std::weak_ptr<RenderApi> renderApi;
-
-		friend class GraphicsPipeline;
+		FRIEND(GraphicsPipeline)
 	};
 }

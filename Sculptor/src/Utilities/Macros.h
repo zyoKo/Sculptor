@@ -11,7 +11,7 @@
 	private: \
 		std::weak_ptr<VulkanInstanceWrapper> vulkanInstanceWrapper; \
 	public: \
-		void SetVulkanInstance(std::weak_ptr<VulkanInstanceWrapper> instance) noexcept \
+		inline void SetVulkanInstance(std::weak_ptr<VulkanInstanceWrapper> instance) noexcept \
 		{ \
 			this->vulkanInstanceWrapper = std::move(instance); \
 		}
@@ -31,9 +31,9 @@
 // Logical Device ///////////////////////////////////////////////////////////
 #define LOGICAL_DEVICE \
 	private: \
-		std::weak_ptr<LogicalDevice> logicalDevice; \
+		std::weak_ptr<Sculptor::Core::LogicalDevice> logicalDevice; \
 	public: \
-		void SetLogicalDevice(std::weak_ptr<LogicalDevice> device) noexcept \
+		inline void SetLogicalDevice(std::weak_ptr<Sculptor::Core::LogicalDevice> device) noexcept \
 		{ \
 			this->logicalDevice = std::move(device); \
 		}
@@ -66,7 +66,7 @@
 	private: \
 		std::weak_ptr<CommandBuffer> commandBuffer; \
 	public: \
-		void SetCommandBuffer(std::weak_ptr<CommandBuffer> buffer) noexcept \
+		inline void SetCommandBuffer(std::weak_ptr<CommandBuffer> buffer) noexcept \
 		{ \
 			this->commandBuffer = std::move(buffer); \
 		}
@@ -102,9 +102,22 @@
 	private: \
 		std::weak_ptr<SwapChain> swapChain; \
 	public: \
-		void SetSwapChain(std::weak_ptr<SwapChain> swapChainPtr) noexcept \
+		inline void SetSwapChain(std::weak_ptr<SwapChain> swapChainPtr) noexcept \
 		{ \
 			this->swapChain = std::move(swapChainPtr); \
 		}
 // Swap Chain ///////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Render Api ///////////////////////////////////////////////////////////////
+#define RENDER_API \
+	private: \
+		std::weak_ptr<RenderApi> renderApi; \
+	public: \
+		inline void SetRenderApi(std::weak_ptr<RenderApi> renderApiPtr) noexcept \
+		{ \
+			this->renderApi = std::move(renderApiPtr); \
+		}
+// Render Api ///////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

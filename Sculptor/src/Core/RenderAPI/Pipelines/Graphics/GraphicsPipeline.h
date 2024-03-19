@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
+#include "Utilities/Macros.h"
 
 namespace Sculptor::Core
 {
@@ -21,8 +22,7 @@ namespace Sculptor::Core
 	public:
 		GraphicsPipeline();
 
-		GraphicsPipeline(const std::weak_ptr<RenderApi>& renderApi, const std::weak_ptr<SwapChain>& swapChain,
-			const std::weak_ptr<LogicalDevice>& device);
+		GraphicsPipeline(std::weak_ptr<RenderApi> renderApi, std::weak_ptr<SwapChain> swapChain, std::weak_ptr<LogicalDevice> device) noexcept;
 
 		void Create();
 
@@ -30,44 +30,42 @@ namespace Sculptor::Core
 
 		void BindGraphicsPipeline(const CommandBuffer& commandBuffer) const;
 
-		void Draw(const CommandBuffer& commandBuffer, uint32_t bufferSize = 0) const;
+		void Draw(const CommandBuffer& commandBuffer) const;
 
-		void UpdateCurrentFrame(uint32_t newFrame);
+		void SetCurrentFrame(U32 newFrame) noexcept;
 
-		void SetRenderApi(const std::weak_ptr<RenderApi>& renderApi);
+		void SetVertexBuffer(std::weak_ptr<VertexBuffer> buffer) noexcept;
 
-		void SetSwapChain(const std::weak_ptr<SwapChain>& swapChain);
+		void SetIndexBuffer(std::weak_ptr<IndexBuffer> buffer) noexcept;
 
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+		//void SetDescriptorSetLayout(std::weak_ptr<DescriptorSetLayout> descriptorSetLayout) noexcept;
 
-		void SetVertexBuffer(const std::weak_ptr<VertexBuffer>& buffer);
+		//void SetDescriptorSets(std::weak_ptr<DescriptorSets> descriptorSets) noexcept;
 
-		void SetIndexBuffer(const std::weak_ptr<IndexBuffer>& buffer);
+		std::vector<VkDescriptorSet> descriptorSetsTest;
 
-		void SetDescriptorSetLayout(const std::weak_ptr<DescriptorSetLayout>& descriptorSetLayout);
+		VkDescriptorSetLayout descriptorSetLayoutTest;
 
-		void SetDescriptorSets(const std::weak_ptr<DescriptorSets>& descriptorSets);
+		LOGICAL_DEVICE
+
+		SWAP_CHAIN
+
+		RENDER_API
 
 	private:
-		VkPipelineLayout pipelineLayout{};
+		VkPipelineLayout pipelineLayout;
 
-		VkPipeline graphicsPipeline{};
+		VkPipeline graphicsPipeline;
 
 		std::shared_ptr<ShaderModule> shaderModule;
-
-		std::weak_ptr<RenderApi> renderApi;
-
-		std::weak_ptr<SwapChain> swapChain;
-
-		std::weak_ptr<LogicalDevice> logicalDevice;
 
 		std::weak_ptr<VertexBuffer> vertexBuffer;
 
 		std::weak_ptr<IndexBuffer> indexBuffer;
 
-		std::weak_ptr<DescriptorSetLayout> descriptorSetLayout;
+		//std::weak_ptr<DescriptorSetLayout> descriptorSetLayout;
 
-		std::weak_ptr<DescriptorSets> descriptorSets;
+		//std::weak_ptr<DescriptorSets> descriptorSets;
 
 		uint32_t currentFrame;
 	};

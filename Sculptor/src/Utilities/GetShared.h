@@ -1,13 +1,15 @@
 #pragma once
 
+#include "Logger/Assert.h"
+
 namespace Sculptor
 {
 	template <typename T>
 	class GetShared
 	{
 	public:
-		GetShared(std::weak_ptr<T> weakPtr)
-			:	weakReference(weakPtr)
+		GetShared(std::weak_ptr<T> weakPtr) noexcept
+			:	weakReference(std::move(weakPtr))
 		{ }
 
 		bool operator==(std::nullptr_t)
@@ -26,9 +28,10 @@ namespace Sculptor
 
 		std::shared_ptr<T> operator->()
 		{
-			const auto sharedPtr = weakReference.lock();
+			auto sharedPtr = weakReference.lock();
 
 			const bool isValid = Validate(sharedPtr);
+			S_ASSERT(isValid == false, "Weak Pointer is invalid!")
 
 			if (!isValid)
 			{
@@ -36,6 +39,11 @@ namespace Sculptor
 			}
 
 			return sharedPtr;
+		}
+
+		bool IsValid() noexcept
+		{
+			return !weakReference.expired();
 		}
 
 	private:

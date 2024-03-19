@@ -20,13 +20,9 @@ namespace Sculptor::Core
 
 		~DescriptorSets() = default;
 
-		void Allocate(const std::vector<std::weak_ptr<DescriptorSetLayout>>& descriptorSetLayouts,
-			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList);
-
 		void Allocate(const std::weak_ptr<DescriptorSetLayout>& weakDescriptorSetLayout, 
-			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList);
+					  const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
+					  const std::tuple<VkImageView, VkSampler>& textureDataList);
 
 		const std::vector<VkDescriptorSet>& GetDescriptorSets() const;
 
@@ -34,7 +30,7 @@ namespace Sculptor::Core
 		std::vector<VkDescriptorSet> descriptorSets;
 
 		void AllocateAndUpdateDescriptorSets(const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts,
-			const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
-			const std::vector<std::tuple<TextureImageView, TextureSampler>>& textureDataList);
+											 const std::vector<std::shared_ptr<UniformBuffer>>& uniformBuffers,
+											 const std::tuple<VkImageView, VkSampler>& textureDataList);
 	};
 }

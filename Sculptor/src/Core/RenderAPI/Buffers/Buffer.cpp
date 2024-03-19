@@ -2,16 +2,21 @@
 
 #include "Buffer.h"
 
-#include "CommandBuffer.h"
 #include "VertexBuffer.h"
 #include "Core/Core.h"
-#include "Core/Locators/CommandPoolLocator.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
+#include "Utilities/BufferUtility.h"
 #include "Utilities/GetShared.h"
 
 namespace Sculptor::Core
 {
+	Buffer::Buffer()
+		:	buffer{ VK_NULL_HANDLE },
+			bufferMemory{ VK_NULL_HANDLE }
+	{ }
+
 	void Buffer::Create(const BufferProperties& properties)
 	{
 		LOGICAL_DEVICE_LOCATOR
@@ -19,46 +24,27 @@ namespace Sculptor::Core
 		GetShared physicalDevicePtr(logicalDevicePtr->GetPhysicalDevice());
 		const auto physicalDevice = physicalDevicePtr->GetPrimaryDevice();
 
-		const VkBufferCreateInfo bufferInfo{
-			VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-			nullptr,
-			0,
-			properties.bufferSize,
-			properties.usageFlags,
-			VK_SHARING_MODE_EXCLUSIVE,
-			0,
-			nullptr
-		};
+		const auto bufferInfo = CreateInfo<VkBufferCreateInfo>({
+			.size = properties.bufferSize,
+			.usage = properties.usageFlags,
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.queueFamilyIndexCount = 0,
+			.pQueueFamilyIndices = VK_NULL_HANDLE
+		});
 
 		VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer), "Failed to create buffer!")
 
 		VkMemoryRequirements memRequirements;
 		vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
-		const VkMemoryAllocateInfo allocInfo{
-			VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-			nullptr,
-			memRequirements.size,
-			FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties.propertyFlags)
-		};
-		
-		VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory), "Failed to allocate buffer memory.")
+		const auto allocInfo = CreateInfo<VkMemoryAllocateInfo>({
+			.allocationSize = memRequirements.size,
+			.memoryTypeIndex = BufferUtility::FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties.propertyFlags)
+		});
+
+		VK_CHECK(vkAllocateMemory(device, &allocInfo, VK_NULL_HANDLE, &bufferMemory), "Failed to allocate buffer memory.")
 
 		BindBufferMemory();
-	}
-
-	void Buffer::Copy(const Buffer& source, const Buffer& destination, VkDeviceSize size)
-	{
-		COMMAND_POOL_LOCATOR
-
-		LOGICAL_DEVICE_LOCATOR
-
-		const VkCommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommand(cmdPool, device);
-
-		const VkBufferCopy copyRegion{0, 0, size};
-		vkCmdCopyBuffer(commandBuffer, source.GetBuffer(), destination.GetBuffer(), 1, &copyRegion);
-
-		CommandBuffer::EndSingleTimeCommand(commandBuffer);
 	}
 
 	void Buffer::Destroy() const
@@ -69,10 +55,25 @@ namespace Sculptor::Core
 		vkFreeMemory(device, bufferMemory, nullptr);
 	}
 
-	void Buffer::BindBufferMemory() const
+	void Buffer::BindBufferMemory(VkDeviceSize bufferSize /* = 0 */) const
 	{
 		LOGICAL_DEVICE_LOCATOR
 
-		vkBindBufferMemory(device, buffer, bufferMemory, 0);
+		vkBindBufferMemory(device, buffer, bufferMemory, bufferSize);
+	}
+
+	VkBuffer Buffer::GetBuffer() const
+	{
+		return buffer;
+	}
+
+	VkDeviceMemory Buffer::GetBufferMemory() const
+	{
+		return bufferMemory;
+	}
+
+	Buffer::operator VkBuffer() const
+	{
+		return buffer;
 	}
 }

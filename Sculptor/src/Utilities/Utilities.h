@@ -11,8 +11,10 @@ namespace Sculptor
 
 		static VkShaderModule CreateShaderModule(const std::vector<char>& code, const VkDevice& device);
 
-		static stbi_uc* LoadTexture(const std::string& fileName, VkDeviceSize& imageSize, int* textureWidth, int* textureHeight);
+		static stbi_uc* LoadTexture(const std::string& filePath, VkDeviceSize& imageSize, int* textureWidth, int* textureHeight);
 
 		static void DestroyTexture(stbi_uc* texture);
+
+		static std::string ExtractFileNameFromFilePath(std::string fileName);
 	};
 }

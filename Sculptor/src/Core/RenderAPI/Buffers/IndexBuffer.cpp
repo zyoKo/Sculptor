@@ -3,45 +3,36 @@
 #include "IndexBuffer.h"
 
 #include "Buffer.h"
-#include "VertexBuffer.h"
-#include "Core/Locators/LogicalDeviceLocator.h"
+#include "StagingBuffer.h"
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Data/Constants.h"
 
 namespace Sculptor::Core
 {
-	void IndexBuffer::Create(const BufferProperties& bufferProperties)
+	IndexBuffer::IndexBuffer(std::weak_ptr<LogicalDevice> device)
+		:	logicalDevice(std::move(device))
+	{ }
+
+	void IndexBuffer::Create(const void* bufferData, uint64_t bufferSize)
 	{
-		LOGICAL_DEVICE_LOCATOR;
+		std::cout << "Creating IndexBuffer!\n";
 
-		Buffer stagingBuffer{};
-		stagingBuffer.Create(bufferProperties);
+		indexBufferProperties.bufferSize = bufferSize;
+		indexBuffer.Create(indexBufferProperties);
 
-		void* data;
-		vkMapMemory(device, stagingBuffer.GetBufferMemory(), 0, bufferProperties.bufferSize, 0, &data);
-		memcpy(data, INDICES.data(), static_cast<size_t>(bufferProperties.bufferSize));
-		vkUnmapMemory(device, stagingBuffer.GetBufferMemory());
-
-		const BufferProperties indexBufferProperties{
-			bufferProperties.bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-		};
-
-		Buffer::Create(indexBufferProperties);
-
-		Buffer::Copy(stagingBuffer, *this, indexBufferProperties.bufferSize);
-
-		stagingBuffer.Destroy();
+		StagingBuffer stagingBuffer{ logicalDevice };
+		stagingBuffer.CreateBuffer(bufferData, bufferSize);
+		stagingBuffer.CopyBuffer(indexBuffer, bufferSize);
+		stagingBuffer.DestroyBuffer();
 	}
 
-	void IndexBuffer::BindBuffer(const VkCommandBuffer& commandBuffer) const
+	void IndexBuffer::BindBuffer(VkCommandBuffer commandBuffer) const
 	{
-		vkCmdBindIndexBuffer(commandBuffer, buffer, 0, VK_INDEX_TYPE_UINT16);
+		// TODO: Based on number of indices make an adapter function to change this flag VK_INDEX_TYPE_UINT16 / VK_INDEX_TYPE_UINT32 / etc.
+		vkCmdBindIndexBuffer(commandBuffer, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	}
 
-	void IndexBuffer::CleanUp() const
+	void IndexBuffer::Destroy() const
 	{
-		Buffer::Destroy();
+		indexBuffer.Destroy();
 	}
 }

@@ -3,23 +3,21 @@
 #include "LogicalDevice.h"
 
 #include "Core/RenderAPI/RenderApi.h"
-#include "Core/RenderAPI/Data/Constants.h"
+#include "Core/Data/Constants.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Utilities/Logger/Assert.h"
 
 namespace Sculptor::Core
 {
 	LogicalDevice::LogicalDevice()
-		:	logicalDevice(nullptr),
+		:	logicalDevice(VK_NULL_HANDLE),
 			physicalDevice(std::make_shared<PhysicalDevice>())
 	{
 		// Enable Anisotropy
 		physicalDevice->SetAnisotropyFeatures(true);
 	}
 
-	void LogicalDevice::Create(
-		const std::weak_ptr<VulkanInstanceWrapper>& instance,
-		const std::weak_ptr<ValidationLayer>& validationLayer, 
-		const std::weak_ptr<Windows::VulkanWindowSurface>& surface)
+	void LogicalDevice::Create(std::weak_ptr<VulkanInstanceWrapper> instance, std::weak_ptr<ValidationLayer> validationLayer, std::weak_ptr<Windows::VulkanWindowSurface> surface)
 	{
 		// -- Big Step here --
 		// Physical Devices and Queue Families Initialization
@@ -32,60 +30,57 @@ namespace Sculptor::Core
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfoList;
 		const std::set<uint32_t> uniqueQueueFamilies = {
-			indices.graphicsFamily.value(),
-			indices.presetFamily.value()
+			indices.GetGraphicsFamily().value(),
+			indices.GetPresetFamily().value()
 		};
 
 		// required to set up queuePriority because Vulkan demands it even if there is only single queue
 		constexpr float queuePriority = 1.0f;
 		for (const auto queueFamily : uniqueQueueFamilies)
 		{
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
+			const auto queueCreateInfo = CreateInfo<VkDeviceQueueCreateInfo>({
+				.queueFamilyIndex = queueFamily,
+				.queueCount = 1,
+				.pQueuePriorities = &queuePriority
+			});
 
 			// push_back the QueueInfo to the vector
 			queueCreateInfoList.push_back(queueCreateInfo);
 		}
 
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoList.size());
-		createInfo.pQueueCreateInfos = queueCreateInfoList.data();
-		createInfo.pEnabledFeatures = &physicalDevice->GetDeviceFeatures();
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size());
-		createInfo.ppEnabledExtensionNames = DEVICE_EXTENSIONS.data();
+		auto createInfo = CreateInfo<VkDeviceCreateInfo>({
+			.queueCreateInfoCount		= static_cast<uint32_t>(queueCreateInfoList.size()),
+			.pQueueCreateInfos			= queueCreateInfoList.data(),
+			.enabledExtensionCount		= static_cast<uint32_t>(DEVICE_EXTENSIONS.size()),
+			.ppEnabledExtensionNames	= DEVICE_EXTENSIONS.data(),
+			.pEnabledFeatures			= &physicalDevice->GetDeviceFeatures()
+		});
 
-		GetShared<ValidationLayer> validationLayerPtr { validationLayer };
+		GetShared<ValidationLayer> validationLayerPtr { std::move(validationLayer) };
 
 		if (validationLayerPtr != nullptr && validationLayerPtr->IsEnabled())
 		{
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerPtr->GetValidationLayersArray().size());
-			createInfo.ppEnabledLayerNames = validationLayerPtr->GetValidationLayersArray().data();
+			createInfo.enabledLayerCount	= static_cast<uint32_t>(validationLayerPtr->GetValidationLayersArray().size());
+			createInfo.ppEnabledLayerNames	= validationLayerPtr->GetValidationLayersArray().data();
 		}
 		else 
 		{
 			createInfo.enabledLayerCount = 0;
 		}
 
-		createInfo.pNext = nullptr;
-
-		const auto result = vkCreateDevice(physicalDevice->GetPrimaryDevice(), &createInfo, nullptr, &logicalDevice);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create Logical Device!");
+		VK_CHECK(vkCreateDevice(physicalDevice->GetPrimaryDevice(), &createInfo, nullptr, &logicalDevice), "Failed to create Logical Device!")
 
 		// Graphics-Queue for Logical Device
 		vkGetDeviceQueue(
 			logicalDevice, 
-			indices.graphicsFamily.value(),
+			indices.GetGraphicsFamily().value(),
 			0, 
 			&queueFamilies.GetGraphicsQueue());
 
 		// Present-Queue for Logical Device
 		vkGetDeviceQueue(
 			logicalDevice,
-			indices.presetFamily.value(),
+			indices.GetPresetFamily().value(),
 			0,
 			&queueFamilies.GetPresentQueue());
 	}
@@ -95,7 +90,7 @@ namespace Sculptor::Core
 		physicalDevice->SetAnisotropyFeatures(value);
 	}
 
-	const VkDevice& LogicalDevice::Get() const
+	VkDevice LogicalDevice::Get() const
 	{
 		return logicalDevice;
 	}

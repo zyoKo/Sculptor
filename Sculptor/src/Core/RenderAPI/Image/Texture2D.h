@@ -1,47 +1,30 @@
 #pragma once
 
-#include "Core/RenderAPI/Interfaces/BufferUtility.h"
-#include "Structures/TextureBufferProperties.h"
-
 namespace Sculptor::Core
 {
-	class Texture2D : public BufferUtility
+	class Texture2D
 	{
 	public:
 		virtual ~Texture2D() = default;
 
-		virtual void AllocateBuffer(TextureBufferProperties& bufferProperties) = 0;
+		virtual void Create(const std::string& filePath);
 
-		virtual void CreateTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, int textureWidth, int textureHeight, VkFormat format, 
-			VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) = 0;
+		virtual void InitializeTexture(const VkDevice device, const VkPhysicalDevice physicalDevice, U32 textureWidth, U32 textureHeight, VkFormat format, 
+		                               VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
-		const VkImage& GetTextureImage() const
-		{
-			return textureImage;
-		}
+		const VkImage& GetTextureImage() const;
 
-		const VkDeviceMemory& GetImageMemory() const
-		{
-			return imageMemory;
-		}
+		const VkDeviceMemory& GetImageMemory() const;
 
-		void BindMemory(const VkDevice& device, VkDeviceSize memoryOffset) const
-		{
-			vkBindImageMemory(device, textureImage, imageMemory, memoryOffset);
-		}
-
-		void Destroy(const VkDevice& device) const
-		{
-			vkDestroyImage(device, textureImage, nullptr);
-
-			vkFreeMemory(device, imageMemory, nullptr);
-		}
+		void BindMemory(const VkDevice& device, VkDeviceSize memoryOffset) const;
 
 	protected:
-		VkImage textureImage{};
+		VkImage textureImage;
 
-		VkDeviceMemory imageMemory{};
+		VkDeviceMemory imageMemory;
 
-		Texture2D() = default;
+		Texture2D();
+
+		void Destroy(const VkDevice& device) const;
 	};
 }
