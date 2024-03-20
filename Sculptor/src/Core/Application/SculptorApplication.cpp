@@ -3,7 +3,6 @@
 #include "SculptorApplication.h"
 
 #include "Core/Locators/CommandPoolLocator.h"
-//#include "Core/Locators/DescriptorPoolLocator.h"
 #include "Core/Locators/LogicalDeviceLocator.h"
 #include "Core/Locators/SwapChainLocator.h"
 #include "Platform/Windows/WindowData/WindowConstants.h"
@@ -23,9 +22,7 @@
 #include "Core/RenderAPI/Buffers/CommandBuffer.h"
 #include "Core/RenderAPI/Buffers/UniformBuffer.h"
 #include "Core/RenderAPI/Buffers/Structures/UniformBufferObject.h"
-//#include "Core/RenderAPI/DescriptorSet/DescriptorSetLayout.h"
 #include "Core/RenderAPI/Pools/DescriptorPool.h"
-//#include "Core/RenderAPI/DescriptorSet/DescriptorSets.h"
 #include "Core/RenderAPI/Image/VulkanTexture.h"
 #include "Core/RenderAPI/Utility/CreateInfo.h"
 #include "Core/RenderAPI/Features/DepthTesting.h"
@@ -36,6 +33,9 @@
 #include "Utilities/Logger/Assert.h"
 #include "Core/RenderAPI/DescriptorSet/ResourceBuilder.h"
 #include "Core/Tools/EngineTools.h"
+#include "Components/Camera/Camera.h"
+#include "Core/Input/Input.h"
+#include "Core/Utility/Time.h"
 
 namespace Sculptor::Core
 {
@@ -53,17 +53,16 @@ namespace Sculptor::Core
 			commandPool(std::make_shared<CommandPool>(logicalDevice)),
 			currentFrame(0),
 			texture(std::make_shared<VulkanTexture>(logicalDevice, commandPool)),
-			//descriptorSetLayout(std::make_shared<DescriptorSetLayout>()),
-			//descriptorPool(std::make_shared<DescriptorPool>()),
-			//descriptorSets(std::make_shared<DescriptorSets>()),
 			depthTest(std::make_shared<DepthTesting>(logicalDevice, swapChain)),
 			mesh(std::make_shared<Component::Mesh>(logicalDevice)),
-			engineTools(std::make_shared<EngineTools>(logicalDevice))
+			engineTools(std::make_shared<EngineTools>(logicalDevice)),
+			mainCamera(nullptr)
 	{
 		LogicalDeviceLocator::Provide(logicalDevice);
 		CommandPoolLocator::Provide(commandPool);
 		SwapChainLocator::Provide(swapChain);
-		//DescriptorPoolLocator::Provide(descriptorPool);
+
+		Component::Camera::GetInstance()->Initialize(window);
 
 		SupportUtility::SetLogicalDevice(logicalDevice);
 		depthTest->SetCommandPool(commandPool);
@@ -85,8 +84,6 @@ namespace Sculptor::Core
 
 		graphicsPipeline->SetVertexBuffer(mesh->GetVertexBuffer());
 		graphicsPipeline->SetIndexBuffer(mesh->GetIndexBuffer());
-		//graphicsPipeline->SetDescriptorSetLayout(descriptorSetLayout);
-		//graphicsPipeline->SetDescriptorSets(descriptorSets);
 
 		uniformBuffers.reserve(MAX_FRAMES_IN_FLIGHT);
 		for (unsigned i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -110,9 +107,7 @@ namespace Sculptor::Core
 
 	void SculptorApplication::InitializeWindow() const
 	{
-		constexpr WindowProperties windowProperties{ WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE };
-
-		window->InitializeWindow(windowProperties);
+		window->InitializeWindow(std::make_unique<WindowProperties>(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE));
 	}
 
 	void SculptorApplication::InitializeVulkan()
@@ -123,8 +118,6 @@ namespace Sculptor::Core
 
 		windowSurface->Create(vulkanInstanceWrapper, window);
 
-		// Physical-Device selection abstracted to the method call below
-		// Queue-Family Initialization abstracted to method call below
 		logicalDevice->Create(vulkanInstanceWrapper, validationLayer, windowSurface);
 
 		swapChain->Create(windowSurface);
@@ -181,6 +174,8 @@ namespace Sculptor::Core
 			renderFinishedSemaphores[i].Create();
 			inFlightFences[i].Create();
 		}
+
+		mainCamera = Component::Camera::GetInstance();
 	}
 
 	void SculptorApplication::MainLoop()
@@ -189,7 +184,13 @@ namespace Sculptor::Core
 
 		while (!window->WindowShouldClose())
 		{
-			window->PollEvents();
+			WindowsWindow::PollEvents();
+
+			Input::Update();
+
+			Time::Update();
+
+			mainCamera->Update();
 
 			DrawFrame();
 		}
@@ -213,10 +214,6 @@ namespace Sculptor::Core
 		commandPool->CleanUp();
 
 		graphicsPipeline->CleanUp();
-
-		//descriptorPool->CleanUp();
-		//
-		//descriptorSetLayout->CleanUp();
 
 		resourceBuilder->CleanUp();
 
@@ -297,8 +294,7 @@ namespace Sculptor::Core
 		const auto& graphicsQueue = logicalDevice->GetQueueFamilies().GetGraphicsQueue();
 		const auto& presentQueue = logicalDevice->GetQueueFamilies().GetPresentQueue();
 
-		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get()),
-			"Failed to submit draw command buffer.")
+		VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame].Get()), "Failed to submit draw command buffer.")
 
 		const VkSwapchainKHR swapChains[] = { swapChain->Get() };
 

@@ -11,6 +11,7 @@ namespace Sculptor::Windows
 namespace Sculptor::Component
 {
 	class Mesh;
+	class Camera;
 }
 
 namespace Sculptor::Core
@@ -28,9 +29,6 @@ namespace Sculptor::Core
 	class CommandPool;
 	class CommandBuffer;
 	class UniformBuffer;
-	//class DescriptorSetLayout;
-	//class DescriptorPool;
-	//class DescriptorSets;
 	class VulkanTexture;
 	class TextureSampler;
 	class DepthTesting;
@@ -81,22 +79,19 @@ namespace Sculptor::Core
 
 		std::vector<std::shared_ptr<CommandBuffer>> commandBuffers;
 
-		// Sync Primitives
+		//-- Sync Primitives --//
 		std::vector<VulkanSemaphoreWrapper> imageAvailableSemaphores;
+
 		std::vector<VulkanSemaphoreWrapper> renderFinishedSemaphores;
+
 		std::vector<VulkanFenceWrapper> inFlightFences;
+		//-- Sync Primitives --//
 
 		uint32_t currentFrame;
 
 		std::shared_ptr<VulkanTexture> texture;
 
 		std::vector<std::shared_ptr<UniformBuffer>> uniformBuffers;
-
-		//std::shared_ptr<DescriptorSetLayout> descriptorSetLayout;
-		//
-		//std::shared_ptr<DescriptorPool> descriptorPool;
-		//
-		//std::shared_ptr<DescriptorSets> descriptorSets;
 
 		std::shared_ptr<ResourceBuilder> resourceBuilder;
 
@@ -105,6 +100,8 @@ namespace Sculptor::Core
 		std::shared_ptr<Component::Mesh> mesh;
 
 		std::shared_ptr<EngineTools> engineTools;
+
+		Component::Camera* mainCamera;
 
 		void InitializeWindow() const;
 

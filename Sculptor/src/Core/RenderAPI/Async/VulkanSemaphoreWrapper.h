@@ -1,4 +1,5 @@
 #pragma once
+#include "Utilities/Macros.h"
 
 namespace Sculptor::Core
 {
@@ -10,9 +11,13 @@ namespace Sculptor::Core
 	class VulkanSemaphoreWrapper
 	{
 	public:
-		VulkanSemaphoreWrapper() noexcept = default;
+		VulkanSemaphoreWrapper() noexcept;
 
-		VulkanSemaphoreWrapper(const std::weak_ptr<LogicalDevice>& device);
+		VulkanSemaphoreWrapper(std::weak_ptr<LogicalDevice> device) noexcept;
+
+		VulkanSemaphoreWrapper(VulkanSemaphoreWrapper&) = delete;
+
+		VulkanSemaphoreWrapper(VulkanSemaphoreWrapper&&) = default;
 
 		~VulkanSemaphoreWrapper() = default;
 
@@ -22,11 +27,9 @@ namespace Sculptor::Core
 
 		const VkSemaphore& Get() const;
 
-		void SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device);
+		LOGICAL_DEVICE
 
 	private:
-		VkSemaphore semaphore{};
-
-		std::weak_ptr<LogicalDevice> logicalDevice;
+		VkSemaphore semaphore;
 	};
 }

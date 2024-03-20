@@ -21,7 +21,9 @@ namespace Sculptor::Core
 
 		~WindowsWindow() = default;
 
-		bool InitializeWindow(const WindowProperties& windowProperties);
+		bool InitializeWindow(std::unique_ptr<WindowProperties> windowProperties);
+
+		const WindowProperties* GetWindowProperties() const;
 
 		GLFWwindow* GetGLFWWindow() const;
 
@@ -29,13 +31,21 @@ namespace Sculptor::Core
 
 		void Shutdown() const;
 
-		void PollEvents() const;
+		static void PollEvents();
 
 	private:
 		GLFWwindow* window;
 
+		std::unique_ptr<WindowProperties> windowProperties;
+
 		bool frameBufferResized;
 
 		static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
+
+		static void CursorPositionCallback(GLFWwindow* window, double xOffset, double yOffset);
+
+		static void KeyboardKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods);
+
+		static void MouseKeyCallback(GLFWwindow* window, int button, int action, int mods);
 	};
 }

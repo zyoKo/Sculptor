@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffer.h"
+#include "Components/Camera/Camera.h"
 
 namespace Sculptor::Core
 {

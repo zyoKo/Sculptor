@@ -3,51 +3,39 @@
 #include "VulkanSemaphoreWrapper.h"
 
 #include "Core/RenderAPI/Devices/LogicalDevice.h"
-#include "Utilities/Logger/Assert.h"
+#include "Core/RenderAPI/Utility/CreateInfo.h"
 
 namespace Sculptor::Core
 {
-	VulkanSemaphoreWrapper::VulkanSemaphoreWrapper(const std::weak_ptr<LogicalDevice>& device)
-		:	logicalDevice(device)
+	VulkanSemaphoreWrapper::VulkanSemaphoreWrapper() noexcept
+		:	semaphore(VK_NULL_HANDLE)
+	{ }
+
+	VulkanSemaphoreWrapper::VulkanSemaphoreWrapper(std::weak_ptr<LogicalDevice> device) noexcept
+		:	logicalDevice(std::move(device)),
+			semaphore(VK_NULL_HANDLE)
 	{ }
 
 	void VulkanSemaphoreWrapper::Create()
 	{
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
 
-		const auto logicalDevicePtr = logicalDevice.lock();
-		if (!logicalDevicePtr)
-		{
-			std::cerr << "Failed to create semaphore. Logical Device reference is null." << std::endl;
-			return;
-		}
-		const auto& device = logicalDevicePtr->Get();
+		const auto semaphoreCreateInfo = CreateInfo<VkSemaphoreCreateInfo>();
 
-		const auto result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore);
-		S_ASSERT(result != VK_SUCCESS, "Failed to create semaphore.");
+		VK_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, VK_NULL_HANDLE, &semaphore), "Failed to create semaphore.")
 	}
 
 	void VulkanSemaphoreWrapper::Destroy() const
 	{
-		const auto logicalDevicePtr = logicalDevice.lock();
-		if (!logicalDevicePtr)
-		{
-			std::cerr << "Failed to create fence. Logical Device reference is null." << std::endl;
-			return;
-		}
-		const auto& device = logicalDevicePtr->Get();
+		GetShared<LogicalDevice> logicalDevicePtr{ logicalDevice };
+		const auto device = logicalDevicePtr->Get();
 
-		vkDestroySemaphore(device, semaphore, nullptr);
+		vkDestroySemaphore(device, semaphore, VK_NULL_HANDLE);
 	}
 
 	const VkSemaphore& VulkanSemaphoreWrapper::Get() const
 	{
 		return semaphore;
-	}
-
-	void VulkanSemaphoreWrapper::SetLogicalDevice(const std::weak_ptr<LogicalDevice>& device)
-	{
-		this->logicalDevice = device;
 	}
 }

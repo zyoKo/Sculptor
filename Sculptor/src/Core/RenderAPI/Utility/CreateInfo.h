@@ -314,4 +314,12 @@ namespace Sculptor::Core
 		info.pNext = pNextChain;
 		return info;
 	}
+
+	template <>
+	[[nodiscard]] inline VkSemaphoreCreateInfo CreateInfo(VkSemaphoreCreateInfo info, const void* pNextChain)
+	{
+		info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		info.pNext = pNextChain;
+		return info;
+	}
 }

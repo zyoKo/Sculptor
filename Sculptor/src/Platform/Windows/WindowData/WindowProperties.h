@@ -4,10 +4,10 @@ namespace Sculptor::Core
 {
 	struct WindowProperties
 	{
-		int windowWidth;
+		int windowWidth{ 0 };
 
-		int windowHeight;
+		int windowHeight{ 0 };
 
-		const char* windowTitle;
+		const char* windowTitle{ nullptr };
 	};
 }
