@@ -10,7 +10,8 @@ namespace Sculptor::Core
 {
 	KeyCode GlfwKeyToEngineKeyCode(int glfwKey)
 	{
-		std::cout << "GLFW KEY: " << glfwKey << "\n";
+		// TODO: Remove this before merging
+		//std::cout << "GLFW KEY: " << glfwKey << "\n";
 
 		// A to Z
 		if (glfwKey >= GLFW_KEY_A && glfwKey <= GLFW_KEY_Z)
@@ -54,9 +55,15 @@ namespace Sculptor::Core
 
 		case GLFW_KEY_EQUAL:
 			return KeyCode::KEY_EQUAL;
+
+		default: 
+			return KeyCode::KEY_NONE;
 		}
 #pragma endregion
+	}
 
-		return KeyCode::KEY_NONE;
+	void PrintKeyUsed(KeyCode keyCode)
+	{
+		std::cout << "Key Used: " << static_cast<char>(keyCode) << '\n';
 	}
 }

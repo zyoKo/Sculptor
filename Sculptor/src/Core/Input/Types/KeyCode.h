@@ -2,7 +2,7 @@
 
 namespace Sculptor::Core
 {
-	enum class KeyCode : std::uint8_t
+	enum class KeyCode : std::int8_t
 	{
 		KEY_NONE = -1,
 
@@ -101,5 +101,5 @@ namespace Sculptor::Core
 
 	KeyCode GlfwKeyToEngineKeyCode(int glfwKey);
 
-	void PrintKeyUsed(KeyCode keyCode);
+	extern void PrintKeyUsed(KeyCode keyCode);
 }

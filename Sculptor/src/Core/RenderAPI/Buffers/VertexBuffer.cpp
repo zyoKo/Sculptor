@@ -79,9 +79,10 @@ namespace Sculptor::Core
 			"Failed to Map Memory in Vertex Buffer!")
 
 #ifdef DEBUG
-		void* result = 
-#endif
+		void* result = memcpy(newData, data, static_cast<size_t>(bufferInfo.size));
+#else
 		memcpy(newData, data, static_cast<size_t>(bufferInfo.size));
+#endif
 	}
 
 	void VertexBuffer::UnMapMemory() const

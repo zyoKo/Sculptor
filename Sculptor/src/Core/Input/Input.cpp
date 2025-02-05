@@ -51,9 +51,9 @@ namespace Sculptor::Core
 
 	void Input::SetCursorHidden(bool value)
 	{
-		instance->isCursorVisibilityDirty = true;
+		isCursorVisibilityDirty = true;
 
-		instance->isCursorVisible = value;
+		isCursorVisible = value;
 	}
 
 	double Input::GetMouseX()
@@ -93,7 +93,8 @@ namespace Sculptor::Core
 
 	void Input::MousePositionCallback(double xPosition, double yPosition)
 	{
-		std::cout << "Mouse Position: (" << xPosition << ", " << yPosition << ")\n";
+		// TODO: Remove this before merging
+		//std::cout << "Mouse Position: (" << xPosition << ", " << yPosition << ")\n";
 	}
 
 	void Input::UpdateKeyActionsList()
