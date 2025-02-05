@@ -11,20 +11,30 @@ namespace Sculptor::Core
 	public:
 		static void Initialize();
 
+		static void Update();
+
 		static bool IsKeyPressed(KeyCode keyCode);
 
 		static bool IsKeyReleased(KeyCode keyCode);
 
 		static bool IsKeyHeld(KeyCode keyCode);
 
-		static void Update();
+		static void SetCursorHidden(bool value);
+
+		static double GetMouseX();
+
+		static double GetMouseY();
 
 	private:
-		Input();
+		bool isKeyActionDirty;
 
-		static Input* GetInstance();
+		static bool isCursorVisibilityDirty;
 
-		bool isKeyActionDirty{ true };
+		static bool isCursorVisible;
+
+		double mouseX;
+
+		double mouseY;
 
 		static std::unique_ptr<Input> instance;
 
@@ -32,7 +42,13 @@ namespace Sculptor::Core
 
 		FRIEND(WindowsWindow)
 
+		Input();
+
+		static Input* GetInstance();
+
 		static void KeyCallback(int key, int scanCode, int action, int mods);
+
+		static void MousePositionCallback(double xPosition, double yPosition);
 
 		static void UpdateKeyActionsList();
 	};

@@ -31,9 +31,9 @@ namespace Sculptor::Core
 
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, FrameBufferSizeCallback);
-		glfwSetCursorPosCallback(window, CursorPositionCallback);
 		glfwSetKeyCallback(window, KeyboardKeyCallback);
 		glfwSetMouseButtonCallback(window, MouseKeyCallback);
+		glfwSetCursorPosCallback(window, MouseCursorCallback);
 
 		return true;
 	}
@@ -50,7 +50,14 @@ namespace Sculptor::Core
 
 	bool WindowsWindow::WindowShouldClose() const
 	{
-		return glfwWindowShouldClose(window);
+		int result = glfwWindowShouldClose(window);
+
+		if (!result)
+		{
+			this->UpdateCursorVisibility();
+		}
+
+		return result;
 	}
 
 	void WindowsWindow::Shutdown() const
@@ -71,11 +78,6 @@ namespace Sculptor::Core
 		app->frameBufferResized = true;
 	}
 
-	void WindowsWindow::CursorPositionCallback(GLFWwindow* window, double xOffset, double yOffset)
-	{
-		//std::cout << "Cursor Position: (" << xOffset << ", " << yOffset << ")\n";
-	}
-
 	void WindowsWindow::KeyboardKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods)
 	{
 		Input::KeyCallback(key, scanCode, action, mods);
@@ -83,6 +85,28 @@ namespace Sculptor::Core
 
 	void WindowsWindow::MouseKeyCallback(GLFWwindow* window, int button, int action, int mods)
 	{
+	}
 
+	void WindowsWindow::MouseCursorCallback(GLFWwindow* window, double xPosition, double yPosition)
+	{
+		Input::MousePositionCallback(xPosition, yPosition);
+	}
+
+	void WindowsWindow::UpdateCursorVisibility() const
+	{
+		if (!Input::isCursorVisibilityDirty)
+		{
+			return;
+		}
+
+		if (Input::isCursorVisible)
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			Input::isCursorVisibilityDirty = false;
+			return;
+		}
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 }

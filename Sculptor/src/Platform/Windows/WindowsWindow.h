@@ -42,10 +42,12 @@ namespace Sculptor::Core
 
 		static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
 
-		static void CursorPositionCallback(GLFWwindow* window, double xOffset, double yOffset);
-
 		static void KeyboardKeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods);
 
 		static void MouseKeyCallback(GLFWwindow* window, int button, int action, int mods);
+
+		static void MouseCursorCallback(GLFWwindow* window, double xPosition, double yPosition);
+
+		void UpdateCursorVisibility() const;
 	};
 }
